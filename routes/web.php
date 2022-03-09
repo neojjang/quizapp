@@ -57,6 +57,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::get('/detailQuestion/{question}', [QuestionsController::class, 'detailQuestion'])
         ->name('detailQuestion');
 
+    Route::get('/editQuestion/{question}', [QuestionsController::class, 'editQuestion'])
+        ->name('editQuestion');
+
     Route::post('/storeQuestion/{section}', [QuestionsController::class, 'storeQuestion'])
         ->name('storeQuestion');
     Route::post('/deleteQuestion/{id}', [QuestionsController::class, 'deleteQuestion'])

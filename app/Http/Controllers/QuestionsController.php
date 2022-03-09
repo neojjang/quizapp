@@ -45,7 +45,35 @@ class QuestionsController extends Controller
 
         $status = $question->answers()->createMany($data['answers'])->push();
         return redirect()->route('detailSection', $section->id)
-            ->withSuccess('Question created successfully');;
+            ->withSuccess('Question created successfully');
+    }
+
+    public function editQuestion(Question $question)
+    {
+        $section = $question->section();
+        $answers = $question->answers()->paginate(10);
+        return view('admins.create_question', compact('section', 'question', 'answers'));
+    }
+
+    public function updateQuestion(Question $question, Request $request)
+    {
+        $data = $request->validate([
+            'question' => ['required', Rule::unique('questions')],
+            'explanation' => 'required',
+            'is_active' => 'required',
+            'answers.*.answer' => 'required',
+            'answers.*.is_checked' => 'present'
+        ]);
+
+        $question->question = $data['question'];
+        $question->explanation = $data['explanation'];
+        $question->is_active = $data['is_active'];
+        $question->save();
+
+        $question->answers()->delete();
+        $status = $question->answers()->createMany($data['answers'])->push();
+        return redirect()->route('detailSection', $question->section_id)
+            ->withSuccess('Question created successfully');
     }
 
     function deleteQuestion($id)
