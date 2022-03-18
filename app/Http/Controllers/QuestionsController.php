@@ -41,6 +41,7 @@ class QuestionsController extends Controller
             'is_active' => $request->is_active,
             'user_id' => Auth::id(),
             'section_id' => $section->id,
+	    'type_id' => isset($request->type_id) ? $request->type_id:1
         ]);
 
         $status = $question->answers()->createMany($data['answers'])->push();
