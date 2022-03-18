@@ -13,21 +13,31 @@
                         <form action="{{route('storeQuestion', $section)}}" method="post">
                             @csrf
                             <label class="block">
-                                <span class="text-gray-700">Question</span>
+                                <span class="text-gray-700">문제</span>
                                 @error('question')
                                 <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
                                 @enderror
                                 <input name="question" value="{{ old('question') }}" type="text" class="mt-1 block w-full text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                             </label>
                             <label class="block">
-                                <span class="text-gray-700">Explanation</span>
+                                <span class="text-gray-700">문제 설명</span>
                                 @error('explanation')
                                 <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
                                 @enderror
                                 <textarea name="explanation" type="text" class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('explanation') }}</textarea>
                             </label>
                             <label class="block">
-                                <span class="text-gray-700">Is this question active?</span>
+                                <span class="text-gray-700">문제 종류 선택</span>
+                                @error('type_id')
+                                <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
+                                @enderror
+                                <select name="type_id" value="{{ old('type_id') }}" class="block w-1/2 mt-1 text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0">
+                                    <option value="2">서술형(첫번째 답만 사용)</option>
+                                    <option value="1">선택형</option>
+                                </select>
+                            </label>
+                            <label class="block">
+                                <span class="text-gray-700">문제 활성</span>
                                 @error('is_active')
                                 <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
                                 @enderror
@@ -39,7 +49,7 @@
                             <div class="grid grid-cols-1 my-5 justify-center">
                                 <label class="flex items-center">
                                     @error('answers.0.answer')
-                                    <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
+                                    <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
                                     @enderror
                                     <input type="hidden" value="0" name="answers[0][is_checked]">
                                     <input type="checkbox" value="1" name="answers[0][is_checked]">
@@ -48,8 +58,8 @@
                                     </span>
                                 </label>
                                 <label class="flex items-center">
-                                    @error('answers.0.answer')
-                                    <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
+                                    @error('answers.1.answer')
+                                    <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
                                     @enderror
                                     <input type="hidden" value="0" name="answers[1][is_checked]">
                                     <input type="checkbox" value="1" name="answers[1][is_checked]">
@@ -58,8 +68,8 @@
                                     </span>
                                 </label>
                                 <label class="flex items-center">
-                                    @error('answers.0.answer')
-                                    <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
+                                    @error('answers.2.answer')
+                                    <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
                                     @enderror
                                     <input type="hidden" value="0" name="answers[2][is_checked]">
                                     <input type="checkbox" value="1" name="answers[2][is_checked]">
@@ -68,8 +78,8 @@
                                     </span>
                                 </label>
                                 <label class="flex items-center">
-                                    @error('answers.0.answer')
-                                    <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
+                                    @error('answers.3.answer')
+                                    <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
                                     @enderror
                                     <input type="hidden" value="0" name="answers[3][is_checked]">
                                     <input type="checkbox" value="1" name="answers[3][is_checked]">

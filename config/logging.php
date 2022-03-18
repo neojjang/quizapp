@@ -4,6 +4,11 @@ use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 
+if(env("APP_ENV") !== "production")
+    $stack = ["daily", "error_log"];
+else
+    $stack = ["daily", "slack", "error_log"];
+
 return [
 
     /*
@@ -37,7 +42,7 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
+            'channels' => $stack,
             'ignore_exceptions' => false,
         ],
 
@@ -45,13 +50,15 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
+	    'permission' => 0666
         ],
 
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-            'days' => 14,
+            'days' => 7,
+	    'permission' => 0666
         ],
 
         'slack' => [
@@ -85,6 +92,13 @@ return [
         'syslog' => [
             'driver' => 'syslog',
             'level' => env('LOG_LEVEL', 'debug'),
+        ],
+	'error_log' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/error_log.log'),
+            'permission' => 0666,
+            'level' => 'error',
+            'days' => 7
         ],
 
         'errorlog' => [

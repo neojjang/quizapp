@@ -8,6 +8,8 @@ use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 
 class QuestionsController extends Controller
 {
@@ -25,16 +27,33 @@ class QuestionsController extends Controller
 
     public function storeQuestion(Section $section, Request $request)
     {
+	Log::debug("storeQuestion...");
+	Log::debug($request);
         $section = $section;
+
         $data = $request->validate([
             'question' => ['required', Rule::unique('questions')],
             'explanation' => 'required',
             'is_active' => 'required',
-            'answers.*.answer' => 'required',
+	    'type_id' => ['required','numeric', 'in:1,2'],
+            //'answers.*.answer' => 'required',
+            'answers.0.answer' => 'required',
+            'answers.1.answer' => 'nullable',
+            'answers.2.answer' => 'nullable',
+            'answers.3.answer' => 'nullable',
             'answers.*.is_checked' => 'present'
-        ]);
+	],[
+	    'question.required' => '문제는 필수 항목입니다.',
+	    'explanation.required' => '문제설명은 필수 항목입니다.',
+	    'is_active.required' => 'is_active 필수 항목입니다.',
+	    'type_id.numeric' => 'type_id는 숫자입니다.',
+	    'answers.0.answer.required' => 'answer는 필수입니다.',
+	    'answers.1.answer.required' => 'answer는 필수입니다.',
+	    'answers.2.answer.required' => 'answer는 필수입니다.',
+	    'answers.3.answer.required' => 'answer는 필수입니다.',
+	]);
 
-
+	Log::debug($data);
         $question = Question::create([
             'question' => $request->question,
             'explanation' => $request->explanation,
