@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\App;
 use Carbon\Carbon;
 use Illuminate\Support\ServiceProvider;
 use ConsoleTVs\Charts\Registrar as Charts;
@@ -16,6 +17,18 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //
+        if (!App::environment('local'))
+            URL::forceScheme('https');
+        //
+        if ($this->app->environment() !== 'production') {
+            \Event::listen('Illuminate\Database\Events\QueryExecuted', function ($query) {
+                \Log::info([
+                    'sql' => $query->sql,
+                    'bindings' => $query->bindings,
+                    'time' => $query->time,
+                ]);
+            });
+        }
     }
 
     /**

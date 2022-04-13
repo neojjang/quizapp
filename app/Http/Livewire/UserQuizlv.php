@@ -8,6 +8,7 @@ use App\Models\Section;
 use Livewire\Component;
 use App\Models\Question;
 use App\Models\QuizHeader;
+use Illuminate\Support\Facades\Log;
 
 class UserQuizlv extends Component
 {
@@ -31,7 +32,7 @@ class UserQuizlv extends Component
 
     protected $rules = [
         'sectionId' => 'required',
-        'quizSize' => 'required|numeric',
+        // 'quizSize' => 'required|numeric',
     ];
 
 
@@ -126,6 +127,11 @@ class UserQuizlv extends Component
         // Create a new quiz header in quiz_headers table and populate initial quiz information
         // Keep the instance in $this->quizid veriable for later updates to quiz.
         $this->validate();
+
+        // 섹션 퀴즈의 전체 갯수를 항상 처리 
+        Log::debug("startQuiz sectionId=".$this->sectionId);
+        $this->quizSize = Question::query()->where('section_id', $this->sectionId)->where('is_active', '1')->count();
+        Log::debug("startQuiz quizSize=".$this->quizSize);
         $this->quizid = QuizHeader::create([
             'user_id' => auth()->id(),
             'quiz_size' => $this->quizSize,

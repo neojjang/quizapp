@@ -7,11 +7,13 @@ use App\Models\User;
 use App\Models\Section;
 use App\Models\Question;
 use App\Models\QuizHeader;
+use Illuminate\Support\Facades\Log;
 
 class AppUserController extends Controller
 {
     public function startQuiz()
     {
+        Log::info("AppUserController::startQuiz");
         return view('appusers.quiz');
     }
 

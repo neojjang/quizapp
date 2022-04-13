@@ -158,12 +158,12 @@
                                 <p class="text-gray-500">If checked, this will enable explanation tab for each question.</p>
                             </div>
                         </div>
-                        <div class="relative mb-4">
+                        <!-- <div class="relative mb-4">
                             <select name="quiz_size" id="quiz_size" wire:model="quizSize" class="max-w-full block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
                                 @for ($i = 1; $i <= 50; $i++) <option value="{{ $i }}">{{ $i }}</option> @endfor
                             </select>
                             @error('quizSize') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
-                        </div>
+                        </div> -->
                         <button type="submit" class="block w-full text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Start Quiz</button>
                     </form>
                 </div>

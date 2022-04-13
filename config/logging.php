@@ -5,7 +5,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 
 if(env("APP_ENV") !== "production")
-    $stack = ["daily", "error_log"];
+    $stack = ["daily", "single", "error_log"];
 else
     $stack = ["daily", "slack", "error_log"];
 

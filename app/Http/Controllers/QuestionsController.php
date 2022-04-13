@@ -42,16 +42,16 @@ class QuestionsController extends Controller
             'answers.2.answer' => 'nullable',
             'answers.3.answer' => 'nullable',
             'answers.*.is_checked' => 'present'
-	],[
-	    'question.required' => '문제는 필수 항목입니다.',
-	    'explanation.required' => '문제설명은 필수 항목입니다.',
-	    'is_active.required' => 'is_active 필수 항목입니다.',
-	    'type_id.numeric' => 'type_id는 숫자입니다.',
-	    'answers.0.answer.required' => 'answer는 필수입니다.',
-	    'answers.1.answer.required' => 'answer는 필수입니다.',
-	    'answers.2.answer.required' => 'answer는 필수입니다.',
-	    'answers.3.answer.required' => 'answer는 필수입니다.',
-	]);
+        ],[
+            'question.required' => '문제는 필수 항목입니다.',
+            'explanation.required' => '문제설명은 필수 항목입니다.',
+            'is_active.required' => 'is_active 필수 항목입니다.',
+            'type_id.numeric' => 'type_id는 숫자입니다.',
+            'answers.0.answer.required' => 'answer는 필수입니다.',
+            'answers.1.answer.required' => 'answer는 필수입니다.',
+            'answers.2.answer.required' => 'answer는 필수입니다.',
+            'answers.3.answer.required' => 'answer는 필수입니다.',
+        ]);
 
 	Log::debug($data);
         $question = Question::create([
