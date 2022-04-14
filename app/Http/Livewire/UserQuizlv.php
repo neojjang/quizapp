@@ -76,10 +76,20 @@ class UserQuizlv extends Component
 
     public function updatedUserAnswered()
     {
-        if ((empty($this->userAnswered) || (count($this->userAnswered) > 1))) {
-            $this->isDisabled = true;
+        Log::debug("updatedUserAnswered : ".$this->userAnswered);
+        if ($this->currentQuestion->type_id == 2) {
+            # 주관식인 경우 
+            if (empty(trim($this->userAnswered))) {
+                $this->isDisabled = true;
+            } else {
+                $this->isDisabled = false;
+            }
         } else {
-            $this->isDisabled = false;
+            if ((empty($this->userAnswered) || (count($this->userAnswered) > 1))) {
+                $this->isDisabled = true;
+            } else {
+                $this->isDisabled = false;
+            }
         }
     }
 
@@ -147,11 +157,23 @@ class UserQuizlv extends Component
 
     public function nextQuestion()
     {
-        // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
-        $this->quizid->questions_taken = serialize($this->answeredQuestions);
+        Log::debug("nextQuestion : 정답 여부 체크");
+        if ($this->currentQuestion->type_id == 1) {
+            // 객관식에 대한 처리
+            // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
+            $this->quizid->questions_taken = serialize($this->answeredQuestions);
 
-        // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
-        list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
+            // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
+            list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
+            $userAnswered = $answerId;
+        } else {
+            // 주관식에 대한 처리를 해야만 함
+            $answerId = $this->currentQuestion->answers[0]->id;
+            $userAnswered = $this->userAnswered;
+            $isChoiceCorrect = ($userAnswered == $this->currentQuestion->answers[0]->answer)?'1':'0';
+            // 파이썬으로 주관식 답 여부 체크 
+            Log::debug("주관식 : user_answer=".$userAnswered.", answer=".$this->currentQuestion->answers[0]->answer);
+        }
 
         // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
         Quiz::create([
@@ -160,6 +182,7 @@ class UserQuizlv extends Component
             'section_id' => $this->currentQuestion->section_id,
             'question_id' => $this->currentQuestion->id,
             'answer_id' => $answerId,
+            'user_answer' => $userAnswered,
             'is_correct' => $isChoiceCorrect
         ]);
 
