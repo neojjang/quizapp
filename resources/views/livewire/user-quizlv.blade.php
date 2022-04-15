@@ -46,7 +46,9 @@
                     @endif
                     </div>
                 </label>
-                @break
+                @if($currentQuestion->type_id == 2)
+                    @break
+                @endif
                 @endforeach
             </div>
             <div class="flex items-center justify-end mt-4">

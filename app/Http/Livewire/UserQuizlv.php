@@ -155,6 +155,37 @@ class UserQuizlv extends Component
         $this->quizInProgress = true;
     }
 
+    private function checkUserAnswer()
+    {
+        // 파이썬으로 주관식 답 여부 체크 
+        $userAnswered = preg_replace('/\s+/', '', $this->userAnswered);
+        $answer = preg_replace('/\s+/', '', $this->currentQuestion->answers[0]->answer);
+        $result = ($userAnswered == $answer);
+
+        if (!$result) {
+            $cmd = sprintf('/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "%s" "%s"', 
+                            escapeshellarg($this->currentQuestion->answers[0]->answer), 
+                            escapeshellarg($this->userAnswered));
+            Log::debug("cmd=".$cmd);
+            $similar_score = shell_exec($cmd);
+            Log::debug(trim($similar_score));
+            $result = (floatval($similar_score) >= 0.55);
+            // use Symfony\Component\Process\Process;
+            // use Symfony\Component\Process\Exception\ProcessFailedException;
+
+            // $process = new Process('sh /folder_name/file_name.sh');
+            // $process->run();
+
+            // // executes after the command finishes
+            // if (!$process->isSuccessful()) {
+            //     throw new ProcessFailedException($process);
+            // }
+
+            // echo $process->getOutput();
+        }
+        return $result;
+    }
+
     public function nextQuestion()
     {
         Log::debug("nextQuestion : 정답 여부 체크");
@@ -169,10 +200,12 @@ class UserQuizlv extends Component
         } else {
             // 주관식에 대한 처리를 해야만 함
             $answerId = $this->currentQuestion->answers[0]->id;
+            
+            // 주관식 정답 체크
+            Log::debug("주관식 : user_answer=".$this->userAnswered.", answer=".$this->currentQuestion->answers[0]->answer);
+            $isChoiceCorrect = ($this->checkUserAnswer())?'1':'0';
+            
             $userAnswered = $this->userAnswered;
-            $isChoiceCorrect = ($userAnswered == $this->currentQuestion->answers[0]->answer)?'1':'0';
-            // 파이썬으로 주관식 답 여부 체크 
-            Log::debug("주관식 : user_answer=".$userAnswered.", answer=".$this->currentQuestion->answers[0]->answer);
         }
 
         // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
