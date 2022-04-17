@@ -169,7 +169,7 @@ class UserQuizlv extends Component
             Log::debug("cmd=".$cmd);
             $similar_score = shell_exec($cmd);
             Log::debug(trim($similar_score));
-            $result = (floatval($similar_score) >= 0.55);
+            $result = (floatval($similar_score) >= 0.75);
             // use Symfony\Component\Process\Process;
             // use Symfony\Component\Process\Exception\ProcessFailedException;
 
