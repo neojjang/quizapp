@@ -155,21 +155,21 @@ class UserQuizlv extends Component
         $this->quizInProgress = true;
     }
 
-    private function checkUserAnswer()
+    private function checkUserAnswer($questionAnswer)
     {
         // 파이썬으로 주관식 답 여부 체크 
         $userAnswered = preg_replace('/\s+/', '', $this->userAnswered);
-        $answer = preg_replace('/\s+/', '', $this->currentQuestion->answers[0]->answer);
-        $result = ($userAnswered == $answer);
+        $answer = preg_replace('/\s+/', '', $questionAnswer);
+        $result = ($userAnswered == $answer)? 1.0:0.0;
 
-        if (!$result) {
+        if ($result === 0.0) {
             $cmd = sprintf('/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "%s" "%s"', 
-                            escapeshellarg($this->currentQuestion->answers[0]->answer), 
+                            escapeshellarg($questionAnswer), 
                             escapeshellarg($this->userAnswered));
             Log::debug("cmd=".$cmd);
             $similar_score = shell_exec($cmd);
             Log::debug(trim($similar_score));
-            $result = (floatval($similar_score) >= 0.75);
+            $result = floatval($similar_score);
             // use Symfony\Component\Process\Process;
             // use Symfony\Component\Process\Exception\ProcessFailedException;
 
@@ -203,8 +203,8 @@ class UserQuizlv extends Component
             
             // 주관식 정답 체크
             Log::debug("주관식 : user_answer=".$this->userAnswered.", answer=".$this->currentQuestion->answers[0]->answer);
-            $isChoiceCorrect = ($this->checkUserAnswer())?'1':'0';
-            
+            $resultScore = $this->checkUserAnswer($this->currentQuestion->answers[0]->answer);
+            $isChoiceCorrect = ($resultScore >= 0.75)? '1': ($resultScore >= 0.40)? '2': '0';
             $userAnswered = $this->userAnswered;
         }
 

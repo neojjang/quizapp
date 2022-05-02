@@ -18,7 +18,7 @@
         <form wire:submit.prevent>
             <div class="px-4 py-5 sm:px-6">
                 <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
-                    <span class="mr-2 font-extrabold"> {{$count}}</span> {{$currentQuestion->question}} ({{$currentQuestion->type_id}})
+                    <span class="mr-2 font-extrabold"> {{$count}}</span> {{$currentQuestion->question}}
                     @if($learningMode)
                     <div x-data={show:false} class="block text-xs">
                         <div class="p-1" id="headingOne">

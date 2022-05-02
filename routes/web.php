@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
 
     Route::get('/adminhome', [AdminController::class, 'adminhome'])->name('adminhome');
 
+    // 섹션 관리
     Route::get('/createSection', [SectionsController::class, 'createSection'])
         ->name('createSection');
 
@@ -51,6 +52,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::get('/detailSection/{section}', [SectionsController::class, 'detailSection'])
         ->name('detailSection');
 
+    // 문제 관리
     Route::get('/createQuestion/{section}', [QuestionsController::class, 'createQuestion'])
         ->name('createQuestion');
 
@@ -64,6 +66,25 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
         ->name('storeQuestion');
     Route::post('/deleteQuestion/{id}', [QuestionsController::class, 'deleteQuestion'])
         ->name('deleteQuestion');
+
+    // ClassRoom 관리
+    Route::get('/createClassRoom', [ClassRoomsController::class, 'createClassRoom'])
+        ->name('createClassRoom');
+
+    Route::post('/deleteClassRoom/{id}', [ClassRoomsController::class, 'deleteClassRoom'])
+        ->name('deleteClassRoom');
+
+    Route::post('/storeClassRoom/class', [ClassRoomsController::class, 'storeClassRoom'])
+        ->name('storeClassRoom');
+
+    Route::get('/editClassRoom/{class}', [ClassRoomsController::class, 'editClassRoom'])
+        ->name('editClassRoom');
+
+    Route::post('/updateClassRoom/{class}', [ClassRoomsController::class, 'updateClassRoom'])
+        ->name('updateClassRoom');
+
+    Route::get('/listClassRoom', [ClassRoomsController::class, 'listClassRoom'])
+        ->name('listClassRoom');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin|user'])->prefix('appuser')->group(function () {

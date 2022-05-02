@@ -62,6 +62,11 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
+    public function classRooms()
+    {
+        return $this->hasMany(ClassRoom::class);
+    }
+    
     public function sections()
     {
         return $this->hasMany(Section::class);

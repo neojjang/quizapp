@@ -96,11 +96,15 @@
                 @if($question->type_id==2)
                     @if($userAnswer->is_correct==='1')
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
-                    {{$userAnswer->user_answer}}
+                    [O] {{$userAnswer->user_answer}}
+                    </div>
+                    @elseif($userAnswer->is_correct==='2')
+                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-indigo-500 font-extrabold ">
+                    [보류] {{$userAnswer->user_answer}} 
                     </div>
                     @else
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-red-600 font-extrabold ">
-                    {{$userAnswer->user_answer}}
+                    [X] {{$userAnswer->user_answer}} 
                     </div>
                     @endif
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
