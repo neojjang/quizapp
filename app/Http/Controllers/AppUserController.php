@@ -68,7 +68,7 @@ class AppUserController extends Controller
         $choice = collect(['A', 'B', 'C', 'D']);
 
         //Get quiz summary record for the given quiz
-        $userQuizDetails = QuizHeader::where('id', $id)
+        $userQuizDetails = QuizHeader::where('id', $id)->where('user_id', auth()->id())
             ->with('section')->first();
 
         //Extract question taken by the users stored as a serialized string while takeing the quiz

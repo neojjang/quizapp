@@ -3,31 +3,49 @@
 namespace App\Http\Controllers;
 
 use App\Models\Section;
+use App\Models\ClassRoom;
+use App\Models\QuizHeader;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Log;
 
 class SectionsController extends Controller
 {
-    public function createSection()
+    public function createSection(ClassRoom $classRoom)
     {
-        return view('admins.create_section');
+        $classRoom = $classRoom;
+        return view('admins.create_section', compact('classRoom'));
     }
 
     public function listSection()
     {
+        
         $sections = Section::withCount('questions')->paginate(10);
-        //$sections = Section::where('is_active', '1')->paginate(5);
         return view('admins.list_sections', compact('sections'));
     }
 
-    public function storeSection(Request $request)
+    public function storeSection(ClassRoom $classRoom, Request $request)
     {
+        $classRoom = $classRoom;
         $data = $request->validate([
             'section.*' => 'required',
         ]);
-        auth()->user()->sections()->createMany($data);
-        return redirect()->route('listSection')->with('success', 'Section created successfully!');
+
+        // `name`, `description`, `is_active`, `details`, `class_room_id`, `updated_at`, `created_at`
+        $section = Section::create([
+            'name' => $request->section['name'],
+            'description' => $request->section['description'],
+            'is_active' => $request->section['is_active'],
+            'details' => $request->section['details'],
+            'user_id' => Auth::id(),
+            'class_room_id' => $classRoom->id
+        ]);
+        // auth()->user()->sections()->createMany($data);
+        // $classRoom->sections()->add($section);
+        return redirect()->route('listSection', $classRoom->id)->with('success', 'Section created successfully!');
     }
 
     public function editSection(Section $section)
@@ -62,5 +80,18 @@ class SectionsController extends Controller
         $section = Section::findOrFail($id);
         $section->delete();
         return redirect()->back()->withSuccess('Section with id: ' . $section->id . ' deleted successfully');
+    }
+
+    public function scoreSection(Section $section)
+    {
+        // $questions = $section->questions()->paginate(10);
+        // $quiz_headers = QuizHeader::where("section_id", $section->id)->orderBy("id", "DESC")->get();
+        // $user_id_list = collect($quiz_users)->map(function($item) {
+        //     return $item->user_id;
+        // });
+        // Log::debug($user_id_list);
+        // $users = User::whereIn('id', $user_id_list)->orderBy('id', 'ASC')->get();
+        $quiz_headers = $section->quizHeaders()->paginate(10);
+        return view('admins.score_sections', compact('section', 'quiz_headers')); // 'questions'
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\Quiz;
 use App\Models\Quote;
+use App\Models\ClassRoom;
 use App\Models\Section;
 use Livewire\Component;
 use App\Models\Question;
@@ -14,8 +15,10 @@ class UserQuizlv extends Component
 {
     public $quote;
     public $quizid;
+    public $classRooms;
     public $sections;
     public $count = 0;
+    public $classRoomId;
     public $sectionId;
     public $quizSize = 1;
     public $quizPecentage;
@@ -68,9 +71,12 @@ class UserQuizlv extends Component
     public function render()
     {
         $this->sections = Section::withcount('questions')->where('is_active', '1')
+            ->where('class_room_id', $this->classRoomId)
             ->orderBy('name')
             ->get();
-
+        
+        $this->classRooms = ClassRoom::withcount('sections')->where('is_active', '1')
+            ->orderBy('name')->get();
         return view('livewire.user-quizlv');
     }
 
@@ -91,6 +97,12 @@ class UserQuizlv extends Component
                 $this->isDisabled = false;
             }
         }
+    }
+
+    public function updatedClassRoomId()
+    {
+        Log::debug("updatedClassRoomId : ".$this->classRoomId);
+        
     }
 
     public function mount()
@@ -138,6 +150,7 @@ class UserQuizlv extends Component
         // Keep the instance in $this->quizid veriable for later updates to quiz.
         $this->validate();
 
+        // 수업 리스트 선택 
         // 섹션 퀴즈의 전체 갯수를 항상 처리 
         Log::debug("startQuiz sectionId=".$this->sectionId);
         $this->quizSize = Question::query()->where('section_id', $this->sectionId)->where('is_active', '1')->count();

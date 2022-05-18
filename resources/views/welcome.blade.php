@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Laravel</title>
+    <title>한동원영어전문학원</title>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -423,7 +423,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-1">
                     <div class="p-6">
                         <div class="flex items-center">
-                            <div class="ml-4 text-lg leading-7 font-semibold">동원 영어 교실</div>
+                            <div class="ml-4 text-lg leading-7 font-semibold">한동원영어전문학원</div>
                         </div>
                     </div>
 

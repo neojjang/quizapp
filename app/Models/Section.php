@@ -8,18 +8,24 @@ use Illuminate\Database\Eloquent\Model;
 class Section extends Model
 {
     use HasFactory;
-    protected $fillable = [
-        'name',
-        'description',
-        'is_active',
-        'details',
-    ];
+    // protected $fillable = [
+    //     'name',
+    //     'description',
+    //     'is_active',
+    //     'details'
+    // ];
+    protected $guarded = [];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    public function class_room()
+    {
+        return $this->belongsTo(ClassRoom::class);
+    }
+    
     public function questions()
     {
         return $this->hasMany(Question::class);

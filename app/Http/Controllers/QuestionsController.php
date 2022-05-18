@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Section;
 use App\Models\Question;
+use App\Models\QuizHeader;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
@@ -72,13 +73,13 @@ class QuestionsController extends Controller
     {
         $section = $question->section();
         $answers = $question->answers()->paginate(10);
-        return view('admins.create_question', compact('section', 'question', 'answers'));
+        return view('admins.edit_question', compact('section', 'question', 'answers'));
     }
 
     public function updateQuestion(Question $question, Request $request)
     {
         $data = $request->validate([
-            'question' => ['required', Rule::unique('questions')],
+            'question' => ['required'],
             'explanation' => 'required',
             'is_active' => 'required',
             'answers.*.answer' => 'required',
@@ -102,5 +103,22 @@ class QuestionsController extends Controller
         $question->delete();
         return redirect()->route('detailSection', $question->section->id)
             ->withSuccess('Question with id: ' . $question->id . ' deleted successfully');
+    }
+
+    function scoreQuestion(Section $section, QuizHeader $quizHeader) 
+    {
+        $questions = $section->questions;
+        $quizzes = $quizHeader->quizzes;
+        $user = $quizHeader->user;
+
+        $userQuiz = collect($quizzes)->map(function($item) {
+            return [$item->question_id => $item];
+        })->toArray();
+        Log::debug(gettype($userQuiz));
+        // $questions = collect($questions)->transform(function($item) {
+        //     return $item;
+        // });
+        
+        return view('admins.score_questions', compact('section', 'user', 'questions'), ["userQuiz" => $userQuiz]);
     }
 }

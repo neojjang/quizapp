@@ -82,6 +82,11 @@ class User extends Authenticatable
         return $this->hasMany(QuizHeader::class);
     }
 
+    public function latestQuizHeader($section_id)
+    {
+        return $this->hasMany(QuizHeader::class)->where('section_id', $section_id)->orderBy('id', 'DESC')->first();
+    }
+
     public static function search($search)
     {
         return empty($search) ? static::query()

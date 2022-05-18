@@ -11,7 +11,6 @@
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
             <div class="mx-auto">
                 <div class="flex justify-between items-center py-4">
-                    <a href="{{route('createSection')}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Create a Section</a>
                     <a href="{{route('adminhome')}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>
                 </div>
                 @if($sections->isEmpty())
@@ -33,6 +32,9 @@
                                     <thead class="tracking-wide font-bold rounded border-2 bg-green-500 text-white  transition shadow-md py-2 px-6 items-center">
                                         <tr>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                                Class Room
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
                                                 Name
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
@@ -51,7 +53,18 @@
                                         <tr class="hover:bg-green-100">
                                             <td class="px-6 ">
                                                 <div class="flex items-center">
-                                                    <div class="ml-4">
+                                                    <div class="">
+                                                        <div class="text-sm font-medium text-gray-900">
+                                                            <a class="text-blue-400 hover:underline" href="{{ route('detailSection', $section->id) }}">
+                                                                {{ $section->class_room->name}}
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 ">
+                                                <div class="flex items-center">
+                                                    <div class="">
                                                         <div class="text-sm font-medium text-gray-900">
                                                             <a class="text-blue-400 hover:underline" href="{{ route('detailSection', $section->id) }}">
                                                                 {{ $section->name}}

@@ -146,6 +146,21 @@
                         @csrf
                         <h2 class="text-gray-900 text-lg font-medium title-font mb-5">Take a Quiz</h2>
                         <div class="relative mx-full mb-4">
+                            <select name="classRoom" id="classRoom_id" wire:model="classRoomId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
+                                @if($classRooms->isEmpty())
+                                <option value="">선택 가능한 수업이 없습니다.</option>
+                                @else
+                                <option value="">수업을 선택해 주세요.</option>
+                                @foreach($classRooms as $classRoom)
+                                @if($classRoom->sections_count>0)
+                                <option value="{{$classRoom->id}}">{{$classRoom->name}}</option>
+                                @endif
+                                @endforeach
+                                @endif
+                            </select>
+                            @error('sectionId') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="relative mx-full mb-4">
                             <select name="section" id="section_id" wire:model="sectionId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
                                 @if($sections->isEmpty())
                                 <option value="">No Quiz Sections Available Yet</option>

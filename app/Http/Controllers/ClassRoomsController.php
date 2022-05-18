@@ -7,11 +7,11 @@ use App\Models\ClassRoom;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Redirect;
 
-class ClassRoomController extends Controller
+class ClassRoomsController extends Controller
 {
     public function createClassRoom()
     {
-        return view('admins.create_section');
+        return view('admins.create_class_room');
     }
 
     public function listClassRoom()
