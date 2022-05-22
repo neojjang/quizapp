@@ -107,18 +107,24 @@ class QuestionsController extends Controller
 
     function scoreQuestion(Section $section, QuizHeader $quizHeader) 
     {
+        $choice = collect(['A', 'B', 'C', 'D']);
+
         $questions = $section->questions;
         $quizzes = $quizHeader->quizzes;
         $user = $quizHeader->user;
 
-        $userQuiz = collect($quizzes)->map(function($item) {
-            return [$item->question_id => $item];
-        })->toArray();
-        Log::debug(gettype($userQuiz));
+        $userQuiz = [];
+        foreach($quizzes as $quiz) {
+            $userQuiz[$quiz->question_id] = $quiz;
+        }
+        // $userQuiz = collect($quizzes)->map(function($item) {
+        //     return [$item->question_id => $item];
+        // });
+        Log::debug(($userQuiz));
         // $questions = collect($questions)->transform(function($item) {
         //     return $item;
         // });
         
-        return view('admins.score_questions', compact('section', 'user', 'questions'), ["userQuiz" => $userQuiz]);
+        return view('admins.score_questions', compact('section', 'user', 'questions', 'userQuiz', 'quizHeader', 'choice')); // , ["userQuiz" => $userQuiz]
     }
 }

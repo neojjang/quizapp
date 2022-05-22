@@ -10,11 +10,11 @@
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
             <div class="mx-auto">
                 <div class="flex justify-between items-center py-4">
-                    <a href="{{route('detailSection', $section->id)}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>
+                    <a href="{{route('scoreSection', $section->id)}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>
                 </div>
                 <!-- --------------------- START NEW TABLE --------------------->
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    [ {{ $section->name }} ] 시험 : {{ $user->name }}
+                    [ {{ $section->name }} ] 시험 : {{ $user->name }} <span class="text-xs">( 테스트 시간 : {{$quizHeader->created_at}} )</span>
                 </h2>
 
                 <!-- --------------------- START NEW TABLE --------------------->
@@ -26,7 +26,7 @@
                                 <!-- QUIZ START -->
                                 @foreach($questions as  $qkey => $question)
                                 @php
-                                $userAnswer = array_key_exists($question->id, $userQuiz) ? $userQuiz[$question->id]:null;
+                                $userAnswer = isset($userQuiz[$question->id]) ? $userQuiz[$question->id]:null;
                                 @endphp
                                 <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
                                     <div class="px-4 py-5 sm:px-6">
@@ -43,51 +43,8 @@
                                                 </div>
                                             </div>
                                         </h3>
-                                        @if(isset($userAnswer))
-                                            @foreach($question->answers as $key => $answer)
-                                            @if($question->type_id==2)
-                                                @if($userAnswer->is_correct==='1')
-                                                <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
-                                                [O] {{$userAnswer->user_answer}}
-                                                </div>
-                                                @elseif($userAnswer->is_correct==='2')
-                                                <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-indigo-500 font-extrabold ">
-                                                [보류] {{$userAnswer->user_answer}} 
-                                                </div>
-                                                @else
-                                                <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-red-600 font-extrabold ">
-                                                [X] {{$userAnswer->user_answer}} 
-                                                </div>
-                                                @endif
-                                                <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
-                                                [정답]: <span class="mr-2 font-extrabold">{{$answer->answer}}</span> 
-                                                </div>
-                                                @break
-                                            @else
-                                                @if(($userAnswer->is_correct==='1') && ($answer->is_checked ==='1'))
-                                                <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
-                                                    <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}
-                                                </div>
-                                                @elseif(($userAnswer->answer_id === $answer->id) && ($answer->is_checked === '0'))
-                                                <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-red-600 font-extrabold ">
-                                                    <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}
-                                                </div>
-                                                @elseif($answer->is_checked && $userAnswer->is_correct === '0')
-                                                <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-green-500 font-extrabold ">
-                                                    <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} <span class="p-1 font-extrabold">(Correct Answer)</span>
-                                                </div>
-                                                @else
-                                                <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 font-extrabold ">
-                                                    <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}
-                                                </div>
-                                                @endif
-                                            @endif
-                                            @endforeach
-                                        @else
-                                            <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-black bg-red-400  ">
-                                            답하지 않았습니다. 
-                                            </div>
-                                        @endif
+                                        @livewire('user-answer', ['userAnswer' => $userAnswer, 'question' => $question, 'quizHeader' => $quizHeader], key($question->id))
+                                        
                                     </div>
                                 </div>
                                 @endforeach

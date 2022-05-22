@@ -217,7 +217,7 @@ class UserQuizlv extends Component
             // 주관식 정답 체크
             Log::debug("주관식 : user_answer=".$this->userAnswered.", answer=".$this->currentQuestion->answers[0]->answer);
             $resultScore = $this->checkUserAnswer($this->currentQuestion->answers[0]->answer);
-            $isChoiceCorrect = ($resultScore >= 0.75)? '1': ($resultScore >= 0.40)? '2': '0';
+            $isChoiceCorrect = ($resultScore >= 0.75) ? '1': (($resultScore >= 0.40) ? '2': '0');
             $userAnswered = $this->userAnswered;
         }
 

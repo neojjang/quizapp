@@ -129,7 +129,7 @@
                                                 Name
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                                                테스트 문제 수
+                                                테스트 완료
                                             </th>
                                             <th scope="col" class="px-2 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
                                                 테스트 날짜
@@ -144,9 +144,13 @@
                                                 <div class="flex text-left">
                                                     <div class="">
                                                         <div class="text-sm font-medium text-gray-900">
+                                                            @if($quiz->completed==1)
                                                             <a class="text-blue-400 hover:underline" href="{{ route('scoreQuestion', ['section'=>$section->id, 'quiz_header'=>$quiz->id]) }}">
                                                                 {{ $user->name }}
                                                             </a>
+                                                            @else
+                                                            {{$user->name}}
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </div>
@@ -154,7 +158,7 @@
                                             <td class="px-6 py-1">
                                                 <div class="flex items-center">
                                                     <div class="">
-                                                        <div class="text-sm text-gray-900">{{ $quiz->completed }}</div>
+                                                        <div class="text-sm text-gray-900">{{ ($quiz->completed==1)?"완료":"미완료" }}</div>
                                                     </div>
                                                 </div>
                                             </td>
