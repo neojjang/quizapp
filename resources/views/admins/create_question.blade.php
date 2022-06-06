@@ -32,8 +32,9 @@
                                 <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
                                 @enderror
                                 <select name="type_id" value="{{ old('type_id') }}" class="block w-1/2 mt-1 text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0">
-                                    <option value="2">서술형(첫번째 답만 사용)</option>
-                                    <option value="1">선택형</option>
+                                    @foreach($question_types as $type)
+                                    <option value="{{ $loop->index+1 }}" {{ ($loop->index+1) === 2 ? 'selected' : '' }}>{{$type}}</option>
+                                    @endforeach
                                 </select>
                             </label>
                             <label class="block">

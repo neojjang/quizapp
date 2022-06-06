@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\Question as ConstQuestion;
 use App\Models\User;
 use App\Models\Section;
 use App\Models\Question;
@@ -16,14 +17,16 @@ class QuestionsController extends Controller
 {
     public function createQuestion(Section $section)
     {
+        $question_types = ConstQuestion::TYPES;
         $section = $section;
-        return view('admins.create_question', compact('section'));
+        return view('admins.create_question', compact('section', 'question_types'));
     }
 
     public function detailQuestion(Question $question)
     {
+        $question_types = ConstQuestion::TYPES;
         $answers = $question->answers()->paginate(10);
-        return view('admins.detail_question', compact('question', 'answers'));
+        return view('admins.detail_question', compact('question', 'answers', 'question_types'));
     }
 
     public function storeQuestion(Section $section, Request $request)
@@ -36,7 +39,7 @@ class QuestionsController extends Controller
             'question' => ['required', Rule::unique('questions')],
             'explanation' => 'required',
             'is_active' => 'required',
-	    'type_id' => ['required','numeric', 'in:1,2'],
+	    'type_id' => ['required','numeric', 'in:1,2,3'],
             //'answers.*.answer' => 'required',
             'answers.0.answer' => 'required',
             'answers.1.answer' => 'nullable',
@@ -61,7 +64,7 @@ class QuestionsController extends Controller
             'is_active' => $request->is_active,
             'user_id' => Auth::id(),
             'section_id' => $section->id,
-	    'type_id' => isset($request->type_id) ? $request->type_id:1
+	        'type_id' => isset($request->type_id) ? $request->type_id:1
         ]);
 
         $status = $question->answers()->createMany($data['answers'])->push();
@@ -71,9 +74,10 @@ class QuestionsController extends Controller
 
     public function editQuestion(Question $question)
     {
+        $question_types = ConstQuestion::TYPES;
         $section = $question->section();
         $answers = $question->answers()->paginate(10);
-        return view('admins.edit_question', compact('section', 'question', 'answers'));
+        return view('admins.edit_question', compact('section', 'question', 'answers', 'question_types'));
     }
 
     public function updateQuestion(Question $question, Request $request)

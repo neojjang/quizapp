@@ -131,6 +131,9 @@
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
                                                 테스트 완료
                                             </th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">
+                                                결과
+                                            </th>
                                             <th scope="col" class="px-2 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
                                                 테스트 날짜
                                             </th>
@@ -161,6 +164,9 @@
                                                         <div class="text-sm text-gray-900">{{ ($quiz->completed==1)?"완료":"미완료" }}</div>
                                                     </div>
                                                 </div>
+                                            </td>
+                                            <td class="px-2 py-1 text-center">
+                                                <div class="text-sm text-gray-900">{{$quiz->score}}</div>
                                             </td>
                                             <td class="px-2 py-1">
                                                 <div class="text-sm text-gray-900">{{$quiz->created_at}}</div>

@@ -27,13 +27,14 @@
                                 <textarea name="explanation" type="text" class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('explanation', $question->explanation) }}</textarea>
                             </label>
                             <label class="block">
-                                <span class="text-gray-700">문제 종류 선택 {{$question->type_id}}</span>
+                                <span class="text-gray-700">문제 종류 선택</span>
                                 @error('type_id')
                                 <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
                                 @enderror
                                 <select name="type_id" value="{{ old('type_id', $question->type_id) }}" class="block w-1/2 mt-1 text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0">
-                                    <option value="2" {{ $question->type_id === 2 ? 'selected' : '' }}>서술형(첫번째 답만 사용)</option>
-                                    <option value="1" {{ $question->type_id === 1 ? 'selected' : '' }}>선택형</option>
+                                    @foreach($question_types as $type)
+                                    <option value="{{ $loop->index+1 }}" {{ ($loop->index+1) === $question->type_id ? 'selected' : '' }}>{{$type}}</option>
+                                    @endforeach
                                 </select>
                             </label>
                             <label class="block">
