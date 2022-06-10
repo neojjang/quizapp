@@ -86,6 +86,7 @@ class QuestionsController extends Controller
             'question' => ['required'],
             'explanation' => 'required',
             'is_active' => 'required',
+            'type_id' => 'required',
             'answers.*.answer' => 'required',
             'answers.*.is_checked' => 'present'
         ]);
@@ -93,6 +94,7 @@ class QuestionsController extends Controller
         $question->question = $data['question'];
         $question->explanation = $data['explanation'];
         $question->is_active = $data['is_active'];
+        $question->type_id = $data['type_id'];
         $question->save();
 
         $question->answers()->delete();

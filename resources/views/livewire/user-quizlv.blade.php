@@ -18,7 +18,7 @@
         <form wire:submit.prevent>
             <div class="px-4 py-5 sm:px-6">
                 <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
-                    <span class="mr-2 font-extrabold"> {{$count}}</span> {{$currentQuestion->question}}
+                    <span class="mr-2 font-extrabold"> {{$count}}</span> {!! nl2br($currentQuestion->question) !!}
                     @if($learningMode)
                     <div x-data={show:false} class="block text-xs">
                         <div class="p-1" id="headingOne">
@@ -35,7 +35,7 @@
                 @foreach($currentQuestion->answers as $answer)
                 <label for="question-{{$answer->id}}">
                     <div class="max-w-auto px-3 py-3 m-3 text-gray-800 rounded-lg border-2 border-gray-300 text-sm ">
-                    @if($currentQuestion->type_id == 2 && $answer->is_checked==1)
+                    @if($currentQuestion->type_id != 1 && $answer->is_checked==1)
                     <div x-show="show" class="block p-2 bg-green-100 text-xs">
                         정확한 의미(번역/영작)를 입력하세요.
                     </div>
@@ -46,7 +46,7 @@
                     @endif
                     </div>
                 </label>
-                @if($currentQuestion->type_id == 2)
+                @if($currentQuestion->type_id != 1)
                     @break
                 @endif
                 @endforeach

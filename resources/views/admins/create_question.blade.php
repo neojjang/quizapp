@@ -17,7 +17,7 @@
                                 @error('question')
                                 <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
                                 @enderror
-                                <input name="question" value="{{ old('question') }}" type="text" class="mt-1 block w-full text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
+                                <textarea name="question" type="text" class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('question') }}</textarea>
                             </label>
                             <label class="block">
                                 <span class="text-gray-700">문제 설명</span>
@@ -48,6 +48,8 @@
                                 </select>
                             </label>
                             <div class="grid grid-cols-1 my-5 justify-center">
+                                <span class="text-red-700 text-xs block">* 주관식은 첫번째 답안을 항상 체크 해주세요.</span>
+                            
                                 <label class="flex items-center">
                                     @error('answers.0.answer')
                                     <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>

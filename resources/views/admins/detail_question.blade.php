@@ -47,7 +47,7 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <div class="text-sm text-gray-900">{{ $question->question }}</div>
+                                                <div class="text-sm text-gray-900">{!! nl2br($question->question) !!}</div>
                                             </td>
                                         </tr>
                                         <tr>
@@ -61,7 +61,7 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <div class="text-sm text-gray-900">{{ $question->explanation}}</div>
+                                                <div class="text-sm text-gray-900">{!! nl2br($question->explanation) !!}</div>
                                             </td>
                                         </tr>
                                         <tr>

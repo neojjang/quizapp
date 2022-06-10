@@ -149,7 +149,7 @@
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900">
                                                             <a class="text-blue-400 hover:underline" href="{{ route('detailQuestion', $question->id) }}">
-                                                                {{ $question->question}}
+                                                                {!! nl2br($question->question) !!}
                                                             </a>
                                                         </div>
                                                     </div>
