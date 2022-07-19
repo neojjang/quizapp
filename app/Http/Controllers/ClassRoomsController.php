@@ -23,8 +23,19 @@ class ClassRoomsController extends Controller
     public function storeClassRoom(Request $request)
     {
         $data = $request->validate([
-            'class_room.*' => 'required',
+            'class_room.name' => 'required',
+            'class_room.is_active' => 'required'
+        ],[
+            'class_room.name' => '수업 이름은 필수입니다.',
+            'class_room.is_active' => '수업 활성화는 필수입니다.',
         ]);
+        
+        if (!isset($data['class_room']['description'])) {
+            $data['class_room']['description'] = '';
+        }
+        if (!isset($data['class_room']['details'])) {
+            $data['class_room']['details'] = '';
+        }
         auth()->user()->classRooms()->createMany($data);
         return redirect()->route('listClassRoom')->with('success', 'ClassRoom created successfully!');
     }

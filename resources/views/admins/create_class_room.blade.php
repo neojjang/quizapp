@@ -13,7 +13,7 @@
                         <form action="{{route('storeClassRoom')}}" method="post">
                             @csrf
                             <label class="block">
-                                <span class="text-gray-700">수업 명</span>
+                                <span class="text-gray-700">수업 이름</span>
                                 @error('class_room.name')
                                 <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
                                 @enderror

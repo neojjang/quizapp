@@ -31,15 +31,16 @@ class SectionsController extends Controller
     {
         $classRoom = $classRoom;
         $data = $request->validate([
-            'section.*' => 'required',
+            'section.name' => 'required',
+            'section.is_active' => 'required',
         ]);
 
         // `name`, `description`, `is_active`, `details`, `class_room_id`, `updated_at`, `created_at`
         $section = Section::create([
             'name' => $request->section['name'],
-            'description' => $request->section['description'],
+            'description' => (isset($request->section['description']) ? $request->section['description']:''),
             'is_active' => $request->section['is_active'],
-            'details' => $request->section['details'],
+            'details' => (isset($request->section['details']) ? $request->section['details']:''),
             'user_id' => Auth::id(),
             'class_room_id' => $classRoom->id
         ]);
