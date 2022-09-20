@@ -36,7 +36,11 @@ class QuestionsController extends Controller
         $section = $section;
 
         $data = $request->validate([
-            'question' => ['required', Rule::unique('questions')],
+            'question' => ['required', Rule::unique('questions')->where(function ($query) use ($section, $request) {
+                return $query
+                    ->where('question', $request->question)
+                    ->where('section_id', $section->id);
+            })],
             'is_active' => 'required',
 	        'type_id' => ['required','numeric', 'in:1,2,3'],
             //'answers.*.answer' => 'required',
@@ -87,15 +91,18 @@ class QuestionsController extends Controller
     {
         $data = $request->validate([
             'question' => ['required'],
-            'explanation' => 'required',
+            'explanation' => 'nullable',
             'is_active' => 'required',
             'type_id' => 'required',
-            'answers.*.answer' => 'required',
+            'answers.0.answer' => 'required',
+            'answers.1.answer' => 'nullable',
+            'answers.2.answer' => 'nullable',
+            'answers.3.answer' => 'nullable',
             'answers.*.is_checked' => 'present'
         ]);
 
         $question->question = $data['question'];
-        $question->explanation = $data['explanation'];
+        $question->explanation = (isset($data['explanation']) ? $request->explanation : '');
         $question->is_active = $data['is_active'];
         $question->type_id = $data['type_id'];
         $question->save();
