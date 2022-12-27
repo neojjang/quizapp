@@ -62,6 +62,11 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
+    public function classRooms()
+    {
+        return $this->hasMany(ClassRoom::class);
+    }
+    
     public function sections()
     {
         return $this->hasMany(Section::class);
@@ -75,6 +80,11 @@ class User extends Authenticatable
     public function quizHeaders()
     {
         return $this->hasMany(QuizHeader::class);
+    }
+
+    public function latestQuizHeader($section_id)
+    {
+        return $this->hasMany(QuizHeader::class)->where('section_id', $section_id)->orderBy('id', 'DESC')->first();
     }
 
     public static function search($search)

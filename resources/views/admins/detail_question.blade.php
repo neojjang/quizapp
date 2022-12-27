@@ -16,7 +16,7 @@
                             </a>
                         </button>
                     </form>
-                    <a href="{{route('listSection')}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>
+                    <a href="{{route('detailSection', $question->section_id)}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>
                 </div>
                 <!-- --------------------- START NEW TABLE --------------------->
 
@@ -47,7 +47,7 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <div class="text-sm text-gray-900">{{ $question->question }}</div>
+                                                <div class="text-sm text-gray-900">{!! nl2br($question->question) !!}</div>
                                             </td>
                                         </tr>
                                         <tr>
@@ -61,7 +61,7 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <div class="text-sm text-gray-900">{{ $question->explanation}}</div>
+                                                <div class="text-sm text-gray-900">{!! nl2br($question->explanation) !!}</div>
                                             </td>
                                         </tr>
                                         <tr>

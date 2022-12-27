@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\Quiz;
 use App\Models\Quote;
+use App\Models\ClassRoom;
 use App\Models\Section;
 use Livewire\Component;
 use App\Models\Question;
@@ -14,8 +15,10 @@ class UserQuizlv extends Component
 {
     public $quote;
     public $quizid;
+    public $classRooms;
     public $sections;
     public $count = 0;
+    public $classRoomId;
     public $sectionId;
     public $quizSize = 1;
     public $quizPecentage;
@@ -68,19 +71,38 @@ class UserQuizlv extends Component
     public function render()
     {
         $this->sections = Section::withcount('questions')->where('is_active', '1')
+            ->where('class_room_id', $this->classRoomId)
             ->orderBy('name')
             ->get();
 
+        $this->classRooms = ClassRoom::withcount('sections')->where('is_active', '1')
+            ->orderBy('name')->get();
         return view('livewire.user-quizlv');
     }
 
     public function updatedUserAnswered()
     {
-        if ((empty($this->userAnswered) || (count($this->userAnswered) > 1))) {
-            $this->isDisabled = true;
+        Log::debug("updatedUserAnswered : ".$this->userAnswered);
+        if ($this->currentQuestion->type_id != 1) {
+            # 주관식인 경우
+            if (empty(trim($this->userAnswered))) {
+                $this->isDisabled = true;
+            } else {
+                $this->isDisabled = false;
+            }
         } else {
-            $this->isDisabled = false;
+            if ((empty($this->userAnswered) || (count($this->userAnswered) > 1))) {
+                $this->isDisabled = true;
+            } else {
+                $this->isDisabled = false;
+            }
         }
+    }
+
+    public function updatedClassRoomId()
+    {
+        Log::debug("updatedClassRoomId : ".$this->classRoomId);
+
     }
 
     public function mount()
@@ -128,6 +150,7 @@ class UserQuizlv extends Component
         // Keep the instance in $this->quizid veriable for later updates to quiz.
         $this->validate();
 
+        // 수업 리스트 선택
         // 섹션 퀴즈의 전체 갯수를 항상 처리
         Log::debug("startQuiz sectionId=".$this->sectionId);
         $this->quizSize = Question::query()->where('section_id', $this->sectionId)->where('is_active', '1')->count();
@@ -145,13 +168,69 @@ class UserQuizlv extends Component
         $this->quizInProgress = true;
     }
 
+    private function checkUserAnswer($questionAnswer)
+    {
+        // 파이썬으로 주관식 답 여부 체크
+        $userAnswered = preg_replace('/\s+/', '', $this->userAnswered);
+        $answer = preg_replace('/\s+/', '', $questionAnswer);
+        $result = ($userAnswered == $answer)? 1.0:0.0;
+
+        if ($result === 0.0) {
+            $cmd = sprintf('/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "%s" "%s"',
+                            escapeshellarg($questionAnswer),
+                            escapeshellarg($this->userAnswered));
+            Log::debug("cmd=".$cmd);
+            $similar_score = shell_exec($cmd);
+            Log::debug(trim($similar_score));
+            $result = floatval($similar_score);
+            // use Symfony\Component\Process\Process;
+            // use Symfony\Component\Process\Exception\ProcessFailedException;
+
+            // $process = new Process('sh /folder_name/file_name.sh');
+            // $process->run();
+
+            // // executes after the command finishes
+            // if (!$process->isSuccessful()) {
+            //     throw new ProcessFailedException($process);
+            // }
+
+            // echo $process->getOutput();
+        }
+        return $result;
+    }
+
     public function nextQuestion()
     {
-        // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
-        $this->quizid->questions_taken = serialize($this->answeredQuestions);
+        Log::debug("nextQuestion : 정답 여부 체크");
+        if ($this->currentQuestion->type_id == 1) {
+            // 객관식에 대한 처리
+            // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
+            $this->quizid->questions_taken = serialize($this->answeredQuestions);
 
-        // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
-        list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
+            // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
+            list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
+            $userAnswered = $answerId;
+        } if ($this->currentQuestion->type_id == 3) {
+            // 주관식(영작) 문제 처리
+            $answerId = $this->currentQuestion->answers[0]->id;
+            // 1. 문장내 공백은 한개씩만 유지
+            $userAnswered = trim(preg_replace("/\s+/", " ", $this->userAnswered));
+            // 2. 구분자를 중심으로 단어 분리
+            $arrayUserAnswer = preg_split("/[,:.\s]/", strtolower($userAnswered));
+            $arrayCorrentAnswer = preg_split("/[,:.\s]/", strtolower($this->currentQuestion->answers[0]->answer));
+            // 3. 두배열 차이 비교
+            $answer_diff = ($arrayCorrentAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
+            $isChoiceCorrect = $answer_diff ? '1':'0';
+        } else {
+            // 주관식(번역)에 대한 처리를 해야만 함
+            $answerId = $this->currentQuestion->answers[0]->id;
+
+            // 주관식 정답 체크
+            Log::debug("주관식 : user_answer=".$this->userAnswered.", answer=".$this->currentQuestion->answers[0]->answer);
+            $resultScore = $this->checkUserAnswer($this->currentQuestion->answers[0]->answer);
+            $isChoiceCorrect = ($resultScore >= 0.75) ? '1': (($resultScore >= 0.40) ? '2': '0');
+            $userAnswered = $this->userAnswered;
+        }
 
         // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
         Quiz::create([
@@ -160,6 +239,7 @@ class UserQuizlv extends Component
             'section_id' => $this->currentQuestion->section_id,
             'question_id' => $this->currentQuestion->id,
             'answer_id' => $answerId,
+            'user_answer' => $userAnswered,
             'is_correct' => $isChoiceCorrect
         ]);
 

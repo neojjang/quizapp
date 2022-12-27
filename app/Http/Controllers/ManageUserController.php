@@ -17,4 +17,9 @@ class ManageUserController extends Controller
     {
         return view('admins.users.index');
     }
+
+    public function detailUser(User $user)
+    {
+        return view('admins.users.index');
+    }
 }

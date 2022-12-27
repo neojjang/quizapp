@@ -18,7 +18,7 @@
         <form wire:submit.prevent>
             <div class="px-4 py-5 sm:px-6">
                 <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
-                    <span class="mr-2 font-extrabold"> {{$count}}</span> {{$currentQuestion->question}}
+                    <span class="mr-2 font-extrabold"> {{$count}}</span> {!! nl2br($currentQuestion->question) !!}
                     @if($learningMode)
                     <div x-data={show:false} class="block text-xs">
                         <div class="p-1" id="headingOne">
@@ -35,9 +35,20 @@
                 @foreach($currentQuestion->answers as $answer)
                 <label for="question-{{$answer->id}}">
                     <div class="max-w-auto px-3 py-3 m-3 text-gray-800 rounded-lg border-2 border-gray-300 text-sm ">
+                    @if($currentQuestion->type_id != 1 && $answer->is_checked==1)
+                    <div x-show="show" class="block p-2 bg-green-100 text-xs">
+                        정확한 의미(번역/영작)를 입력하세요.
+                    </div>
+                    <textarea id="question-{{$answer->id}}" type="text" wire:model="userAnswered"
+                        class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('userAnswered') }}</textarea>
+                    @else
                         <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model="userAnswered" type="checkbox"> </span> {{$answer->answer}}
+                    @endif
                     </div>
                 </label>
+                @if($currentQuestion->type_id != 1)
+                    @break
+                @endif
                 @endforeach
             </div>
             <div class="flex items-center justify-end mt-4">
@@ -134,6 +145,21 @@
                     <form wire:submit.prevent="startQuiz">
                         @csrf
                         <h2 class="text-gray-900 text-lg font-medium title-font mb-5">Take a Quiz</h2>
+                        <div class="relative mx-full mb-4">
+                            <select name="classRoom" id="classRoom_id" wire:model="classRoomId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
+                                @if($classRooms->isEmpty())
+                                <option value="">선택 가능한 수업이 없습니다.</option>
+                                @else
+                                <option value="">수업을 선택해 주세요.</option>
+                                @foreach($classRooms as $classRoom)
+                                @if($classRoom->sections_count>0)
+                                <option value="{{$classRoom->id}}">{{$classRoom->name}}</option>
+                                @endif
+                                @endforeach
+                                @endif
+                            </select>
+                            @error('sectionId') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                        </div>
                         <div class="relative mx-full mb-4">
                             <select name="section" id="section_id" wire:model="sectionId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
                                 @if($sections->isEmpty())
