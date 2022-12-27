@@ -52,7 +52,7 @@ class UserQuizlv extends Component
         // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
         $this->quizid->questions_taken = serialize($this->answeredQuestions);
 
-        // Update the status of quiz as completed, this is used to resuming any uncompleted/abondened quizzes 
+        // Update the status of quiz as completed, this is used to resuming any uncompleted/abondened quizzes
         $this->quizid->completed = true;
 
         // Insert the quiz score to quiz_header table
@@ -104,7 +104,7 @@ class UserQuizlv extends Component
         $question = Question::where('section_id', $this->sectionId)
             ->whereNotIn('id', $this->answeredQuestions)
             ->with('answers')
-            ->inRandomOrder()
+            ->orderBy('id', 'asc') // isRandomOrder()
             ->first();
 
         //If the quiz size is greater then actual questions available in the quiz sections,
@@ -128,7 +128,7 @@ class UserQuizlv extends Component
         // Keep the instance in $this->quizid veriable for later updates to quiz.
         $this->validate();
 
-        // 섹션 퀴즈의 전체 갯수를 항상 처리 
+        // 섹션 퀴즈의 전체 갯수를 항상 처리
         Log::debug("startQuiz sectionId=".$this->sectionId);
         $this->quizSize = Question::query()->where('section_id', $this->sectionId)->where('is_active', '1')->count();
         Log::debug("startQuiz quizSize=".$this->quizSize);
