@@ -55,7 +55,7 @@ class UserQuizlv extends Component
         // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
         $this->quizid->questions_taken = serialize($this->answeredQuestions);
 
-        // Update the status of quiz as completed, this is used to resuming any uncompleted/abondened quizzes 
+        // Update the status of quiz as completed, this is used to resuming any uncompleted/abondened quizzes
         $this->quizid->completed = true;
 
         // Insert the quiz score to quiz_header table
@@ -74,7 +74,7 @@ class UserQuizlv extends Component
             ->where('class_room_id', $this->classRoomId)
             ->orderBy('name')
             ->get();
-        
+
         $this->classRooms = ClassRoom::withcount('sections')->where('is_active', '1')
             ->orderBy('name')->get();
         return view('livewire.user-quizlv');
@@ -84,7 +84,7 @@ class UserQuizlv extends Component
     {
         Log::debug("updatedUserAnswered : ".$this->userAnswered);
         if ($this->currentQuestion->type_id != 1) {
-            # 주관식인 경우 
+            # 주관식인 경우
             if (empty(trim($this->userAnswered))) {
                 $this->isDisabled = true;
             } else {
@@ -102,7 +102,7 @@ class UserQuizlv extends Component
     public function updatedClassRoomId()
     {
         Log::debug("updatedClassRoomId : ".$this->classRoomId);
-        
+
     }
 
     public function mount()
@@ -127,7 +127,6 @@ class UserQuizlv extends Component
             ->whereNotIn('id', $this->answeredQuestions)
             ->with('answers')
             ->orderBy('id', 'asc') // isRandomOrder()
-            ->inRandomOrder()
             ->first();
 
         //If the quiz size is greater then actual questions available in the quiz sections,
@@ -151,8 +150,8 @@ class UserQuizlv extends Component
         // Keep the instance in $this->quizid veriable for later updates to quiz.
         $this->validate();
 
-        // 수업 리스트 선택 
-        // 섹션 퀴즈의 전체 갯수를 항상 처리 
+        // 수업 리스트 선택
+        // 섹션 퀴즈의 전체 갯수를 항상 처리
         Log::debug("startQuiz sectionId=".$this->sectionId);
         $this->quizSize = Question::query()->where('section_id', $this->sectionId)->where('is_active', '1')->count();
         Log::debug("startQuiz quizSize=".$this->quizSize);
@@ -171,14 +170,14 @@ class UserQuizlv extends Component
 
     private function checkUserAnswer($questionAnswer)
     {
-        // 파이썬으로 주관식 답 여부 체크 
+        // 파이썬으로 주관식 답 여부 체크
         $userAnswered = preg_replace('/\s+/', '', $this->userAnswered);
         $answer = preg_replace('/\s+/', '', $questionAnswer);
         $result = ($userAnswered == $answer)? 1.0:0.0;
 
         if ($result === 0.0) {
-            $cmd = sprintf('/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "%s" "%s"', 
-                            escapeshellarg($questionAnswer), 
+            $cmd = sprintf('/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "%s" "%s"',
+                            escapeshellarg($questionAnswer),
                             escapeshellarg($this->userAnswered));
             Log::debug("cmd=".$cmd);
             $similar_score = shell_exec($cmd);
@@ -212,20 +211,20 @@ class UserQuizlv extends Component
             list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
             $userAnswered = $answerId;
         } if ($this->currentQuestion->type_id == 3) {
-            // 주관식(영작) 문제 처리 
+            // 주관식(영작) 문제 처리
             $answerId = $this->currentQuestion->answers[0]->id;
             // 1. 문장내 공백은 한개씩만 유지
             $userAnswered = trim(preg_replace("/\s+/", " ", $this->userAnswered));
             // 2. 구분자를 중심으로 단어 분리
             $arrayUserAnswer = preg_split("/[,:.\s]/", strtolower($userAnswered));
             $arrayCorrentAnswer = preg_split("/[,:.\s]/", strtolower($this->currentQuestion->answers[0]->answer));
-            // 3. 두배열 차이 비교 
+            // 3. 두배열 차이 비교
             $answer_diff = ($arrayCorrentAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
             $isChoiceCorrect = $answer_diff ? '1':'0';
         } else {
             // 주관식(번역)에 대한 처리를 해야만 함
             $answerId = $this->currentQuestion->answers[0]->id;
-            
+
             // 주관식 정답 체크
             Log::debug("주관식 : user_answer=".$this->userAnswered.", answer=".$this->currentQuestion->answers[0]->answer);
             $resultScore = $this->checkUserAnswer($this->currentQuestion->answers[0]->answer);
