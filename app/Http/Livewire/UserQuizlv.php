@@ -126,6 +126,7 @@ class UserQuizlv extends Component
         $question = Question::where('section_id', $this->sectionId)
             ->whereNotIn('id', $this->answeredQuestions)
             ->with('answers')
+            ->orderBy('id', 'asc') // isRandomOrder()
             ->inRandomOrder()
             ->first();
 
