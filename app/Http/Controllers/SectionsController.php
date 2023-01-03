@@ -58,12 +58,14 @@ class SectionsController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|min:5|max:255',
-            'description' => 'min:5|max:255',
+            'description' => 'nullable|min:5|max:255',
             'is_active' => 'required',
-            'details' =>    'min:10|max:1024',
+            'details' =>    'nullable|min:10|max:1024',
         ],[
             'name' => '섹션 이름은 필수입니다.',
             'is_active' => '섹션 활성화는 필수입니다.',
+            'details.min' => '섹션 상세 설명은 10자 이상입니다.',
+            'description.min' => '섹션 설명은 5자 이상입니다.',
         ]);
         if (!isset($data['description'])) {
             $data['description'] = '';
