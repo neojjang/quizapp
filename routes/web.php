@@ -89,10 +89,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::post('/storeClassRoom/class', [ClassRoomsController::class, 'storeClassRoom'])
         ->name('storeClassRoom');
 
-    Route::get('/editClassRoom/{class}', [ClassRoomsController::class, 'editClassRoom'])
+    Route::get('/editClassRoom/{class_room}', [ClassRoomsController::class, 'editClassRoom'])
         ->name('editClassRoom');
 
-    Route::post('/updateClassRoom/{class}', [ClassRoomsController::class, 'updateClassRoom'])
+    Route::post('/updateClassRoom/{class_room}', [ClassRoomsController::class, 'updateClassRoom'])
         ->name('updateClassRoom');
 
     Route::get('/listClassRoom', [ClassRoomsController::class, 'listClassRoom'])
