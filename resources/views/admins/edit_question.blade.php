@@ -54,8 +54,7 @@
                                     <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
                                     @enderror
                                     <input type="hidden" value="{{ $question->type_id === 2 ? '1' : '0' }}" name="answers[0][is_checked]">
-                                    <input type="checkbox" value="1" name="answers[0][is_checked]" 
-                                        {{ $question->type_id === 2 ? 'disabled' : '' }}
+                                    <input type="checkbox" value="1" name="answers[0][is_checked]"
                                         {{ $answers[0]->is_checked === '1' ? 'checked' : '' }}>
                                     <span class="min-w-full mx-auto px-5">
                                         <input name="answers[0][answer]" value="{{ old('answers.0.answer', $answers[0]->answer) }}" type="text" class="mt-1 text-xs block w-full bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
@@ -68,7 +67,7 @@
                                     <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
                                     @enderror
                                     <input type="hidden" value="{{ $question->type_id === 2 ? '1' : '0' }}" name="answers[1][is_checked]">
-                                    <input type="checkbox" value="1" name="answers[1][is_checked]" 
+                                    <input type="checkbox" value="1" name="answers[1][is_checked]"
                                         {{ $question->type_id === 2 ? 'disabled' : '' }}
                                         {{ $answers[1]->is_checked === '1' ? 'checked' : '' }}>
                                     <span class="min-w-full mx-auto px-5">
@@ -82,7 +81,7 @@
                                     <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
                                     @enderror
                                     <input type="hidden" value="{{ $question->type_id === 2 ? '1' : '0' }}" name="answers[2][is_checked]">
-                                    <input type="checkbox" value="1" name="answers[2][is_checked]" 
+                                    <input type="checkbox" value="1" name="answers[2][is_checked]"
                                         {{ $question->type_id === 2 ? 'disabled' : '' }}
                                         {{ $answers[2]->is_checked === '1' ? 'checked' : '' }}>
                                     <span class="min-w-full mx-auto px-5">
@@ -96,13 +95,27 @@
                                     <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
                                     @enderror
                                     <input type="hidden" value="{{ $question->type_id === 2 ? '1' : '0' }}" name="answers[3][is_checked]">
-                                    <input type="checkbox" value="1" name="answers[3][is_checked]" 
+                                    <input type="checkbox" value="1" name="answers[3][is_checked]"
                                         {{ $question->type_id === 2 ? 'disabled' : '' }}
                                         {{ $answers[3]->is_checked === '1' ? 'checked' : '' }}>
                                     <span class="min-w-full mx-auto px-5">
                                         <input name="answers[3][answer]" value="{{ old('answers.3.answer', $answers[3]->answer) }}" type="text" class="mt-1 block w-full text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                                     </span>
                                 </label>
+                                @endif
+                                @if(isset($answers[4]))
+                                    <label class="flex items-center">
+                                        @error('answers.4.answer')
+                                        <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
+                                        @enderror
+                                        <input type="hidden" value="{{ $question->type_id === 2 ? '1' : '0' }}" name="answers[4][is_checked]">
+                                        <input type="checkbox" value="1" name="answers[4][is_checked]"
+                                            {{ $question->type_id === 2 ? 'disabled' : '' }}
+                                            {{ $answers[4]->is_checked === '1' ? 'checked' : '' }}>
+                                        <span class="min-w-full mx-auto px-5">
+                                    <input name="answers[4][answer]" value="{{ old('answers.4.answer', $answers[4]->answer) }}" type="text" class="mt-1 block w-full text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
+                                </span>
+                                    </label>
                                 @endif
                             </div>
                             <div class="flex items-center justify-end mt-4">
