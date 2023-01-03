@@ -22,7 +22,7 @@ class SectionsController extends Controller
 
     public function listSection()
     {
-        
+
         $sections = Section::withCount('questions')->paginate(10);
         return view('admins.list_sections', compact('sections'));
     }
@@ -58,13 +58,23 @@ class SectionsController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|min:5|max:255',
-            'description' => 'required|min:5|max:255',
+            'description' => 'min:5|max:255',
             'is_active' => 'required',
-            'details' =>    'required|min:10|max:1024',
+            'details' =>    'min:10|max:1024',
+        ],[
+            'name' => '섹션 이름은 필수입니다.',
+            'is_active' => '섹션 활성화는 필수입니다.',
         ]);
+        if (!isset($data['description'])) {
+            $data['description'] = '';
+        }
+        if (!isset($data['details'])) {
+            $data['details'] = '';
+        }
         $record = Section::findOrFail($section->id);
-        $input = $request->all();
-        $record->fill($input)->save();
+//        $input = $request->all();
+        Log::debug($data);
+        $record->fill($data)->save();
         session()->flash('success', 'Section saved successfully!');
         return redirect()->route('listSection');
     }

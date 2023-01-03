@@ -51,13 +51,23 @@ class ClassRoomsController extends Controller
         Log::debug($request->all());
         $data = $request->validate([
             'name' => 'required|min:5|max:255',
-            'description' => 'required|min:5|max:255',
+            'description' => 'min:5|max:255',
             'is_active' => 'required',
-            'details' =>    'required|min:10|max:1024',
+            'details' =>    'min:10|max:1024',
+        ],[
+            'name' => '수업 이름은 필수입니다.',
+            'is_active' => '수업 활성화는 필수입니다.',
         ]);
+        if (!isset($data['description'])) {
+            $data['description'] = '';
+        }
+        if (!isset($data['details'])) {
+            $data['details'] = '';
+        }
         $record = ClassRoom::findOrFail($classRoom->id);
-        $input = $request->all();
-        $record->fill($input)->save();
+//        $input = $request->all();
+        Log::debug($data);
+        $record->fill($data)->save();
         session()->flash('success', 'ClassRoom saved successfully!');
         return redirect()->route('listClassRoom');
     }
