@@ -108,7 +108,7 @@
                     </div>
                     @endif
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
-                    [정답]: @hasrole('admin') <span class="mr-2 font-extrabold">{{$answer->answer}}</span> @endhasrole
+                    [정답]: @hasrole('admin|superadmin') <span class="mr-2 font-extrabold">{{$answer->answer}}</span> @endhasrole
                     </div>
                     @break
                 @else
@@ -122,11 +122,11 @@
                     </div>
                     @elseif($answer->is_checked && $userAnswer->is_correct === '0')
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-green-500 font-extrabold ">
-                        <span class="p-1 font-extrabold">[정답]:</span> @hasrole('admin') <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @endhasrole
+                        <span class="p-1 font-extrabold">[정답]:</span> @hasrole('admin|superadmin') <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @endhasrole
                     </div>
                     @else
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 font-extrabold ">
-                        [정답]: @hasrole('admin') <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @endhasrole
+                        [정답]: @hasrole('admin|superadmin') <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @endhasrole
                     </div>
                     @endif
                 @endif

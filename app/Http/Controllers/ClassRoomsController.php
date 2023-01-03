@@ -29,7 +29,7 @@ class ClassRoomsController extends Controller
             'class_room.name' => '수업 이름은 필수입니다.',
             'class_room.is_active' => '수업 활성화는 필수입니다.',
         ]);
-        
+
         if (!isset($data['class_room']['description'])) {
             $data['class_room']['description'] = '';
         }
@@ -53,10 +53,10 @@ class ClassRoomsController extends Controller
             'is_active' => 'required',
             'details' =>    'required|min:10|max:1024',
         ]);
-        $record = ClassRoom::findOrFail($section->id);
+        $record = ClassRoom::findOrFail($classRoom->id);
         $input = $request->all();
         $record->fill($input)->save();
-        session()->flash('success', 'Section saved successfully!');
+        session()->flash('success', 'ClassRoom saved successfully!');
         return redirect()->route('listClassRoom');
     }
 
