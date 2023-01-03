@@ -71,7 +71,7 @@ class ClassRoomsController extends Controller
         Log::debug($data);
         $record->fill($data)->save();
         session()->flash('success', 'ClassRoom saved successfully!');
-        return redirect()->route('listClassRoom');
+        return redirect()->route('detailClassRoom', $classRoom->id);
     }
 
     public function detailClassRoom(ClassRoom $classRoom)
@@ -84,6 +84,6 @@ class ClassRoomsController extends Controller
     {
         $classRoom = ClassRoom::findOrFail($id);
         $classRoom->delete();
-        return redirect()->back()->withSuccess('ClassRoom with id: ' . $section->id . ' deleted successfully');
+        return redirect()->back()->withSuccess('ClassRoom with id: ' . $id . ' deleted successfully');
     }
 }

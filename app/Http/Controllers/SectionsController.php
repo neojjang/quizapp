@@ -78,7 +78,7 @@ class SectionsController extends Controller
         Log::debug($data);
         $record->fill($data)->save();
         session()->flash('success', 'Section saved successfully!');
-        return redirect()->route('listSection');
+        return redirect()->route('detailClassRoom', $section->class_room_id);
     }
 
     public function detailSection(Section $section)
