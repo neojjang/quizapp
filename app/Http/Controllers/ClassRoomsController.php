@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ClassRoom;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Log;
 
 class ClassRoomsController extends Controller
 {
@@ -47,6 +48,7 @@ class ClassRoomsController extends Controller
 
     public function updateClassRoom(ClassRoom $classRoom, Request $request)
     {
+        Log::debug($request->all());
         $data = $request->validate([
             'name' => 'required|min:5|max:255',
             'description' => 'required|min:5|max:255',
