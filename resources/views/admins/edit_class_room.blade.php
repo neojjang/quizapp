@@ -33,7 +33,7 @@
                                 @enderror
                                 <select name="is_active" value="{{ old('is_active', $classRoom->is_active) }}" class="block w-full mt-1 rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0">
                                     <option value="1" {{ $classRoom->is_active === '1' ? 'selected' : '' }}>Yes</option>
-                                    <option value="0" {{ $section->is_active === '0' ? 'selected' : '' }}>No</option>
+                                    <option value="0" {{ $classRoom->is_active === '0' ? 'selected' : '' }}>No</option>
                                 </select>
                             </label>
                             <label class="block">
