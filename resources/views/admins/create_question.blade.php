@@ -49,7 +49,7 @@
                             </label>
                             <div class="grid grid-cols-1 my-5 justify-center">
                                 <span class="text-red-700 text-xs block">* 주관식은 첫번째 답안을 항상 체크 해주세요.</span>
-                            
+
                                 <label class="flex items-center">
                                     @error('answers.0.answer')
                                     <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
@@ -88,6 +88,16 @@
                                     <input type="checkbox" value="1" name="answers[3][is_checked]">
                                     <span class="min-w-full mx-auto px-5">
                                         <input name="answers[3][answer]" value="{{ old('answers.3.answer') }}" type="text" class="mt-1 block w-full text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
+                                    </span>
+                                </label>
+                                <label class="flex items-center">
+                                    @error('answers.4.answer')
+                                    <span class="text-red-700 text-xs content-end float-right">{{$message}}</span><br/>
+                                    @enderror
+                                    <input type="hidden" value="0" name="answers[4][is_checked]">
+                                    <input type="checkbox" value="1" name="answers[4][is_checked]">
+                                    <span class="min-w-full mx-auto px-5">
+                                        <input name="answers[4][answer]" value="{{ old('answers.4.answer') }}" type="text" class="mt-1 block w-full text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                                     </span>
                                 </label>
                             </div>

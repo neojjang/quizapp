@@ -48,6 +48,7 @@ class QuestionsController extends Controller
             'answers.1.answer' => 'nullable',
             'answers.2.answer' => 'nullable',
             'answers.3.answer' => 'nullable',
+            'answers.4.answer' => 'nullable',
             'answers.*.is_checked' => 'present'
         ],[
             'question.unique' => '다른 문제와 중복 됩니다.',
@@ -58,13 +59,14 @@ class QuestionsController extends Controller
             'answers.1.answer.required' => 'answer는 필수입니다.',
             'answers.2.answer.required' => 'answer는 필수입니다.',
             'answers.3.answer.required' => 'answer는 필수입니다.',
+            'answers.4.answer.required' => 'answer는 필수입니다.',
         ]);
 
         $answers = array_filter($data['answers'], function($v, $k) {
             return isset($v['answer']);
         }, ARRAY_FILTER_USE_BOTH);
         Log::debug($answers);
-        
+
         $question = Question::create([
             'question' => $request->question,
             'explanation' => (isset($data['explanation']) ? $request->explanation : ''),
@@ -98,6 +100,7 @@ class QuestionsController extends Controller
             'answers.1.answer' => 'nullable',
             'answers.2.answer' => 'nullable',
             'answers.3.answer' => 'nullable',
+            'answers.4.answer' => 'nullable',
             'answers.*.is_checked' => 'present'
         ]);
 
@@ -121,7 +124,7 @@ class QuestionsController extends Controller
             ->withSuccess('Question with id: ' . $question->id . ' deleted successfully');
     }
 
-    function scoreQuestion(Section $section, QuizHeader $quizHeader) 
+    function scoreQuestion(Section $section, QuizHeader $quizHeader)
     {
         $choice = collect(['A', 'B', 'C', 'D']);
 
@@ -140,7 +143,7 @@ class QuestionsController extends Controller
         // $questions = collect($questions)->transform(function($item) {
         //     return $item;
         // });
-        
+
         return view('admins.score_questions', compact('section', 'user', 'questions', 'userQuiz', 'quizHeader', 'choice')); // , ["userQuiz" => $userQuiz]
     }
 }
