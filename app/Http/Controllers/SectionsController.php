@@ -75,7 +75,7 @@ class SectionsController extends Controller
         }
         $record = Section::findOrFail($section->id);
 //        $input = $request->all();
-        Log::debug($data);
+//        Log::debug($data);
         $record->fill($data)->save();
         session()->flash('success', 'Section saved successfully!');
         return redirect()->route('detailClassRoom', $section->class_room_id);

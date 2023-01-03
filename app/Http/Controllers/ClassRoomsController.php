@@ -48,7 +48,7 @@ class ClassRoomsController extends Controller
 
     public function updateClassRoom(ClassRoom $classRoom, Request $request)
     {
-        Log::debug($request->all());
+//        Log::debug($request->all());
         $data = $request->validate([
             'name' => 'required|min:5|max:255',
             'description' => 'nullable|min:5|max:255',
@@ -68,7 +68,7 @@ class ClassRoomsController extends Controller
         }
         $record = ClassRoom::findOrFail($classRoom->id);
 //        $input = $request->all();
-        Log::debug($data);
+//        Log::debug($data);
         $record->fill($data)->save();
         session()->flash('success', 'ClassRoom saved successfully!');
         return redirect()->route('detailClassRoom', $classRoom->id);
