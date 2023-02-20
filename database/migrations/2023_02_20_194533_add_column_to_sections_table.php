@@ -14,7 +14,7 @@ class AddColumnToSectionsTable extends Migration
     public function up()
     {
         Schema::table('sections', function (Blueprint $table) {
-            //
+            $table->unsignedTinyInteger('type_id')->default(1)->after('is_active')->comment('시험유형. 1:일반형,2:답안지형');
         });
     }
 
@@ -26,7 +26,7 @@ class AddColumnToSectionsTable extends Migration
     public function down()
     {
         Schema::table('sections', function (Blueprint $table) {
-            //
+            $table->dropColumn('type_id');
         });
     }
 }
