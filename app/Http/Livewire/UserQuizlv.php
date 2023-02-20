@@ -175,7 +175,7 @@ class UserQuizlv extends Component
         $answer = preg_replace('/\s+/', '', $questionAnswer);
         $result = ($userAnswered == $answer)? 1.0:0.0;
 
-        // 정답안의 길이가 5자 이상의 경우만 분석기 비교 실행 
+        // 정답안의 길이가 5자 이상의 경우만 분석기 비교 실행
         if ($result === 0.0 && mb_strlen($questionAnswer) > 5) {
             $cmd = sprintf('/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "%s" "%s"',
                             escapeshellarg($questionAnswer),
