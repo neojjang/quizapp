@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\Section as ConstSection;
 use App\Models\Section;
 use App\Models\ClassRoom;
 use App\Models\QuizHeader;
@@ -16,8 +17,9 @@ class SectionsController extends Controller
 {
     public function createSection(ClassRoom $classRoom)
     {
+        $section_types = ConstSection::TYPES;
         $classRoom = $classRoom;
-        return view('admins.create_section', compact('classRoom'));
+        return view('admins.create_section', compact('classRoom', 'section_types'));
     }
 
     public function listSection()
@@ -40,6 +42,7 @@ class SectionsController extends Controller
             'name' => $request->section['name'],
             'description' => (isset($request->section['description']) ? $request->section['description']:''),
             'is_active' => $request->section['is_active'],
+            'type_id' => $request->section['type_id'],
             'details' => (isset($request->section['details']) ? $request->section['details']:''),
             'user_id' => Auth::id(),
             'class_room_id' => $classRoom->id
@@ -51,7 +54,8 @@ class SectionsController extends Controller
 
     public function editSection(Section $section)
     {
-        return view('admins.edit_section', compact('section'));
+        $section_types = ConstSection::TYPES;
+        return view('admins.edit_section', compact('section', 'section_types'));
     }
 
     public function updateSection(Section $section, Request $request)
@@ -72,6 +76,9 @@ class SectionsController extends Controller
         }
         if (!isset($data['details'])) {
             $data['details'] = '';
+        }
+        if (!isset($data['type_id'])) {
+            $data['type_id'] = (ConstSection::NORMAL+1);
         }
         $record = Section::findOrFail($section->id);
 //        $input = $request->all();
