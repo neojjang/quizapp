@@ -441,7 +441,7 @@ class UserQuizlv extends Component
         foreach ($this->questions as $idx => $question) {
             $userAnswered = $this->omrAnswered[$idx];
 
-            if ($this->currentQuestion->type_id == 1) {
+            if ($question->type_id == 1) {
                 // 객관식에 대한 처리
                 $result = $this->checkChoiceAnswer($question, $userAnswered);
             } if ($this->currentQuestion->type_id == 3) {
