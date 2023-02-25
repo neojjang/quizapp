@@ -400,9 +400,9 @@ class UserQuizlv extends Component
         ]);
         $this->count = 1;
         // 사용자 입력 답안지 초기화
-        for ($i=0; $i < $this->quizSize; $i++) {
-            $this->omrAnswered[$i] = [];
-        }
+//        for ($i=0; $i < $this->quizSize; $i++) {
+//            $this->omrAnswered[$i] = [];
+//        }
         // Get the first/next question for the quiz.
         // Since we are using LiveWire component for quiz, the first quesiton and answers will be displayed through mount function.
         $this->questions = $this->getAllQuestions();
@@ -431,6 +431,7 @@ class UserQuizlv extends Component
         } else {
             $this->isDisabled = false;
         }
+        Log::debug('isDisabled='.$this->isDisabled);
     }
 
     public function checkAllAnswers()
