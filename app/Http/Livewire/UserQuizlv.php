@@ -251,7 +251,7 @@ class UserQuizlv extends Component
         Log::debug("주관식 : user_answer=".$userAnswered.", answer=".$question->answers[0]->answer);
         $resultScore = $this->checkUserAnswer($question->answers[0]->answer, $userAnswered);
         $isChoiceCorrect = ($resultScore >= 0.75) ? '1': (($resultScore >= 0.40) ? '2': '0');
-        $userAnswered = $this->userAnswered;
+//        $userAnswered = $this->userAnswered;
 
         return [
             'answerId' => $answerId,
@@ -451,7 +451,7 @@ class UserQuizlv extends Component
                 // 주관식(번역)에 대한 처리를 해야만 함
                 $result = $this->checkTranslatedAnswer($question, $userAnswered);
             }
-
+            Log::debug($result);
             array_push($this->answeredQuestions, $question->id);
 
             // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
