@@ -37,6 +37,7 @@ class UserQuizlv extends Component
     public $questions;
     public $isOMR = false;
     public $omrAnswered = [];
+    public $startOmrQuizFunctions = [];
 
     protected $rules = [
         'sectionId' => 'required',
@@ -117,14 +118,14 @@ class UserQuizlv extends Component
     {
         $this->quote = Quote::inRandomOrder()->first();
 
-        $this->startQuizFunctions[] = function () {
+        $this->startOmrQuizFunctions[] = function () {
             $this->startNormalQuiz();
         };
-        $this->startQuizFunctions[] = function () {
+        $this->startOmrQuizFunctions[] = function () {
             $this->startOMRQuiz();
         };
 
-
+        Log::debug($this->startOmrQuizFunctions);
     }
 
     public function getNextQuestion()
@@ -173,7 +174,7 @@ class UserQuizlv extends Component
         $section = Section::findOrFail($this->sectionId);
         $this->sectionTypeId = $section->type_id;
         if (\App\Constants\Section::isSectionType($this->sectionTypeId)) {
-            $this->startQuizFunctions[$this->sectionTypeId-1]();
+            $this->startOmrQuizFunctions[$this->sectionTypeId-1]();
         }
     }
 
