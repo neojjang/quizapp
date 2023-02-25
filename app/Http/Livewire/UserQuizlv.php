@@ -37,7 +37,7 @@ class UserQuizlv extends Component
     public $questions;
     public $isOMR = false;
     public $omrAnswered = [];
-    public $startOmrQuizFunctions = [];
+//    public $startOmrQuizFunctions = [];
 
     protected $rules = [
         'sectionId' => 'required',
@@ -116,14 +116,14 @@ class UserQuizlv extends Component
     {
         $this->quote = Quote::inRandomOrder()->first();
 
-        $this->startOmrQuizFunctions[] = function () {
-            $this->startNormalQuiz();
-        };
-        $this->startOmrQuizFunctions[] = function () {
-            $this->startOMRQuiz();
-        };
-
-        Log::debug($this->startOmrQuizFunctions);
+//        $this->startOmrQuizFunctions[] = function () {
+//            $this->startNormalQuiz();
+//        };
+//        $this->startOmrQuizFunctions[] = function () {
+//            $this->startOMRQuiz();
+//        };
+//
+//        Log::debug($this->startOmrQuizFunctions);
     }
 
     public function getNextQuestion()
@@ -172,7 +172,9 @@ class UserQuizlv extends Component
         $section = Section::findOrFail($this->sectionId);
         $this->sectionTypeId = $section->type_id;
         if (\App\Constants\Section::isSectionType($this->sectionTypeId)) {
-            $this->startOmrQuizFunctions[$this->sectionTypeId-1]();
+//            $this->startOmrQuizFunctions[$this->sectionTypeId-1]();
+            if ($this->sectionTypeId == \App\Constants\Section::NORMAL) $this->startNormalQuiz();
+            elseif ($this->sectionTypeId == \App\Constants\Section::OMR) $this->startOMRQuiz();
         }
     }
 
@@ -418,11 +420,11 @@ class UserQuizlv extends Component
         return $questions;
     }
 
-    public function updatedOmrAnswered($idx)
-    {
-        Log::debug(__METHOD__);
-        Log::debug($this->omrAnswered);
-    }
+//    public function updatedOmrAnswered($idx)
+//    {
+//        Log::debug(__METHOD__);
+//        Log::debug($this->omrAnswered);
+//    }
 
     public function checkAllAnswers()
     {
