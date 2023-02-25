@@ -425,6 +425,12 @@ class UserQuizlv extends Component
     {
         Log::debug(__METHOD__);
         Log::debug($this->omrAnswered);
+        Log::debug("omr quizSize=" . $this->quizSize. ", answeredSize=".count($this->omrAnswered));
+        if (count($this->omrAnswered) < $this->quizSize) {
+            $this->isDisabled = true;
+        } else {
+            $this->isDisabled = false;
+        }
     }
 
     public function checkAllAnswers()
