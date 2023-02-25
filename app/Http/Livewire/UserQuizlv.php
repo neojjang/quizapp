@@ -183,15 +183,15 @@ class UserQuizlv extends Component
     {
         // 파이썬으로 주관식 답 여부 체크
 //        $userAnswered = preg_replace('/\s+/', '', $this->userAnswered);
-        $userAnswered = preg_replace('/\s+/', '', $userAnswered);
+        $trim_userAnswered = preg_replace('/\s+/', '', $userAnswered);
         $answer = preg_replace('/\s+/', '', $questionAnswer);
-        $result = ($userAnswered == $answer)? 1.0:0.0;
+        $result = ($trim_userAnswered == $answer)? 1.0:0.0;
 
         // 정답안의 길이가 5자 이상의 경우만 분석기 비교 실행
-        if ($result === 0.0 && mb_strlen($questionAnswer) > 5) {
+        if ($result === 0.0 && mb_strlen($trim_userAnswered) > 10) {
             $cmd = sprintf('/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "%s" "%s"',
                             escapeshellarg($questionAnswer),
-                            escapeshellarg($this->userAnswered));
+                            escapeshellarg($userAnswered));
             Log::debug("cmd=".$cmd);
             $similar_score = shell_exec($cmd);
             Log::debug(trim($similar_score));
