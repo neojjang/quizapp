@@ -89,7 +89,8 @@ class UserQuizlv extends Component
 
     public function updatedUserAnswered()
     {
-        Log::debug("updatedUserAnswered : ".$this->userAnswered);
+        Log::debug(__METHOD__);
+        Log::debug($this->userAnswered);
         if ($this->currentQuestion->type_id != 1) {
             # 주관식인 경우
             if (empty(trim($this->userAnswered))) {
@@ -420,11 +421,11 @@ class UserQuizlv extends Component
         return $questions;
     }
 
-//    public function updatedOmrAnswered($idx)
-//    {
-//        Log::debug(__METHOD__);
-//        Log::debug($this->omrAnswered);
-//    }
+    public function updatedOmrAnswered($idx)
+    {
+        Log::debug(__METHOD__);
+        Log::debug($this->omrAnswered);
+    }
 
     public function checkAllAnswers()
     {

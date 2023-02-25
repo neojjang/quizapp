@@ -24,10 +24,10 @@
                                 <div x-show="show" class="block p-2 bg-green-100 text-xs">
                                     정확한 의미(번역/영작)를 입력하세요.
                                 </div>
-                                <textarea id="question-{{$answer->id}}" type="text" wire:model="userAnswered.{{$key}}"
-                                          class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('userAnswered') }}</textarea>
+                                <textarea id="question-{{$answer->id}}" type="text" wire:model="omrAnswered.{{$key}}"
+                                          class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('omrAnswered.'.$key) }}</textarea>
                             @else
-                                <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model="userAnswered.{{$key}}" type="checkbox"> </span> {{$answer->answer}}
+                                <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model="omrAnswered.{{$key}}" type="checkbox"> </span> {{$answer->answer}}
                             @endif
                         </div>
                     </label>
