@@ -49,7 +49,8 @@ class SectionsController extends Controller
         ]);
         // auth()->user()->sections()->createMany($data);
         // $classRoom->sections()->add($section);
-        return redirect()->route('listSection', $classRoom->id)->with('success', 'Section created successfully!');
+        return redirect()->route('detailClassRoom', $classRoom->id)->with('success', 'Section created successfully!');
+//        return redirect()->route('listSection', $classRoom->id)->with('success', 'Section created successfully!');
     }
 
     public function editSection(Section $section)
