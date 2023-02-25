@@ -44,8 +44,6 @@ class UserQuizlv extends Component
         // 'quizSize' => 'required|numeric',
     ];
 
-    protected $startQuizFunctions = [];
-
     public function showResults()
     {
         // Get a count of total number of quiz questions in Quiz table for the just finisned quiz.
