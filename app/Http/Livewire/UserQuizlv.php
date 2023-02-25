@@ -173,7 +173,7 @@ class UserQuizlv extends Component
         $section = Section::findOrFail($this->sectionId);
         $this->sectionTypeId = $section->type_id;
         if (\App\Constants\Section::isSectionType($this->sectionTypeId)) {
-            $this->startQuizFunctions[$this->sectionTypeId]();
+            $this->startQuizFunctions[$this->sectionTypeId-1]();
         }
     }
 
