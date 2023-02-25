@@ -33,11 +33,17 @@ class UserQuizlv extends Component
     public $quizInProgress = false;
     public $answeredQuestions = [];
 
+    public $sectionTypeId = \App\Constants\Section::NORMAL;
+    public $questions;
+    public $isOMR = false;
+    public $omrAnswered = [];
+
     protected $rules = [
         'sectionId' => 'required',
         // 'quizSize' => 'required|numeric',
     ];
 
+    protected $startQuizFunctions = [];
 
     public function showResults()
     {
@@ -66,8 +72,10 @@ class UserQuizlv extends Component
 
         // Hide quiz div and show result div wrapped in if statements in the blade template.
         $this->quizInProgress = false;
+        $this->isOMR = false;
         $this->showResult = true;
     }
+
     public function render()
     {
         $this->sections = Section::withcount('questions')->where('is_active', '1')
@@ -108,6 +116,15 @@ class UserQuizlv extends Component
     public function mount()
     {
         $this->quote = Quote::inRandomOrder()->first();
+
+        $this->startQuizFunctions[] = function () {
+            $this->startNormalQuiz();
+        };
+        $this->startQuizFunctions[] = function () {
+            $this->startOMRQuiz();
+        };
+
+
     }
 
     public function getNextQuestion()
@@ -153,25 +170,18 @@ class UserQuizlv extends Component
         // 수업 리스트 선택
         // 섹션 퀴즈의 전체 갯수를 항상 처리
         Log::debug("startQuiz sectionId=".$this->sectionId);
-        $this->quizSize = Question::query()->where('section_id', $this->sectionId)->where('is_active', '1')->count();
-        Log::debug("startQuiz quizSize=".$this->quizSize);
-        $this->quizid = QuizHeader::create([
-            'user_id' => auth()->id(),
-            'quiz_size' => $this->quizSize,
-            'section_id' => $this->sectionId,
-        ]);
-        $this->count = 1;
-        // Get the first/next question for the quiz.
-        // Since we are using LiveWire component for quiz, the first quesiton and answers will be displayed through mount function.
-        $this->currentQuestion = $this->getNextQuestion();
-        $this->setupQuiz = false;
-        $this->quizInProgress = true;
+        $section = Section::findOrFail($this->sectionId);
+        $this->sectionTypeId = $section->type_id;
+        if (\App\Constants\Section::isSectionType($this->sectionTypeId)) {
+            $this->startQuizFunctions[$this->sectionTypeId]();
+        }
     }
 
-    private function checkUserAnswer($questionAnswer)
+    private function checkUserAnswer($questionAnswer, $userAnswered)
     {
         // 파이썬으로 주관식 답 여부 체크
-        $userAnswered = preg_replace('/\s+/', '', $this->userAnswered);
+//        $userAnswered = preg_replace('/\s+/', '', $this->userAnswered);
+        $userAnswered = preg_replace('/\s+/', '', $userAnswered);
         $answer = preg_replace('/\s+/', '', $questionAnswer);
         $result = ($userAnswered == $answer)? 1.0:0.0;
 
@@ -200,38 +210,119 @@ class UserQuizlv extends Component
         return $result;
     }
 
-    public function nextQuestion()
+    /**
+     * 영작 문제 검사
+     * @param $question
+     * @param $userAnswered
+     * @return array
+     */
+    public function checkWritingAnswer($question, $userAnswered)
     {
-        Log::debug("nextQuestion : 정답 여부 체크");
+        $answerId = $question->answers[0]->id;
+        // 1. 문장내 공백은 한개씩만 유지
+        $userAnswered = trim(preg_replace("/\s+/", " ", $userAnswered));
+        // 2. 구분자를 중심으로 단어 분리
+        $arrayUserAnswer = preg_split("/[,:.\s]/", strtolower($userAnswered));
+        $arrayCorrentAnswer = preg_split("/[,:.\s]/", strtolower($question->answers[0]->answer));
+        // 3. 두배열 차이 비교
+        $answer_diff = ($arrayCorrentAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
+        $isChoiceCorrect = $answer_diff ? '1':'0';
+
+        return [
+            'answerId' => $answerId,
+            'userAnswered' => $userAnswered,
+            'isChoiceCorrect' => $isChoiceCorrect
+        ];
+    }
+
+    /**
+     * 번역 문제 검사
+     * @param $question
+     * @param $userAnswered
+     * @return void
+     */
+    public function checkTranslatedAnswer($question, $userAnswered)
+    {
+        $answerId = $question->answers[0]->id;
+
+        // 주관식 정답 체크
+        Log::debug("주관식 : user_answer=".$userAnswered.", answer=".$question->answers[0]->answer);
+        $resultScore = $this->checkUserAnswer($question->answers[0]->answer, $userAnswered);
+        $isChoiceCorrect = ($resultScore >= 0.75) ? '1': (($resultScore >= 0.40) ? '2': '0');
+        $userAnswered = $this->userAnswered;
+
+        return [
+            'answerId' => $answerId,
+            'userAnswered' => $userAnswered,
+            'isChoiceCorrect' => $isChoiceCorrect
+        ];
+    }
+
+    /**
+     * 객관식 문제 검사
+     * @param $question
+     * @param $userAnswered
+     * @return array
+     */
+    public function checkChoiceAnswer($question, $userAnswered)
+    {
+        // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
+        list($answerId, $isChoiceCorrect) = explode(',', $userAnswered[0]);
+        $userAnswered = $answerId;
+
+        return [
+            'answerId' => $answerId,
+            'userAnswered' => $userAnswered,
+            'isChoiceCorrect' => $isChoiceCorrect
+        ];
+    }
+
+    public function checkCurrentAnswer()
+    {
         if ($this->currentQuestion->type_id == 1) {
             // 객관식에 대한 처리
             // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
             $this->quizid->questions_taken = serialize($this->answeredQuestions);
 
-            // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
-            list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
-            $userAnswered = $answerId;
+            return $this->checkChoiceAnswer($this->currentQuestion, $this->userAnswered);
+//            // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
+//            list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
+//            $userAnswered = $answerId;
         } if ($this->currentQuestion->type_id == 3) {
             // 주관식(영작) 문제 처리
-            $answerId = $this->currentQuestion->answers[0]->id;
-            // 1. 문장내 공백은 한개씩만 유지
-            $userAnswered = trim(preg_replace("/\s+/", " ", $this->userAnswered));
-            // 2. 구분자를 중심으로 단어 분리
-            $arrayUserAnswer = preg_split("/[,:.\s]/", strtolower($userAnswered));
-            $arrayCorrentAnswer = preg_split("/[,:.\s]/", strtolower($this->currentQuestion->answers[0]->answer));
-            // 3. 두배열 차이 비교
-            $answer_diff = ($arrayCorrentAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
-            $isChoiceCorrect = $answer_diff ? '1':'0';
+            return $this->checkWritingAnswer($this->currentQuestion, $this->userAnswered);
+//            $answerId = $this->currentQuestion->answers[0]->id;
+//            // 1. 문장내 공백은 한개씩만 유지
+//            $userAnswered = trim(preg_replace("/\s+/", " ", $this->userAnswered));
+//            // 2. 구분자를 중심으로 단어 분리
+//            $arrayUserAnswer = preg_split("/[,:.\s]/", strtolower($userAnswered));
+//            $arrayCorrentAnswer = preg_split("/[,:.\s]/", strtolower($this->currentQuestion->answers[0]->answer));
+//            // 3. 두배열 차이 비교
+//            $answer_diff = ($arrayCorrentAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
+//            $isChoiceCorrect = $answer_diff ? '1':'0';
         } else {
             // 주관식(번역)에 대한 처리를 해야만 함
-            $answerId = $this->currentQuestion->answers[0]->id;
-
-            // 주관식 정답 체크
-            Log::debug("주관식 : user_answer=".$this->userAnswered.", answer=".$this->currentQuestion->answers[0]->answer);
-            $resultScore = $this->checkUserAnswer($this->currentQuestion->answers[0]->answer);
-            $isChoiceCorrect = ($resultScore >= 0.75) ? '1': (($resultScore >= 0.40) ? '2': '0');
-            $userAnswered = $this->userAnswered;
+            return $this->checkTranslatedAnswer($this->currentQuestion, $this->userAnswered);
+//            $answerId = $this->currentQuestion->answers[0]->id;
+//
+//            // 주관식 정답 체크
+//            Log::debug("주관식 : user_answer=".$this->userAnswered.", answer=".$this->currentQuestion->answers[0]->answer);
+//            $resultScore = $this->checkUserAnswer($this->currentQuestion->answers[0]->answer);
+//            $isChoiceCorrect = ($resultScore >= 0.75) ? '1': (($resultScore >= 0.40) ? '2': '0');
+//            $userAnswered = $this->userAnswered;
         }
+
+//        return [
+//            'answerId' => $answerId,
+//            'userAnswered' => $userAnswered,
+//            'isChoiceCorrect' => $isChoiceCorrect
+//        ];
+    }
+
+    public function nextQuestion()
+    {
+        Log::debug("nextQuestion : 정답 여부 체크");
+        $result = $this->checkCurrentAnswer();
 
         // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
         Quiz::create([
@@ -239,9 +330,9 @@ class UserQuizlv extends Component
             'quiz_header_id' => $this->quizid->id,
             'section_id' => $this->currentQuestion->section_id,
             'question_id' => $this->currentQuestion->id,
-            'answer_id' => $answerId,
-            'user_answer' => $userAnswered,
-            'is_correct' => $isChoiceCorrect
+            'answer_id' => $result['answerId'],
+            'user_answer' => $result['userAnswered'],
+            'is_correct' => $result['isChoiceCorrect']
         ]);
 
         // Save the record
@@ -263,5 +354,115 @@ class UserQuizlv extends Component
 
         // Get a random questoin
         $this->currentQuestion = $this->getNextQuestion();
+    }
+
+    /**
+     * 일반 문제 유형 진행.
+     * @return void
+     */
+    public function startNormalQuiz()
+    {
+        Log::debug(__METHOD__);
+        $this->reset('omrAnswered');
+
+        $this->quizSize = Question::query()->where('section_id', $this->sectionId)->where('is_active', '1')->count();
+        Log::debug("startQuiz quizSize=" . $this->quizSize);
+        $this->quizid = QuizHeader::create([
+            'user_id' => auth()->id(),
+            'quiz_size' => $this->quizSize,
+            'section_id' => $this->sectionId,
+        ]);
+        $this->count = 1;
+        // Get the first/next question for the quiz.
+        // Since we are using LiveWire component for quiz, the first quesiton and answers will be displayed through mount function.
+        $this->currentQuestion = $this->getNextQuestion();
+        $this->setupQuiz = false;
+        $this->quizInProgress = true;
+    }
+
+    /**
+     * OMR 유형 진행
+     * @return void
+     */
+    public function startOMRQuiz()
+    {
+        Log::debug(__METHOD__);
+        $this->reset('userAnswered');
+
+        $this->quizSize = Question::query()->where('section_id', $this->sectionId)->where('is_active', '1')->count();
+        Log::debug("startQuiz quizSize=" . $this->quizSize);
+        $this->quizid = QuizHeader::create([
+            'user_id' => auth()->id(),
+            'quiz_size' => $this->quizSize,
+            'section_id' => $this->sectionId,
+        ]);
+        $this->count = 1;
+        // 사용자 입력 답안지 초기화
+        for ($i=0; $i < $this->quizSize; $i++) {
+            $this->omrAnswered[$i] = [];
+        }
+        // Get the first/next question for the quiz.
+        // Since we are using LiveWire component for quiz, the first quesiton and answers will be displayed through mount function.
+        $this->questions = $this->getAllQuestions();
+
+        $this->setupQuiz = false;
+        $this->quizInProgress = true;
+        $this->isOMR = true;
+    }
+
+    private function getAllQuestions()
+    {
+        $questions = Question::where('section_id', $this->sectionId)
+            ->with('answers')
+            ->orderBy('id', 'asc')
+            ->get();
+        return $questions;
+    }
+
+    public function updatedOmrAnswered($idx)
+    {
+        Log::debug(__METHOD__);
+        Log::debug($this->omrAnswered);
+    }
+
+    public function checkAllAnswers()
+    {
+        Log::debug(__METHOD__);
+
+        foreach ($this->questions as $idx => $question) {
+            $userAnswered = $this->omrAnswered[$idx];
+
+            if ($this->currentQuestion->type_id == 1) {
+                // 객관식에 대한 처리
+                $result = $this->checkChoiceAnswer($question, $userAnswered);
+            } if ($this->currentQuestion->type_id == 3) {
+                // 주관식(영작) 문제 처리
+                $result = $this->checkWritingAnswer($question, $userAnswered);
+            } else {
+                // 주관식(번역)에 대한 처리를 해야만 함
+                $result = $this->checkTranslatedAnswer($question, $userAnswered);
+            }
+
+            array_push($this->answeredQuestions, $question->id);
+
+            // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
+            Quiz::create([
+                'user_id' => auth()->id(),
+                'quiz_header_id' => $this->quizid->id,
+                'section_id' => $question->section_id,
+                'question_id' => $question->id,
+                'answer_id' => $result['answerId'],
+                'user_answer' => $result['userAnswered'],
+                'is_correct' => $result['isChoiceCorrect']
+            ]);
+        }
+
+        $this->quizid->questions_taken = serialize($this->answeredQuestions);
+        // Save the record
+        $this->quizid->save();
+
+        // 사용자 입력 답안지 리셋
+        $this->reset('omrAnswered');
+        $this->showResults();
     }
 }

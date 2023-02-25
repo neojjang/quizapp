@@ -1,7 +1,51 @@
 <div class="bg-white rounded-lg shadow-lg p-5 md:p-20 mx-2">
 
     <!-- Start of quiz box -->
-    @if($quizInProgress)
+    @if($quizInProgress && $isOMR)
+    <div class="px-4 -py-3 sm:px-6 ">
+        <div class="flex max-w-auto justify-between">
+            <h1 class="text-sm leading-6 font-medium text-gray-900">
+                <span class="text-gray-400 font-extrabold p-1">User</span>
+                <span class="font-bold p-2 leading-loose bg-blue-500 text-white rounded-lg">{{Auth::user()->name}}</span>
+            </h1>
+        </div>
+    </div>
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
+        <form wire:submit.prevent>
+            @foreach($questions as $key => $question)
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
+                    <span class="mr-2 font-extrabold"> {{$key+1}}</span> {!! nl2br($question->question) !!}
+                </h3>
+                @foreach($question->answers as $answer)
+                    <label for="question-{{$answer->id}}">
+                        <div class="max-w-auto px-3 py-3 m-3 text-gray-800 rounded-lg border-2 border-gray-300 text-sm ">
+                            @if($question->type_id != 1 && $answer->is_checked==1)
+                                <div x-show="show" class="block p-2 bg-green-100 text-xs">
+                                    정확한 의미(번역/영작)를 입력하세요.
+                                </div>
+                                <textarea id="question-{{$answer->id}}" type="text" wire:model="userAnswered.{{$key}}"
+                                          class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('userAnswered') }}</textarea>
+                            @else
+                                <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model="userAnswered.{{$key}}" type="checkbox"> </span> {{$answer->answer}}
+                            @endif
+                        </div>
+                    </label>
+                    @if($question->type_id != 1)
+                        @break
+                    @endif
+                @endforeach
+            </div>
+            @endforeach
+            <div class="flex items-center justify-end mt-4">
+                <button wire:click="checkAllAnswers" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
+                    {{ __('Show Results') }}
+                </button>
+            </div>
+        </form>
+    </div>
+    @endif
+    @if($quizInProgress && !$isOMR)
     <div class="px-4 -py-3 sm:px-6 ">
         <div class="flex max-w-auto justify-between">
             <h1 class="text-sm leading-6 font-medium text-gray-900">
@@ -52,14 +96,15 @@
                 @endforeach
             </div>
             <div class="flex items-center justify-end mt-4">
-                @if($count < $quizSize) <button wire:click="nextQuestion" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
+                @if($count < $quizSize)
+                    <button wire:click="nextQuestion" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
                     {{ __('Next Question') }}
                     </button>
-                    @else
+                @else
                     <button wire:click="nextQuestion" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
                         {{ __('Show Results') }}
                     </button>
-                    @endif
+                @endif
             </div>
         </form>
     </div>

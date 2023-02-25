@@ -78,7 +78,7 @@ class SectionsController extends Controller
             $data['details'] = '';
         }
         if (!isset($data['type_id'])) {
-            $data['type_id'] = (ConstSection::NORMAL+1);
+            $data['type_id'] = (ConstSection::NORMAL);
         }
         $record = Section::findOrFail($section->id);
 //        $input = $request->all();
