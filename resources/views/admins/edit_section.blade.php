@@ -31,7 +31,7 @@
                                 @error('type_id')
                                 <span class="text-red-700 text-xs content-end float-right">{{$message}}</span>
                                 @enderror
-                                <select name="section[type_id]" value="{{ $section->type_id }}" class="block w-1/2 mt-1 text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0">
+                                <select name="type_id" value="{{ $section->type_id }}" class="block w-1/2 mt-1 text-xs  bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0">
                                     @foreach($section_types as $type)
                                         <option value="{{ $loop->index+1 }}" {{ ($loop->index+1) === $section->type_id ? 'selected' : '' }}>{{$type}}</option>
                                     @endforeach
