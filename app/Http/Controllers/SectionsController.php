@@ -25,7 +25,7 @@ class SectionsController extends Controller
     public function listSection()
     {
 
-        $sections = Section::withCount('questions')->paginate(10);
+        $sections = Section::withCount('questions')->orderBy('updated_at','desc')->paginate(10);
         return view('admins.list_sections', compact('sections'));
     }
 

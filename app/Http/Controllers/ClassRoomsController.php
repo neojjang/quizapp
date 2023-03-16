@@ -17,7 +17,7 @@ class ClassRoomsController extends Controller
 
     public function listClassRoom()
     {
-        $classRooms = ClassRoom::withCount('sections')->paginate(10);
+        $classRooms = ClassRoom::withCount('sections')->orderBy('updated_at','desc')->paginate(10);
         return view('admins.list_class_rooms', compact('classRooms'));
     }
 
