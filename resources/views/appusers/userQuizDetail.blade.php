@@ -126,7 +126,7 @@
                     </div>
                     @else
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 font-extrabold ">
-                        [정답]: @hasrole('admin|superadmin') <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @endhasrole
+                        @hasrole('admin|superadmin') <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @endhasrole
                     </div>
                     @endif
                 @endif

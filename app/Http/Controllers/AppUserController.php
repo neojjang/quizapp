@@ -65,7 +65,7 @@ class AppUserController extends Controller
     public function userQuizDetails($id)
     {
         // Answers with alphabetical choice
-        $choice = collect(['A', 'B', 'C', 'D']);
+        $choice = collect(['A', 'B', 'C', 'D', 'E']);
 
         //Get quiz summary record for the given quiz
         $userQuizDetails = QuizHeader::where('id', $id)->where('user_id', auth()->id())

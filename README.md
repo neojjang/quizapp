@@ -62,3 +62,17 @@ Register a new user and login -> Take a Quiz
 ## License
 
 The QuizApp is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+## docker container 생성
+$ docker build -t quizapp:latest . --no-cache
+
+## docker container 실행
+$ docker run -d -p 8800:8000 -v $(pwd):/app --name quizapp-dev quizapp:latest  php artisan serve --host=0.0.0.0
+$ docker exec -it quizapp-dev /bin/bash
+
+## docker-compose 실행
+$ docker-compose up
+$ docker-compose down
+$ docker-compose stop
+

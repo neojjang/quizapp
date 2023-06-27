@@ -443,14 +443,18 @@ class UserQuizlv extends Component
 
             if ($question->type_id == 1) {
                 // 객관식에 대한 처리
-                $result = $this->checkChoiceAnswer($question, $userAnswered);
-            } if ($question->type_id == 3) {
-                // 주관식(영작) 문제 처리
-                $result = $this->checkWritingAnswer($question, $userAnswered);
+                $result = $this->checkChoiceAnswer($question, [$userAnswered]);
+            } elseif ($question->type_id == 4) {
+                // 단답형 처리
+                $result = $this->checkShortAnswer($question, $userAnswered);
+            } elseif ($question->type_id == 3) {
+                    // 주관식(영작) 문제 처리
+                    $result = $this->checkWritingAnswer($question, $userAnswered);
             } else {
                 // 주관식(번역)에 대한 처리를 해야만 함
                 $result = $this->checkTranslatedAnswer($question, $userAnswered);
             }
+
             Log::debug($result);
             array_push($this->answeredQuestions, $question->id);
 
@@ -473,5 +477,24 @@ class UserQuizlv extends Component
         // 사용자 입력 답안지 리셋
         $this->reset('omrAnswered');
         $this->showResults();
+    }
+
+    public function checkShortAnswer($question, $userAnswered)
+    {
+        $answerId = $question->answers[0]->id;
+        // 1. 문장내 공백은 한개씩만 유지
+        $userAnswered = trim(preg_replace("/\s+/", " ", $userAnswered));
+        // 2. 구분자를 중심으로 단어 분리
+        $arrayUserAnswer = preg_split("/[,:.\s]/", strtolower($userAnswered));
+        $arrayCorrentAnswer = preg_split("/[,:.\s]/", strtolower($question->answers[0]->answer));
+        // 3. 두배열 차이 비교
+        $answer_diff = ($arrayCorrentAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
+        $isChoiceCorrect = $answer_diff ? '1':'0';
+
+        return [
+            'answerId' => $answerId,
+            'userAnswered' => $userAnswered,
+            'isChoiceCorrect' => $isChoiceCorrect
+        ];
     }
 }

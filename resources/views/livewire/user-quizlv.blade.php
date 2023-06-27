@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg shadow-lg p-5 md:p-20 mx-2">
+<div class="bg-white rounded-lg shadow-lg p-5 md:p-8 mx-2">
 
     <!-- Start of quiz box -->
     @if($quizInProgress && $isOMR)
@@ -11,32 +11,34 @@
         </div>
     </div>
     <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
+        <h4 class="text-2xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">각 문항의 답을 입력해 주세요.</h4>
         <form wire:submit.prevent>
-            @foreach($questions as $key => $question)
-            <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
-                    <span class="mr-2 font-extrabold"> {{$key+1}}</span> {!! nl2br($question->question) !!}
-                </h3>
-                @foreach($question->answers as $answer)
-                    <label for="question-{{$answer->id}}">
-                        <div class="max-w-auto px-3 py-3 m-3 text-gray-800 rounded-lg border-2 border-gray-300 text-sm ">
-                            @if($question->type_id != 1 && $answer->is_checked==1)
-                                <div x-show="show" class="block p-2 bg-green-100 text-xs">
-                                    정확한 의미(번역/영작)를 입력하세요.
-                                </div>
-                                <textarea id="question-{{$answer->id}}" type="text" wire:model="omrAnswered.{{$key}}"
-                                          class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('omrAnswered.'.$key) }}</textarea>
-                            @else
-                                <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model="omrAnswered.{{$key}}" type="checkbox"> </span> {{$answer->answer}}
-                            @endif
-                        </div>
-                    </label>
-                    @if($question->type_id != 1)
-                        @break
-                    @endif
+            <table class="table-fixed border border-slate-400 w-full">
+                <tr>
+                    <th class="border border-slate-400 bg-blue-100 border px-8 py-4 w-1/6">문번</th>
+                    <th class="border border-slate-400 bg-blue-100 border px-8 py-4 w-1/2">답안</th>
+                </tr>
+                @foreach($questions as $key => $question)
+                    <tr>
+                        <td class="border border-slate-400 text-center py-2 @if($question["question_type"] == \App\Constants\Question::SELECTIVE){{'bg-indigo-50'}}@else{{'bg-green-100'}}@endif"><span class="mx-auto">{{$key+1}}번.</span> </td>
+                        <td class="border border-slate-400 justify-items-start py-2">
+                            <span class="px-5">
+                            @foreach($question->answers as $index => $answer)
+                                @if(($question->type_id-1) == \App\Constants\Question::SELECTIVE)
+                                    <input type="radio" value="{{$answer->id .','.$answer->is_checked}}" wire:model="omrAnswered.{{$key}}"
+                                           id="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}"
+                                           name="question.{{$key}}.{{$index}}.answer" class="checked:bg-blue-500">
+                                    <label for="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}" class="mr-2">{{$answer->answer}}</label>
+                                @else
+                                    <input type="text" wire:model="omrAnswered.{{$key}}"
+                                           name="question.{{$key}}.{{$index}}.answer" value="{{ old('omrAnswered.'.$key) }}" class="w-11/12" style="padding-top:0px;padding-bottom:0px;"/>
+                                @endif
+                            @endforeach
+                            </span>
+                        </td>
+                    </tr>
                 @endforeach
-            </div>
-            @endforeach
+            </table>
             <div class="flex items-center justify-end mt-4">
                 <button wire:click="checkAllAnswers" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
                     {{ __('Show Results') }}

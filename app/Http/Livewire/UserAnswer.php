@@ -24,9 +24,9 @@ class UserAnswer extends Component
     // public $isWrong;
     // public $isHold;
 
-    public function mount() 
+    public function mount()
     {
-        $this->choice = collect(['A', 'B', 'C', 'D']);
+        $this->choice = collect(['A', 'B', 'C', 'D', 'E']);
         // $this->isCorrect = (bool)($this->userAnswer->is_correct === '1');
         // $this->isWrong = (bool)($this->userAnswer->is_correct === '0');
         // $this->isHold = (bool)($this->userAnswer->is_correct === '2');
@@ -48,7 +48,7 @@ class UserAnswer extends Component
         $this->userAnswer->is_correct = $value;
         $this->userAnswer->save();
 
-        // 정답 채점인 경우 점수 계산 
+        // 정답 채점인 경우 점수 계산
         $currectQuizAnswers = Quiz::where('quiz_header_id', $this->quizHeader->id)
             ->where('is_correct', '1')
             ->count();
