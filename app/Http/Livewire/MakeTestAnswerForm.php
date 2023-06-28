@@ -48,14 +48,14 @@ class MakeTestAnswerForm extends Component
         Log::debug($this->total_questions);
         $this->initializeQuestions();
 
-        $this->questions = [];
-        for ($i=0; $i < $this->total_questions; $i++) {
-            $this->questions[] = [
-                'question_type' =>  Question::SELECTIVE, // Question::SHORT_ANSWER,  //
-                'answer' => 1
-            ];
+        if (count($this->questions) == 0) {
+            for ($i = 0; $i < $this->total_questions; $i++) {
+                $this->questions[] = [
+                    'question_type' => Question::SELECTIVE, // Question::SHORT_ANSWER,  //
+                    'answer' => 1
+                ];
+            }
         }
-
     }
 
     public function changeQuestionType($index, $question_type)
@@ -76,7 +76,7 @@ class MakeTestAnswerForm extends Component
                 'answer' => $answer->answer
             ];
         }
-        $this->total_questions = count($this->questions);
+        if (count($this->questions) > 0) $this->total_questions = count($this->questions);
     }
 
     public function showExternAnswerInputs()
