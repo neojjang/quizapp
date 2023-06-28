@@ -33,6 +33,8 @@ class UserQuizlv extends Component
     public $quizInProgress = false;
     public $answeredQuestions = [];
 
+    public $classRoomName;
+    public $sectionName;
     public $sectionTypeId = \App\Constants\Section::NORMAL;
     public $questions;
     public $isOMR = false;
@@ -171,6 +173,8 @@ class UserQuizlv extends Component
         // 섹션 퀴즈의 전체 갯수를 항상 처리
         Log::debug("startQuiz sectionId=".$this->sectionId);
         $section = Section::findOrFail($this->sectionId);
+        $this->classRoomName = $section->class_room->name;
+        $this->sectionName = $section->name;
         $this->sectionTypeId = $section->type_id;
         if (\App\Constants\Section::isSectionType($this->sectionTypeId)) {
 //            $this->startOmrQuizFunctions[$this->sectionTypeId-1]();

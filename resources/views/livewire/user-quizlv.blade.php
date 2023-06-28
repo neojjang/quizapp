@@ -3,6 +3,9 @@
     <!-- Start of quiz box -->
     @if($quizInProgress && $isOMR)
     <div class="px-4 -py-3 sm:px-6 ">
+        <div class="flex max-w-auto mb-3">
+            <h1 class="text-2xl font-bold font-medium text-gray-900">[{{$classRoomName}} - {{$sectionName}}]</h1>
+        </div>
         <div class="flex max-w-auto justify-between">
             <h1 class="text-sm leading-6 font-medium text-gray-900">
                 <span class="text-gray-400 font-extrabold p-1">User</span>
@@ -10,8 +13,8 @@
             </h1>
         </div>
     </div>
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
-        <h4 class="text-2xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">각 문항의 답을 입력해 주세요.</h4>
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-4">
+        <h4 class="text-xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">각 문항의 답을 입력해 주세요.</h4>
         <form wire:submit.prevent>
             <table class="table-fixed border border-slate-400 w-full">
                 <tr>
