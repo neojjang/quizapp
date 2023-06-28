@@ -52,6 +52,7 @@ class MakeTestAnswerForm extends Component
             for ($i = 0; $i < $this->total_questions; $i++) {
                 $this->questions[] = [
                     'question_type' => Question::SELECTIVE, // Question::SHORT_ANSWER,  //
+                    'title' => sprintf("%d번 문제", ($i+1)),
                     'answer' => 1
                 ];
             }
@@ -73,6 +74,7 @@ class MakeTestAnswerForm extends Component
             $answer = $question->answers()->where('is_checked', '1')->first();
             $this->questions[] = [
                 'question_type' =>  ($question->type_id-1), // Question::SELECTIVE, // Question::SHORT_ANSWER,  //
+                'title' => $question->question,
                 'answer' => $answer->answer
             ];
         }
@@ -107,6 +109,7 @@ class MakeTestAnswerForm extends Component
             $value = trim($items[1]);
             if (!isset($this->questions[($no-1)])) {
                 $this->questions[($no-1)]['question_type'] = (is_numeric($value))? Question::SELECTIVE:Question::SHORT_ANSWER;
+                $this->questions[($no-1)]['title'] =  sprintf("%d번 문제", ($no));
                 $this->questions[($no-1)]['answer'] = $value;
             }
         }
@@ -159,5 +162,12 @@ class MakeTestAnswerForm extends Component
     public function deleteQuestion($index)
     {
         array_splice($this->questions, $index, 1);
+    }
+
+    public function rearrangeQuestionNo()
+    {
+        for ($i = 0; $i < count($this->questions); $i++) {
+            $this->questions[$i]['title'] = sprintf("%d번 문제", ($i+1));
+        }
     }
 }

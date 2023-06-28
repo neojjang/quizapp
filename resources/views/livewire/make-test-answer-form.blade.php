@@ -32,13 +32,16 @@
                         @if(count($questions) > 0)
                         <table class="table-fixed border border-slate-400">
                             <tr>
-                                <th class="border border-slate-400 bg-blue-100 border px-8 py-4">문번</th>
+                                <th class="border border-slate-400 bg-blue-100 border px-8 py-4">문번
+                                    <button wire:click="rearrangeQuestionNo" id="rearrange-question-no"
+                                            class="inline-flex items-center px-4 py-2 bg-red-300 hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring focus:ring-red-500 border border-transparent rounded-md font-semibold text-sm text-black uppercase " > 재정렬 </button>
+                                </th>
                                 <th class="border border-slate-400 bg-blue-100 border px-8 py-4">답안</th>
                                 <th class="border border-slate-400 bg-blue-100 border px-8 py-4">&nbsp;</th>
                             </tr>
                             @foreach($questions as $index => $question)
                             <tr>
-                                <td class="border border-slate-400 text-center @if($question["question_type"] == \App\Constants\Question::SELECTIVE){{'bg-indigo-50'}}@else{{'bg-green-100'}}@endif"><span class="mx-auto">{{$index+1}}번.</span> </td>
+                                <td class="border border-slate-400 text-center @if($question["question_type"] == \App\Constants\Question::SELECTIVE){{'bg-indigo-50'}}@else{{'bg-green-100'}}@endif"><span class="mx-auto">{{$question['title']}}</span> </td>
                                 <td class="border border-slate-400 justify-items-start">
                                     @if($question["question_type"] == \App\Constants\Question::SELECTIVE)
                                         <span class="px-5">

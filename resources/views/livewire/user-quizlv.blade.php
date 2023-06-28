@@ -23,7 +23,7 @@
                 </tr>
                 @foreach($questions as $key => $question)
                     <tr>
-                        <td class="border border-slate-400 text-center py-2 @if($question["question_type"] == \App\Constants\Question::SELECTIVE){{'bg-indigo-50'}}@else{{'bg-green-100'}}@endif"><span class="mx-auto">{{$key+1}}번.</span> </td>
+                        <td class="border border-slate-400 text-center py-2 @if($question["question_type"] == \App\Constants\Question::SELECTIVE){{'bg-indigo-50'}}@else{{'bg-green-100'}}@endif"><span class="mx-auto">{{$question["question"]}}</span> </td>
                         <td class="border border-slate-400 justify-items-start py-2">
                             <span class="px-5">
                             @foreach($question->answers as $index => $answer)
