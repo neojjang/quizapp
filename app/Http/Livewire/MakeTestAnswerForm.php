@@ -19,6 +19,9 @@ class MakeTestAnswerForm extends Component
     public $flagExternalAnswerInputs;
     public $external_answers;
 
+    public $flagSetQuestionStartNo;
+    public $question_start_no;
+
     public $rules = [];
     public function render()
     {
@@ -28,7 +31,9 @@ class MakeTestAnswerForm extends Component
     public function mount()
     {
         $this->total_questions = 10;
+        $this->question_start_no = 0;
         $this->flagExternalAnswerInputs = false;
+        $this->flagSetQuestionStartNo = false;
         $this->initializeQuestions();
     }
 
@@ -56,6 +61,7 @@ class MakeTestAnswerForm extends Component
                     'answer' => 1
                 ];
             }
+            $this->question_start_no = 0;
         }
     }
 
@@ -78,7 +84,10 @@ class MakeTestAnswerForm extends Component
                 'answer' => $answer->answer
             ];
         }
-        if (count($this->questions) > 0) $this->total_questions = count($this->questions);
+        if (count($this->questions) > 0) {
+            $this->total_questions = count($this->questions);
+            $this->question_start_no = intval($this->questions[0]['title']);
+        }
     }
 
     public function showExternAnswerInputs()
@@ -125,7 +134,7 @@ class MakeTestAnswerForm extends Component
             $this->section->questions()->delete();
             foreach ($this->questions as $no => $item) {
                 $question = \App\Models\Question::create([
-                    'question' => sprintf("%d번 문제", ($no+1)),
+                    'question' => $item['title'],
                     'explanation' => $this->section->name,
                     'is_active' => '1',
                     'user_id' => Auth::id(),
@@ -169,5 +178,18 @@ class MakeTestAnswerForm extends Component
         for ($i = 0; $i < count($this->questions); $i++) {
             $this->questions[$i]['title'] = sprintf("%d번 문제", ($i+1));
         }
+    }
+
+    public function showSetQuestionStartNo($flag)
+    {
+        $this->flagSetQuestionStartNo = $flag;
+    }
+
+    public function setQuestionStartNo()
+    {
+        for ($i=0; $i < count($this->questions); $i++) {
+            $this->questions[$i]['title'] = sprintf("%d번 문제", ($this->question_start_no+$i));
+        }
+        $this->flagSetQuestionStartNo = false;
     }
 }

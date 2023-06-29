@@ -13,10 +13,25 @@
                                 <input name="total_questions" type="text" wire:model.defer="total_questions" class="mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                                 <button wire:click="changeSheets" id="changeSheets"
                                         class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > 답지 생성 </button>
+                                <button wire:click="showSetQuestionStartNo(true)" id="showSetQuestionStartNo"
+                                        class="m-4 inline-flex items-center px-4 py-2 bg-sky-300 hover:bg-sky-500 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-sm text-black uppercase " > 문제시작번호 설정 </button>
                                 <button wire:click="showExternAnswerInputs" id="showExternAnswerInputs"
                                         class="m-4 inline-flex items-center px-4 py-2 bg-yellow-300 hover:bg-yellow-500 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-sm text-black uppercase " > 외부 답지 입력 </button>
                             </label>
                         </form>
+                        @endif
+                        @if($flagSetQuestionStartNo)
+                                <div>
+                                    <label class="flex items-center">
+                                        <span class="text-gray-700">문제 시작 번호 </span>
+                                        <input name="question_start_no" type="text" wire:model.defer="question_start_no" class="mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
+                                    <button wire:click="setQuestionStartNo" id="setQuestionStartNo"
+                                            class="m-4 inline-flex items-center px-4 py-2 bg-blue-400 hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 border border-transparent rounded-md font-semibold text-sm text-white uppercase " > 설 정 </button>
+                                    <button wire:click="showSetQuestionStartNo(false)" id="hideExternAnswerInputs"
+                                            class="m-4 inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent text-xs rounded-md  font-semibold text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25" > {{' 취   소 '}}</button>
+                                    </label>
+
+                                </div>
                         @endif
                         @if($flagExternalAnswerInputs)
                             <div>
