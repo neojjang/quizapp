@@ -58,7 +58,7 @@ class MakeTestAnswerForm extends Component
                 $this->questions[] = [
                     'question_type' => Question::SELECTIVE, // Question::SHORT_ANSWER,  //
                     'title' => sprintf("%d번 문제", ($i+1)),
-                    'answer' => 1
+                    'answer' => [true,false,false,false,false]
                 ];
             }
             $this->question_start_no = 0;
@@ -68,7 +68,14 @@ class MakeTestAnswerForm extends Component
     public function changeQuestionType($index, $question_type)
     {
         Log::debug("{__METHOD__} : {$index}, {$question_type}");
+        Log::debug($this->questions[$index]);
         $this->questions[$index]['question_type'] = $question_type;
+        if ($question_type == Question::SELECTIVE) {
+            $this->questions[$index]['answer'] = [true,false,false,false,false];
+        } else {
+            $this->questions[$index]['answer'] = [''];
+        }
+
     }
 
     private function initializeQuestions()
@@ -77,12 +84,21 @@ class MakeTestAnswerForm extends Component
         // DB에서 $this->section->id 의 quesiton 데이터를 읽어서 초기화 해야 함
         $questions = $this->section->questions()->where('is_active', '1')->orderBy('id', 'asc')->get();
         foreach ($questions as $question) {
-            $answer = $question->answers()->where('is_checked', '1')->first();
+            $answers = $question->answers()->get();
+            if (($question->type_id-1)== Question::SELECTIVE) {
+                $answer_data = [];
+                for ($i = 0; $i < count($answers); $i++) {
+                    $answer_data[$i] = ($answers[$i]->is_checked=='1');
+                }
+            } else {
+                $answer_data[] = $answers[0]->answer;
+            }
             $this->questions[] = [
                 'question_type' =>  ($question->type_id-1), // Question::SELECTIVE, // Question::SHORT_ANSWER,  //
                 'title' => $question->question,
-                'answer' => $answer->answer
+                'answer' => $answer_data
             ];
+
         }
         if (count($this->questions) > 0) {
             $this->total_questions = count($this->questions);
@@ -145,12 +161,12 @@ class MakeTestAnswerForm extends Component
                 if ($item['question_type'] == Question::SHORT_ANSWER) {
                     $answers[] = [
                         'is_checked' => '1',
-                        'answer' => $item['answer']
+                        'answer' => $item['answer'][0]
                     ];
                 } else {
                     for ($i=0; $i < 5; $i++) {
                         $answers[] = [
-                            'is_checked' => ($item['answer']==($i+1))? '1': '0',
+                            'is_checked' => ($item['answer'][$i])? '1': '0',
                             'answer' => ($i+1)
                         ];
                     }

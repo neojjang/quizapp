@@ -60,25 +60,25 @@
                                 <td class="border border-slate-400 justify-items-start">
                                     @if($question["question_type"] == \App\Constants\Question::SELECTIVE)
                                         <span class="px-5">
-                                    <input type="radio" value="1" wire:model="questions.{{$index}}.answer"
-                                           id="questions.{{$index}}.answer.1" name="questions.{{$index}}.answer" class="checked:bg-blue-500">
+                                    <input type="checkbox" wire:model="questions.{{$index}}.answer.0"
+                                           id="questions.{{$index}}.answer.0" class="checked:bg-blue-500" >
                                     <label for="questions.{{$index}}.answer.1" class="mr-2">1</label>
-                                    <input type="radio" value="2" wire:model="questions.{{$index}}.answer"
-                                           id="questions.{{$index}}.answer.2" name="questions.{{$index}}.answer" class="checked:bg-blue-500" >
-                                    <label for="questions.{{$index}}.answer.2" class="mr-2">2</label>
-                                    <input type="radio" value="3" wire:model="questions.{{$index}}.answer"
-                                           id="questions.{{$index}}.answer.3" name="questions.{{$index}}.answer" class="checked:bg-blue-500" >
-                                    <label for="questions.{{$index}}.answer.3" class="mr-2">3</label>
-                                    <input type="radio" value="4" wire:model="questions.{{$index}}.answer"
-                                           id="questions.{{$index}}.answer.4" name="questions.{{$index}}.answer" class="checked:bg-blue-500" >
-                                    <label for="questions.{{$index}}.answer.4" class="mr-2">4</label>
-                                    <input type="radio" value="5" wire:model="questions.{{$index}}.answer"
-                                           id="questions.{{$index}}.answer.5" name="questions.{{$index}}.answer" class="checked:bg-blue-500" >
-                                    <label for="questions.{{$index}}.answer.5">5</label>
+                                    <input type="checkbox" wire:model="questions.{{$index}}.answer.1"
+                                           id="questions.{{$index}}.answer.1" class="checked:bg-blue-500" >
+                                    <label for="questions.{{$index}}.answer.1" class="mr-2">2</label>
+                                    <input type="checkbox" wire:model="questions.{{$index}}.answer.2"
+                                           id="questions.{{$index}}.answer.2" class="checked:bg-blue-500" >
+                                    <label for="questions.{{$index}}.answer.2" class="mr-2">3</label>
+                                    <input type="checkbox" wire:model="questions.{{$index}}.answer.3"
+                                           id="questions.{{$index}}.answer.3" class="checked:bg-blue-500" >
+                                    <label for="questions.{{$index}}.answer.3" class="mr-2">4</label>
+                                    <input type="checkbox" wire:model="questions.{{$index}}.answer.4"
+                                           id="questions.{{$index}}.answer.4" class="checked:bg-blue-500" >
+                                    <label for="questions.{{$index}}.answer.4">5</label>
                                         </span>
                                     @else
-                                        <input type="text" wire:model="questions.{{$index}}.answer"
-                                               name="questions.{{$index}}.answer" value="{{old($question["answer"])}}" class="w-11/12 mx-3"/>
+                                        <input type="text" wire:model="questions.{{$index}}.answer.0"
+                                               name="questions.{{$index}}.answer" value="{{old($question["answer"][0])}}" class="w-11/12 mx-3"/>
                                     @endif
 
                                 </td>
