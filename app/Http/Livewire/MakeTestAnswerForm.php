@@ -91,7 +91,7 @@ class MakeTestAnswerForm extends Component
                     $answer_data[$i] = ($answers[$i]->is_checked=='1');
                 }
             } else {
-                $answer_data[] = $answers[0]->answer;
+                $answer_data = [$answers[0]->answer];
             }
             $this->questions[] = [
                 'question_type' =>  ($question->type_id-1), // Question::SELECTIVE, // Question::SHORT_ANSWER,  //
@@ -103,6 +103,8 @@ class MakeTestAnswerForm extends Component
         if (count($this->questions) > 0) {
             $this->total_questions = count($this->questions);
             $this->question_start_no = intval($this->questions[0]['title']);
+
+            Log::debug($this->questions);
         }
     }
 
