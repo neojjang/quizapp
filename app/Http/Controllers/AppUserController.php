@@ -66,6 +66,7 @@ class AppUserController extends Controller
     {
         // Answers with alphabetical choice
         $choice = collect(['A', 'B', 'C', 'D', 'E']);
+        $resultMark = ["0"=>"X", "1"=>"O", "2"=>"?"];
 
         //Get quiz summary record for the given quiz
         $userQuizDetails = QuizHeader::where('id', $id)->where('user_id', auth()->id())
@@ -89,7 +90,8 @@ class AppUserController extends Controller
                 'quizQuestionsList',
                 'userQuiz',
                 'quizQuestions',
-                'choice'
+                'choice',
+                'resultMark'
             )
         );
     }

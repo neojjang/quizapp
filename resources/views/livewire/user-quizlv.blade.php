@@ -28,12 +28,12 @@
                             <span class="px-5">
                             @foreach($question->answers as $index => $answer)
                                 @if(($question->type_id-1) == \App\Constants\Question::SELECTIVE)
-                                    <input type="radio" value="{{$answer->id .','.$answer->is_checked}}" wire:model="omrAnswered.{{$key}}"
+                                    <input type="checkbox" value="{{$answer->id .','.$answer->is_checked}}" wire:model="omrAnswered.{{$key}}.{{$index}}"
                                            id="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}"
                                            name="question.{{$key}}.{{$index}}.answer" class="checked:bg-blue-500">
                                     <label for="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}" class="mr-2">{{$answer->answer}}</label>
                                 @else
-                                    <input type="text" wire:model="omrAnswered.{{$key}}"
+                                    <input type="text" wire:model="omrAnswered.{{$key}}.{{$index}}"
                                            name="question.{{$key}}.{{$index}}.answer" value="{{ old('omrAnswered.'.$key) }}" class="w-11/12" style="padding-top:0px;padding-bottom:0px;"/>
                                 @endif
                             @endforeach
@@ -81,7 +81,7 @@
                     </div>
                     @endif
                 </h3>
-                @foreach($currentQuestion->answers as $answer)
+                @foreach($currentQuestion->answers as $key => $answer)
                 <label for="question-{{$answer->id}}">
                     <div class="max-w-auto px-3 py-3 m-3 text-gray-800 rounded-lg border-2 border-gray-300 text-sm ">
                     @if($currentQuestion->type_id != 1 && $answer->is_checked==1)

@@ -6,6 +6,7 @@ use App\Models\Quiz;
 use App\Models\Quote;
 use App\Models\ClassRoom;
 use App\Models\Section;
+use Illuminate\Support\Arr;
 use Livewire\Component;
 use App\Models\Question;
 use App\Models\QuizHeader;
@@ -48,6 +49,7 @@ class UserQuizlv extends Component
 
     public function showResults()
     {
+        Log::debug(__METHOD__);
         // Get a count of total number of quiz questions in Quiz table for the just finisned quiz.
         $this->totalQuizQuestions = Quiz::where('quiz_header_id', $this->quizid->id)->count();
 
@@ -79,6 +81,7 @@ class UserQuizlv extends Component
 
     public function render()
     {
+        Log::debug(__METHOD__);
         $this->sections = Section::withcount('questions')->where('is_active', '1')
             ->where('class_room_id', $this->classRoomId)
             ->orderBy('name')
@@ -117,6 +120,7 @@ class UserQuizlv extends Component
 
     public function mount()
     {
+        Log::debug(__METHOD__);
         $this->quote = Quote::inRandomOrder()->first();
 
 //        $this->startOmrQuizFunctions[] = function () {
@@ -131,6 +135,7 @@ class UserQuizlv extends Component
 
     public function getNextQuestion()
     {
+        Log::debug(__METHOD__);
         //Return a random question from the section selected by the user for quiz.
         // disabled because having issues with shuffle, it works but in a wierd way.
 
@@ -164,7 +169,6 @@ class UserQuizlv extends Component
 
     public function startQuiz()
     {
-
         // Create a new quiz header in quiz_headers table and populate initial quiz information
         // Keep the instance in $this->quizid veriable for later updates to quiz.
         $this->validate();
@@ -272,25 +276,40 @@ class UserQuizlv extends Component
      */
     public function checkChoiceAnswer($question, $userAnswered)
     {
+        // 정답 갯수
+        $correctCount = $question->answers()->where('is_checked', '=', '1')->count();
+        Log::debug("{$question->id}, correctCount={$correctCount}");
+
+        $answerIds = [];
+        $userFirstAnswerId = 0;
+        $userCorrectCount = 0;
+        foreach ($userAnswered as $index => $value) {
+            list($answerId, $isChoiceCorrect) = explode(',', $value);
+            if ($isChoiceCorrect == '1') $userCorrectCount += 1;
+            else $userCorrectCount -= 1;
+            if ($userFirstAnswerId == 0) $userFirstAnswerId = $answerId;
+            array_push($answerIds, $answerId);
+        }
         // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
-        list($answerId, $isChoiceCorrect) = explode(',', $userAnswered[0]);
-        $userAnswered = $answerId;
+        // list($answerId, $isChoiceCorrect) = explode(',', $userAnswered[0]);
+        // $userAnswered = $answerId;
 
         return [
-            'answerId' => $answerId,
-            'userAnswered' => $userAnswered,
-            'isChoiceCorrect' => $isChoiceCorrect
+            'answerId' => $userFirstAnswerId,
+            'userAnswered' => implode(",",$answerIds),
+            'isChoiceCorrect' => ($correctCount == $userCorrectCount) ? '1':'0'
         ];
     }
 
     public function checkCurrentAnswer()
     {
+        Log::debug(__METHOD__);
         if ($this->currentQuestion->type_id == 1) {
             // 객관식에 대한 처리
             // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
             $this->quizid->questions_taken = serialize($this->answeredQuestions);
 
-            return $this->checkChoiceAnswer($this->currentQuestion, $this->userAnswered);
+            return $this->checkChoiceAnswer($this->currentQuestion, [$this->userAnswered]);
 //            // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
 //            list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
 //            $userAnswered = $answerId;
@@ -418,6 +437,7 @@ class UserQuizlv extends Component
 
     private function getAllQuestions()
     {
+        Log::debug(__METHOD__);
         $questions = Question::where('section_id', $this->sectionId)
             ->with('answers')
             ->orderBy('id', 'asc')
@@ -425,9 +445,23 @@ class UserQuizlv extends Component
         return $questions;
     }
 
-    public function updatedOmrAnswered($idx)
+    public function updatingOmrAnswered($value, $idx)
     {
-        Log::debug(__METHOD__);
+        Log::debug(__METHOD__." idx=".$idx);
+        Log::debug($value);
+    }
+    public function updatedOmrAnswered($value, $idx)
+    {
+        Log::debug(__METHOD__." idx=".$idx);
+        // clear unselected values
+        foreach ($this->omrAnswered as $key => $omrAnswered) {
+            $this->omrAnswered[$key] = Arr::where($omrAnswered, function ($value, $no) {
+                return $value !== false;
+            });
+            if (count($this->omrAnswered[$key]) == 0) {
+                unset($this->omrAnswered[$key]);
+            }
+        }
         Log::debug($this->omrAnswered);
         Log::debug("omr quizSize=" . $this->quizSize. ", answeredSize=".count($this->omrAnswered));
         if (count($this->omrAnswered) < $this->quizSize) {
@@ -447,16 +481,16 @@ class UserQuizlv extends Component
 
             if ($question->type_id == 1) {
                 // 객관식에 대한 처리
-                $result = $this->checkChoiceAnswer($question, [$userAnswered]);
+                $result = $this->checkChoiceAnswer($question, $userAnswered);
             } elseif ($question->type_id == 4) {
                 // 단답형 처리
-                $result = $this->checkShortAnswer($question, $userAnswered);
+                $result = $this->checkShortAnswer($question, $userAnswered[0]);
             } elseif ($question->type_id == 3) {
                     // 주관식(영작) 문제 처리
-                    $result = $this->checkWritingAnswer($question, $userAnswered);
+                    $result = $this->checkWritingAnswer($question, $userAnswered[0]);
             } else {
                 // 주관식(번역)에 대한 처리를 해야만 함
-                $result = $this->checkTranslatedAnswer($question, $userAnswered);
+                $result = $this->checkTranslatedAnswer($question, $userAnswered[0]);
             }
 
             Log::debug($result);
@@ -478,6 +512,7 @@ class UserQuizlv extends Component
         // Save the record
         $this->quizid->save();
 
+        // 다중 선택 처리를 위해 아래는 일단 주석
         // 사용자 입력 답안지 리셋
         $this->reset('omrAnswered');
         $this->showResults();

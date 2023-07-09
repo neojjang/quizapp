@@ -76,11 +76,12 @@
         @foreach($quizQuestions as $key => $question)
         @php
         $userAnswer = $userQuiz[$key];
+        if ($question->type_id == 1) $userAnswer->user_answer = explode(',', $userAnswer->user_answer)
         @endphp
         <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
             <div class="px-4 py-5 sm:px-6">
                 <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
-                    <span class="mr-2 font-extrabold"> {{$key + 1}}</span> {{$question->question}}
+                    <span class="mr-2 font-extrabold"> {{$key + 1}}</span> {{$question->question}} [{{$resultMark[$userAnswer->is_correct]}}]
                     <div x-data={show:false} class="block text-xs">
                         <div class="p-1" id="headingOne">
                             <button @click="show=!show" class="underline text-blue-500 hover:text-blue-700 focus:outline-none text-xs " type="button">
@@ -113,20 +114,21 @@
                     @break
                 @else
                     @if(($userAnswer->is_correct==='1') && ($answer->is_checked ==='1'))
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
-                        <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}
+                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500 font-extrabold">
+                        <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
                     </div>
-                    @elseif(($userAnswer->answer_id === $answer->id) && ($answer->is_checked === '0'))
+                    @elseif((in_array($answer->id, $userAnswer->user_answer)) && ($answer->is_checked === '0'))
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-red-600 font-extrabold ">
-                        <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}
+                        <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
                     </div>
                     @elseif($answer->is_checked && $userAnswer->is_correct === '0')
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-green-500 font-extrabold ">
-                        <span class="p-1 font-extrabold">[정답]:</span> @hasrole('admin|superadmin') <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @endhasrole
+                        <span class="p-1 font-extrabold">[정답]:</span>
+                         <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
                     </div>
                     @else
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 font-extrabold ">
-                        @hasrole('admin|superadmin') <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @endhasrole
+                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 ">
+                        <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} 
                     </div>
                     @endif
                 @endif
