@@ -28,18 +28,19 @@
         @else
             @if(($userAnswer->is_correct==='1') && ($answer->is_checked ==='1'))
             <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
-                <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}
+                <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
             </div>
-            @elseif(($userAnswer->answer_id === $answer->id) && ($answer->is_checked === '0'))
+            @elseif((in_array($answer->id, $userAnswer->user_answer)) && ($answer->is_checked === '0'))
             <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-red-600 font-extrabold ">
-                <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}
+                <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
             </div>
             @elseif($answer->is_checked && $userAnswer->is_correct === '0')
             <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-green-500 font-extrabold ">
-                <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} <span class="p-1 font-extrabold">(Correct Answer)</span>
+                <span class="p-1 font-extrabold">[정답]:</span>
+                <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
             </div>
             @else
-            <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 font-extrabold ">
+            <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 ">
                 <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}
             </div>
             @endif

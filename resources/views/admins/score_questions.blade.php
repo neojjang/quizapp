@@ -22,7 +22,7 @@
                     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                                
+
                                 <!-- QUIZ START -->
                                 @foreach($questions as  $qkey => $question)
                                 @php
@@ -31,7 +31,7 @@
                                 <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
                                     <div class="px-4 py-5 sm:px-6">
                                         <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
-                                            <span class="mr-2 font-extrabold"> {{$qkey + 1}}</span> {!! nl2br($question->question) !!} 
+                                            <span class="mr-2 font-extrabold"> {{$qkey + 1}}</span> {!! nl2br($question->question) !!} [{{$resultMark[$userAnswer->is_correct]}}]
                                             <div x-data={show:false} class="block text-xs">
                                                 <div class="p-1" id="headingOne">
                                                     <button @click="show=!show" class="underline text-blue-500 hover:text-blue-700 focus:outline-none text-xs " type="button">
@@ -44,7 +44,7 @@
                                             </div>
                                         </h3>
                                         @livewire('user-answer', ['userAnswer' => $userAnswer, 'question' => $question, 'quizHeader' => $quizHeader], key($question->id))
-                                        
+
                                     </div>
                                 </div>
                                 @endforeach

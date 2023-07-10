@@ -127,6 +127,7 @@ class QuestionsController extends Controller
     function scoreQuestion(Section $section, QuizHeader $quizHeader)
     {
         $choice = collect(['A', 'B', 'C', 'D', 'E']);
+        $resultMark = ["0"=>"X", "1"=>"O", "2"=>"?"];
 
         $questions = $section->questions;
         $quizzes = $quizHeader->quizzes;
@@ -144,7 +145,7 @@ class QuestionsController extends Controller
         //     return $item;
         // });
 
-        return view('admins.score_questions', compact('section', 'user', 'questions', 'userQuiz', 'quizHeader', 'choice')); // , ["userQuiz" => $userQuiz]
+        return view('admins.score_questions', compact('section', 'user', 'questions', 'userQuiz', 'quizHeader', 'choice', 'resultMark')); // , ["userQuiz" => $userQuiz]
     }
 
     public function createOMRSheet(Section $section)
