@@ -124,11 +124,11 @@
                     @elseif($answer->is_checked && $userAnswer->is_correct === '0')
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-green-500 font-extrabold ">
                         <span class="p-1 font-extrabold">[정답]:</span>
-                         <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
+                        @hasrole('admin|superadmin')<span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif @endhasrole
                     </div>
                     @else
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 ">
-                        <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}
+                        @hasrole('admin|superadmin')<span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}@endhasrole
                     </div>
                     @endif
                 @endif
