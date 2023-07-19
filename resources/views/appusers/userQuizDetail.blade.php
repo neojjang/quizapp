@@ -76,7 +76,7 @@
         @foreach($quizQuestions as $key => $question)
         @php
         $userAnswer = $userQuiz[$key];
-        if (in_array($question->type_id, [(\App\Constants\Question::SELECTIVE+1),(\App\Constants\Question::SHORT_ANSWER+1)])) $userAnswer->user_answer = explode(",/", $userAnswer->user_answer)
+        if (in_array($question->type_id, [(\App\Constants\Question::SELECTIVE+1)])) $userAnswer->user_answer = explode(",/", $userAnswer->user_answer)
         @endphp
         <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
             <div class="px-4 py-5 sm:px-6">
@@ -94,7 +94,7 @@
                     </div>
                 </h3>
                 @foreach($question->answers as $key => $answer)
-                @if($question->type_id==2)
+                @if(in_array($question->type_id,[2, (\App\Constants\Question::SHORT_ANSWER+1)]))
                     @if($userAnswer->is_correct==='1')
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
                     [O] {{$userAnswer->user_answer}}
