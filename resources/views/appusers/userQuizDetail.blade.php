@@ -94,7 +94,7 @@
                     </div>
                 </h3>
                 @foreach($question->answers as $key => $answer)
-                @if(in_array($question->type_id,[2, (\App\Constants\Question::SHORT_ANSWER+1)]))
+                @if(in_array($question->type_id,[1, 2, (\App\Constants\Question::SHORT_ANSWER+1)]))
                     @if($userAnswer->is_correct==='1')
                     <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
                     [O] {{$userAnswer->user_answer}}
