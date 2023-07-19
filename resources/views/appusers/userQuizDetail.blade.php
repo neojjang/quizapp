@@ -76,7 +76,7 @@
         @foreach($quizQuestions as $key => $question)
         @php
         $userAnswer = $userQuiz[$key];
-        if ($question->type_id == 1) $userAnswer->user_answer = explode(",/", $userAnswer->user_answer)
+        if ($question->type_id == (\App\Constants\Question::SHORT_ANSWER+1)) $userAnswer->user_answer = explode(",/", $userAnswer->user_answer)
         @endphp
         <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
             <div class="px-4 py-5 sm:px-6">
