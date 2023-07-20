@@ -524,10 +524,10 @@ class UserQuizlv extends Component
         // 1. 문장내 공백은 한개씩만 유지
         $userAnswered = trim(preg_replace("/\s+/", " ", $userAnswered));
         // 2. 구분자를 중심으로 단어 분리
-        $arrayUserAnswer = preg_split("/[,:.\s]/", strtolower($userAnswered));
-        $arrayCorrectAnswer = preg_split("/[,:.\s]/", strtolower($question->answers[0]->answer));
+        // $arrayUserAnswer = preg_split("/[,:.\/\s]/", strtolower($userAnswered));
+        $arrayCorrectAnswer = preg_split("/[,:.\/\s]/", strtolower($question->answers[0]->answer));
         // 3. 두배열 차이 비교
-        $answer_diff = ($arrayCorrectAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
+        $answer_diff = in_array($userAnswered, $arrayCorrectAnswer); //($arrayCorrectAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
         $isChoiceCorrect = $answer_diff ? '1':'0';
 
         return [
