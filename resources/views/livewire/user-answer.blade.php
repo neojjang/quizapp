@@ -1,7 +1,7 @@
 <div>
 @if(isset($userAnswer))
     @foreach($question->answers as $key => $answer)
-        @if($question->type_id==2 || $question->type_id==3)
+        @if(in_array($question->type_id, [2,3,4]))
             @if($userAnswer->is_correct==='1')
             <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
             [O] {{$userAnswer->user_answer}}
