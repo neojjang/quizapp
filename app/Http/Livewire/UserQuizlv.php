@@ -486,8 +486,8 @@ class UserQuizlv extends Component
                 // 단답형 처리
                 $result = $this->checkShortAnswer($question, $userAnswered[0]);
             } elseif ($question->type_id == 3) {
-                    // 주관식(영작) 문제 처리
-                    $result = $this->checkWritingAnswer($question, $userAnswered[0]);
+                // 주관식(영작) 문제 처리
+                $result = $this->checkWritingAnswer($question, $userAnswered[0]);
             } else {
                 // 주관식(번역)에 대한 처리를 해야만 함
                 $result = $this->checkTranslatedAnswer($question, $userAnswered[0]);
@@ -522,13 +522,14 @@ class UserQuizlv extends Component
     {
         $answerId = $question->answers[0]->id;
         // 1. 문장내 공백은 한개씩만 유지
-        $userAnswered = trim(preg_replace("/\s+/", " ", $userAnswered));
+        $targetAnswered = trim(preg_replace("/\s+/", " ", strtolower($userAnswered)));
+        $correctAnswer = trim(preg_replace("/\s+/", " ", strtolower($question->answers[0]->answer)));
         // 2. 구분자를 중심으로 단어 분리
-        // $arrayUserAnswer = preg_split("/[,:.\/\s]/", strtolower($userAnswered));
-        $arrayCorrectAnswer = preg_split("/[,:.\/\s]/", strtolower($question->answers[0]->answer));
+        // // $arrayUserAnswer = preg_split("/[,:.\/\s]/", strtolower($userAnswered));
+        // $arrayCorrectAnswer = preg_split("/[,:.\/\s]/", strtolower($question->answers[0]->answer));
         // 3. 두배열 차이 비교
-        $answer_diff = in_array($userAnswered, $arrayCorrectAnswer); //($arrayCorrectAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
-        $isChoiceCorrect = $answer_diff ? '1':'0';
+        // $answer_diff = in_array($userAnswered, $arrayCorrectAnswer); //($arrayCorrectAnswer == $arrayUserAnswer); // array_diff($arrayCorrentAnswer, $arrayUserAnswer);
+        $isChoiceCorrect = ($correctAnswer == $targetAnswered) ? '1':'0';
 
         return [
             'answerId' => $answerId,
