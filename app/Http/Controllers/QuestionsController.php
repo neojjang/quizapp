@@ -154,4 +154,11 @@ class QuestionsController extends Controller
         $section = $section;
         return view('admins.create_omr_sheet', compact('section', 'question_types'));
     }
+
+    public function createAnswerSheet(Section $section)
+    {
+        $question_types = ConstQuestion::TYPES;
+        $section = $section;
+        return view('admins.create_answer_sheet', compact('section', 'question_types'));
+    }
 }

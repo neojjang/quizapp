@@ -1,118 +1,218 @@
 <div class="bg-white rounded-lg shadow-lg p-5 md:p-8 mx-2">
 
     <!-- Start of quiz box -->
-    @if($quizInProgress && $isOMR)
-    <div class="px-4 -py-3 sm:px-6 ">
-        <div class="flex max-w-auto mb-3">
-            <h1 class="text-2xl font-bold font-medium text-gray-900">[{{$classRoomName}} - {{$sectionName}}]</h1>
-        </div>
-        <div class="flex max-w-auto justify-between">
-            <h1 class="text-sm leading-6 font-medium text-gray-900">
-                <span class="text-gray-400 font-extrabold p-1">User</span>
-                <span class="font-bold p-2 leading-loose bg-blue-500 text-white rounded-lg">{{Auth::user()->name}}</span>
-            </h1>
-        </div>
-    </div>
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-4">
-        <h4 class="text-xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">각 문항의 답을 입력해 주세요.</h4>
-        <form wire:submit.prevent>
-            <table class="table-fixed border border-slate-400 w-full">
-                <tr>
-                    <th class="border border-slate-400 bg-blue-100 border px-8 py-4 w-1/6">문번</th>
-                    <th class="border border-slate-400 bg-blue-100 border px-8 py-4 w-1/2">답안</th>
-                </tr>
-                @foreach($questions as $key => $question)
-                    <tr>
-                        <td class="border border-slate-400 text-center py-2 @if($question["question_type"] == \App\Constants\Question::SELECTIVE){{'bg-indigo-50'}}@else{{'bg-green-100'}}@endif"><span class="mx-auto">{{$question["question"]}}</span> </td>
-                        <td class="border border-slate-400 justify-items-start py-2">
-                            <span class="px-5">
-                            @foreach($question->answers as $index => $answer)
-                                @if(($question->type_id-1) == \App\Constants\Question::SELECTIVE)
-                                    <input type="checkbox" value="{{$answer->id .','.$answer->is_checked}}" wire:model="omrAnswered.{{$key}}.{{$index}}"
-                                           id="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}"
-                                           name="question.{{$key}}.{{$index}}.answer" class="checked:bg-blue-500">
-                                    <label for="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}" class="mr-2">{{$answer->answer}}</label>
-                                @else
-                                    <input type="text" wire:model="omrAnswered.{{$key}}.{{$index}}"
-                                           name="question.{{$key}}.{{$index}}.answer" value="{{ old('omrAnswered.'.$key) }}" class="w-11/12" style="padding-top:0px;padding-bottom:0px;"/>
-                                @endif
-                            @endforeach
-                            </span>
-                        </td>
-                    </tr>
-                @endforeach
-            </table>
-            <div class="flex items-center justify-end mt-4">
-                <button wire:click="checkAllAnswers" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
-                    {{ __('Show Results') }}
-                </button>
+{{--    @if($quizInProgress && $isOMR)--}}
+    @if($quizInProgress)
+        @if($sectionTypeId == \App\Constants\Section::OMR)
+            <div class="px-4 -py-3 sm:px-6 ">
+                <div class="flex max-w-auto mb-3">
+                    <h1 class="text-2xl font-bold font-medium text-gray-900">[{{$classRoomName}} - {{$sectionName}}]</h1>
+                </div>
+                <div class="flex max-w-auto justify-between">
+                    <h1 class="text-sm leading-6 font-medium text-gray-900">
+                        <span class="text-gray-400 font-extrabold p-1">User</span>
+                        <span class="font-bold p-2 leading-loose bg-blue-500 text-white rounded-lg">{{Auth::user()->name}}</span>
+                    </h1>
+                </div>
             </div>
-        </form>
-    </div>
-    @endif
-    @if($quizInProgress && !$isOMR)
-    <div class="px-4 -py-3 sm:px-6 ">
-        <div class="flex max-w-auto justify-between">
-            <h1 class="text-sm leading-6 font-medium text-gray-900">
-                <span class="text-gray-400 font-extrabold p-1">User</span>
-                <span class="font-bold p-2 leading-loose bg-blue-500 text-white rounded-lg">{{Auth::user()->name}}</span>
-            </h1>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                <span class="text-gray-400 font-extrabold p-1">Quiz Progress </span>
-                <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{$count .'/'. $quizSize}}</span>
-            </p>
-        </div>
-    </div>
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
-        <form wire:submit.prevent>
-            <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
-                    <span class="mr-2 font-extrabold"> {{$count}}</span> {!! nl2br($currentQuestion->question) !!}
-                    @if($learningMode)
-                    <div x-data={show:false} class="block text-xs">
-                        <div class="p-1" id="headingOne">
-                            <button @click="show=!show" class="underline text-blue-500 hover:text-blue-700 focus:outline-none text-xs px-3" type="button">
-                                Explanation
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-4">
+                <h4 class="text-xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">각 문항의 답을 입력해 주세요.</h4>
+                <form wire:submit.prevent>
+                    <table class="table-fixed border border-slate-400 w-full">
+                        <tr>
+                            <th class="border border-slate-400 bg-blue-100 border px-8 py-4 w-1/6">문번</th>
+                            <th class="border border-slate-400 bg-blue-100 border px-8 py-4 w-1/2">답안</th>
+                        </tr>
+                        @foreach($questions as $key => $question)
+                            <tr>
+                                <td class="border border-slate-400 text-center py-2 @if($question["question_type"] == \App\Constants\Question::SELECTIVE){{'bg-indigo-50'}}@else{{'bg-green-100'}}@endif"><span class="mx-auto">{{$question["question"]}}</span> </td>
+                                <td class="border border-slate-400 justify-items-start py-2">
+                                    <span class="px-5">
+                                    @foreach($question->answers as $index => $answer)
+                                        @if(($question->type_id-1) == \App\Constants\Question::SELECTIVE)
+                                            <input type="checkbox" value="{{$answer->id .','.$answer->is_checked}}" wire:model="omrAnswered.{{$key}}.{{$index}}"
+                                                   id="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}"
+                                                   name="question.{{$key}}.{{$index}}.answer" class="checked:bg-blue-500">
+                                            <label for="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}" class="mr-2">{{$answer->answer}}</label>
+                                        @else
+                                            <input type="text" wire:model="omrAnswered.{{$key}}.{{$index}}"
+                                                   name="question.{{$key}}.{{$index}}.answer" value="{{ old('omrAnswered.'.$key) }}" class="w-11/12" style="padding-top:0px;padding-bottom:0px;"/>
+                                        @endif
+                                    @endforeach
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </table>
+                    <div class="flex items-center justify-end mt-4">
+                        <button wire:click="checkAllAnswers" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
+                            {{ __('결과 보기') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        @endif
+        @if($sectionTypeId == \App\Constants\Section::NORMAL)
+            <div class="px-4 -py-3 sm:px-6 ">
+                <div class="flex max-w-auto mb-3">
+                    <h1 class="text-2xl font-bold font-medium text-gray-900">[{{$classRoomName}} - {{$sectionName}}]</h1>
+                </div>
+                <div class="flex max-w-auto justify-between">
+                    <h1 class="text-sm leading-6 font-medium text-gray-900">
+                        <span class="text-gray-400 font-extrabold p-1">User</span>
+                        <span class="font-bold p-2 leading-loose bg-blue-500 text-white rounded-lg">{{Auth::user()->name}}</span>
+                    </h1>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                        <span class="text-gray-400 font-extrabold p-1">Quiz Progress </span>
+                        <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{$count .'/'. $quizSize}}</span>
+                    </p>
+                </div>
+            </div>
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
+                <form wire:submit.prevent>
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
+                            <span class="mr-2 font-extrabold"> {{$count}}</span> {!! nl2br($currentQuestion->question) !!}
+                            @if($learningMode)
+                                <div x-data={show:false} class="block text-xs">
+                                    <div class="p-1" id="headingOne">
+                                        <button @click="show=!show" class="underline text-blue-500 hover:text-blue-700 focus:outline-none text-xs px-3" type="button">
+                                            Explanation
+                                        </button>
+                                    </div>
+                                    <div x-show="show" class="block p-2 bg-green-100 text-xs">
+                                        {{$currentQuestion->explanation}}
+                                    </div>
+                                </div>
+                            @endif
+                        </h3>
+                        @foreach($currentQuestion->answers as $key => $answer)
+                            <label for="question-{{$answer->id}}">
+                                <div class="max-w-auto px-3 py-3 m-3 text-gray-800 rounded-lg border-2 border-gray-300 text-sm ">
+                                    @if($currentQuestion->type_id != 1 && $answer->is_checked==1)
+                                        <div x-show="show" class="block p-2 bg-green-100 text-xs">
+                                            정확한 의미(번역/영작)를 입력하세요.
+                                        </div>
+                                        <textarea id="question-{{$answer->id}}" type="text" wire:model="userAnswered"
+                                                  class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('userAnswered') }}</textarea>
+                                    @else
+                                        <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model="userAnswered" type="checkbox"> </span> {{$answer->answer}}
+                                    @endif
+                                </div>
+                            </label>
+                            @if($currentQuestion->type_id != 1)
+                                @break
+                            @endif
+                        @endforeach
+                    </div>
+                    <div class="flex items-center justify-end mt-4">
+                        @if($count < $quizSize)
+                            <button wire:click="nextQuestion" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
+                                {{ __('다음 문제') }}
                             </button>
-                        </div>
-                        <div x-show="show" class="block p-2 bg-green-100 text-xs">
-                            {{$currentQuestion->explanation}}
-                        </div>
+                        @else
+                            <button wire:click="nextQuestion" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
+                                {{ __('결과 보기') }}
+                            </button>
+                        @endif
                     </div>
-                    @endif
-                </h3>
-                @foreach($currentQuestion->answers as $key => $answer)
-                <label for="question-{{$answer->id}}">
-                    <div class="max-w-auto px-3 py-3 m-3 text-gray-800 rounded-lg border-2 border-gray-300 text-sm ">
-                    @if($currentQuestion->type_id != 1 && $answer->is_checked==1)
-                    <div x-show="show" class="block p-2 bg-green-100 text-xs">
-                        정확한 의미(번역/영작)를 입력하세요.
-                    </div>
-                    <textarea id="question-{{$answer->id}}" type="text" wire:model="userAnswered"
-                        class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('userAnswered') }}</textarea>
-                    @else
-                        <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model="userAnswered" type="checkbox"> </span> {{$answer->answer}}
-                    @endif
-                    </div>
-                </label>
-                @if($currentQuestion->type_id != 1)
-                    @break
-                @endif
-                @endforeach
+                </form>
             </div>
-            <div class="flex items-center justify-end mt-4">
-                @if($count < $quizSize)
-                    <button wire:click="nextQuestion" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
-                    {{ __('Next Question') }}
-                    </button>
-                @else
-                    <button wire:click="nextQuestion" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
-                        {{ __('Show Results') }}
-                    </button>
-                @endif
+        @endif
+        @if($sectionTypeId == \App\Constants\Section::ENGLISH_COMPOSITION_CLICK)
+            <div class="px-4 -py-3 sm:px-6 ">
+                <div class="flex max-w-auto mb-3">
+                    <h1 class="text-2xl font-bold font-medium text-gray-900">[{{$classRoomName}} - {{$sectionName}}]</h1>
+                </div>
+                <div class="flex max-w-auto justify-between">
+                    <h1 class="text-sm leading-6 font-medium text-gray-900">
+                        <span class="text-gray-400 font-extrabold p-1">User</span>
+                        <span class="font-bold p-2 leading-loose bg-blue-500 text-white rounded-lg">{{Auth::user()->name}}</span>
+                    </h1>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                        <span class="text-gray-400 font-extrabold p-1">Quiz Progress </span>
+                        <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{$count .'/'. $quizSize}}</span>
+                    </p>
+                </div>
             </div>
-        </form>
-    </div>
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
+                <form wire:submit.prevent>
+                    <div class="px-4 py-4 sm:px-6">
+                        <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
+                            <span class="mr-2 font-extrabold"> {{$count}}.</span> {!! nl2br($currentQuestion->question) !!}
+
+{{--                            <div x-data={show:false} class="block text-xs">--}}
+{{--                                <div class="p-1" id="headingOne">--}}
+{{--                                    <button @click="show=!show" class="underline text-blue-500 hover:text-blue-700 focus:outline-none text-xs px-3" type="button">--}}
+{{--                                        Explanation--}}
+{{--                                    </button>--}}
+{{--                                </div>--}}
+{{--                                <div x-show="show" class="block p-2 bg-green-100 text-xs">--}}
+{{--                                    {{$currentQuestion->explanation}}--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+
+                        </h3>
+                        @php
+                        $answer_id = $currentQuestion->answers[0]->id;
+                        @endphp
+                        <div class="block p-2 bg-blue-50 text-sm font-bold">
+                            다음 보기에서 구문을 선택하여 문장을 완성 해주세요.
+                        </div>
+                        <div class="block p-2 bg-green-100">
+                            @foreach($currentExample as $example_index => $item)
+                                <button id="example-{{$answer_id}}-{{$example_index}}"
+                                        wire:click="checkSentenceOrder({{$example_index}}, '{{addslashes(trim($item))}}')"
+                                    class="min-w-fit px-4 mb-2 rounded border-2 border-gray-800 text-base font-medium leading-normal text-primary-700  transition duration-150 ease-in-out hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10">{{trim($item)}}</button>
+                            @endforeach
+                        </div>
+                        <div class="block p-2 font-bold">
+                            결과 :
+                        </div>
+                        <div class="block p-2 bg-indigo-50">
+                            @foreach($userAnswered as $user_answer_index => $item)
+                                <button id="answer-{{$answer_id}}-{{$user_answer_index}}"
+{{--                                        wire:click="deleteSelectedSentence({{$user_answer_index}})"--}}
+                                        @if($item[1])
+                                        class="min-w-fit px-4 mb-2 rounded border-2 border-primary-100 bg-blue-500 text-white text-sm font-medium leading-normal transition duration-150 ease-in-out hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
+                                        @else
+                                        class="min-w-fit px-4 mb-2 rounded border-2 border-primary-100 bg-red-400 text-sm font-medium leading-normal text-primary-700  transition duration-150 ease-in-out hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
+                                        @endif
+                                >{{trim($item[0])}}</button>
+                            @endforeach
+                        </div>
+
+                        <textarea id="question-{{$answer_id}}" type="text" wire:model="userAnswered" readonly
+                              class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">
+                        </textarea>
+
+                    </div>
+                    <div class="flex items-center justify-end mt-2">
+                        <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4">
+                            <span class="text-gray-400 font-extrabold p-1">테스트</span>
+                            <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{($retryCount+1) .'/'. $currentQuestion->retry}} 회</span>
+                        </p>
+                        @if(count($userAnswered) == count($currentExample))
+                            @if(($retryCount+1) < $currentQuestion->retry && $isDisabled)
+                                <button wire:click="retryQuestion" type="submit" class="m-4 inline-flex items-center px-4 py-2 bg-yellow-400 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
+                                    {{ __('재시도') }}
+                                </button>
+                            @endif
+                            @if($count < $quizSize && (($retryCount+1) >= $currentQuestion->retry || !$isDisabled))
+                                <button wire:click="nextQuestion" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
+                                    {{ __('다음 문제') }}
+                                </button>
+                            @endif
+                            @if($count == $quizSize && (($retryCount+1) == $currentQuestion->retry) || !$isDisabled)
+                                <button wire:click="nextQuestion" type="submit" @if($isDisabled) disabled='disabled' @endif class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
+                                    {{ __('결과 보기') }}
+                                </button>
+                            @endif
+                        @endif
+                    </div>
+                </form>
+            </div>
+        @endif
     @endif
     <!-- end of quiz box -->
 
@@ -164,8 +264,8 @@
                     </div>
                 </div>
                 <div class="mx-auto min-w-full p-2 md:flex m-2 justify-between">
-                    <a href="{{route('userQuizDetails',$quizid) }}" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">See Quizzes Details</a>
-                    <a href="{{route('userQuizHome')}}" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">See All Your Quizzes</a>
+                    <a href="{{route('userQuizDetails',$quizid) }}" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">{{__('상세 보기')}}</a>
+                    <a href="{{route('userQuizHome')}}" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">{{__('참여한 테스트 히스토리')}}</a>
                 </div>
             </div>
         </div>

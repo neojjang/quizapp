@@ -76,7 +76,9 @@
         @foreach($quizQuestions as $key => $question)
         @php
         $userAnswer = $userQuiz[$key];
-        if (in_array($question->type_id, [(\App\Constants\Question::SELECTIVE+1)])) $userAnswer->user_answer = explode(",/", $userAnswer->user_answer)
+        if (in_array($question->type_id, [(\App\Constants\Question::SELECTIVE+1)])) {
+            $userAnswer->user_answer = explode(",/", $userAnswer->user_answer);
+        }
         @endphp
         <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
             <div class="px-4 py-5 sm:px-6">
@@ -94,47 +96,53 @@
                     </div>
                 </h3>
                 @foreach($question->answers as $key => $answer)
-                @if(in_array($question->type_id,[2, 3, (\App\Constants\Question::SHORT_ANSWER+1)]))
-                    @if($userAnswer->is_correct==='1')
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
-                    [O] {{$userAnswer->user_answer}}
-                    </div>
-                    @elseif($userAnswer->is_correct==='2')
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-indigo-500 font-extrabold ">
-                    [보류] {{$userAnswer->user_answer}}
-                    </div>
+                    @if(in_array(($question->type_id-1),[\App\Constants\Question::TRANSLATION, \App\Constants\Question::ENGLISH_COMPOSITION, \App\Constants\Question::SHORT_ANSWER, \App\Constants\Question::ENGLISH_COMPOSITION_CLICK]))
+                        @if($userAnswer->is_correct==='1')
+                        <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white font-semibold  bg-blue-500">
+                        [O] {{$userAnswer->user_answer}}
+                        </div>
+                        @elseif($userAnswer->is_correct==='2')
+                        <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-indigo-500 font-bold ">
+                        [보류] {{$userAnswer->user_answer}}
+                        </div>
+                        @else
+                        <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-red-600 font-bold ">
+                        [X] {{$userAnswer->user_answer}}
+                        </div>
+                        @endif
+                        <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
+                        [정답]: @hasrole('admin|superadmin') <span class="mr-2 font-extrabold">{{$answer->answer}}</span> @endhasrole
+                        </div>
+                        @break
+                    @elseif(in_array(($question->type_id-1),[\App\Constants\Question::SELECTIVE]))
+                        @if(($userAnswer->is_correct==='1') && ($answer->is_checked ==='1'))
+                            <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500 font-extrabold">
+                                <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
+                            </div>
+                        @elseif((in_array($answer->id, $userAnswer->user_answer)) && ($answer->is_checked === '0'))
+                            <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-red-600 font-extrabold ">
+                                <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
+                            </div>
+                        @elseif($answer->is_checked && $userAnswer->is_correct === '0')
+                            <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-green-500 font-extrabold ">
+                                <span class="p-1 font-extrabold">[정답]:</span>
+                                @hasrole('admin|superadmin')<span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif @endhasrole
+                            </div>
+                        @else
+                            <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 ">
+                                @hasrole('admin|superadmin')<span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}@endhasrole
+                            </div>
+                        @endif
                     @else
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-red-600 font-extrabold ">
-                    [X] {{$userAnswer->user_answer}}
-                    </div>
+
                     @endif
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500">
-                    [정답]: @hasrole('admin|superadmin') <span class="mr-2 font-extrabold">{{$answer->answer}}</span> @endhasrole
-                    </div>
-                    @break
-                @else
-                    @if(($userAnswer->is_correct==='1') && ($answer->is_checked ==='1'))
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-none bg-green-500 font-extrabold">
-                        <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
-                    </div>
-                    @elseif((in_array($answer->id, $userAnswer->user_answer)) && ($answer->is_checked === '0'))
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-red-600 font-extrabold ">
-                        <span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif
-                    </div>
-                    @elseif($answer->is_checked && $userAnswer->is_correct === '0')
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-white bg-green-500 font-extrabold ">
-                        <span class="p-1 font-extrabold">[정답]:</span>
-                        @hasrole('admin|superadmin')<span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}} @if(in_array($answer->id, $userAnswer->user_answer))&check;@endif @endhasrole
-                    </div>
-                    @else
-                    <div class="mt-1 max-w-auto text-sm px-2 rounded-lg text-gray-500 ">
-                        @hasrole('admin|superadmin')<span class="mr-2 font-extrabold">{{$choice->values()->get($key)}} </span> {{$answer->answer}}@endhasrole
-                    </div>
-                    @endif
-                @endif
                 @endforeach
             </div>
         </div>
         @endforeach
+        <div class="mx-auto min-w-full p-2 md:flex m-2 justify-between">
+            <a href="javascript:history.back()" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">{{__('Back')}}</a>
+            <a href="{{route('userQuizHome')}}" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">{{__('참여한 테스트 히스토리')}}</a>
+        </div>
     </div>
 </x-app-layout>

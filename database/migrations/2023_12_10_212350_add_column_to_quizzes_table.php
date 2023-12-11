@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColumnToSectionsTable extends Migration
+class AddColumnToQuizzesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,9 @@ class AddColumnToSectionsTable extends Migration
      */
     public function up()
     {
-        Schema::table('sections', function (Blueprint $table) {
-            $table->unsignedTinyInteger('type_id')->default(1)->after('is_active')->comment('시험유형. 1:일반형,2:OMR형,3:영작나열형');
+        Schema::table('quizzes', function (Blueprint $table) {
+            // 재시도 횟수
+            $table->tinyInteger('retry', false, true)->default(1)->after('is_correct')->comment('재시도 횟수');
         });
     }
 
@@ -25,8 +26,9 @@ class AddColumnToSectionsTable extends Migration
      */
     public function down()
     {
-        Schema::table('sections', function (Blueprint $table) {
-            $table->dropColumn('type_id');
+        Schema::table('quizzes', function (Blueprint $table) {
+            //
+            $table->dropColumn('retry');
         });
     }
 }

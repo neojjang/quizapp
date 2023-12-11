@@ -79,6 +79,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::get('/createOMRSheet/{section}', [QuestionsController::class, 'createOMRSheet'])
         ->name('createOMRSheet');
 
+    Route::get('/createAnswerSheet/{section}', [QuestionsController::class, 'createAnswerSheet'])
+        ->name('createAnswerSheet');
+
     Route::get('/scoreQuestion/{section}/{quiz_header}', [QuestionsController::class, 'scoreQuestion'])
         ->name('scoreQuestion');
 

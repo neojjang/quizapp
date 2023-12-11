@@ -4,15 +4,17 @@ namespace App\Constants;
 
 class Section
 {
-    const TYPES = ["일반형", "답안지형"];
+    const TYPES = ["일반형", "OMR답안지형", "영작나열형"];
     const NORMAL = 1; // 일반형
-    const OMR = 2; // 답안지형
+    const OMR = 2; // OMR답안지형
+    const ENGLISH_COMPOSITION_CLICK = 3; // 영작나열형
 
     public static function isSectionType($typeId)
     {
         return in_array($typeId, [
             Section::NORMAL,
-            Section::OMR
+            Section::OMR,
+            Section::ENGLISH_COMPOSITION_CLICK,
         ]);
     }
 }
