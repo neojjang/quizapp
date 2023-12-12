@@ -623,18 +623,7 @@ class UserQuizlv extends Component
                 } else $correctCount++;
             }
         }
-//        $correctAnswers = explode('/', $this->currentQuestion->answers[0]->answer);
-//        if (count($correctAnswers) > $this->selectedOrder) {
-//            $correct = (trim($correctAnswers[$this->selectedOrder++]) == trim($value));
-//
-//            $this->userAnswered[] = [$value, $correct];
-//        }
-//        $correctCount = array_reduce($this->userAnswered, function ($count, $item) {
-//            return $count + ($item[1] ? 1:0);
-//        });
-//        Log::debug($this->selectedOrder);
-//        Log::debug($correctCount);
-//        Log::debug(count($correctAnswers));
+
         // 선택한 구문 수와 정답의 구문 수가 동일 하면 다음 문제 진행 허용
         $this->isDisabled = !(
             $correctCount == count($this->currentExample)

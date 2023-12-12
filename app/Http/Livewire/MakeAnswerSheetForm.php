@@ -153,16 +153,18 @@ class MakeAnswerSheetForm extends Component
                     'type_id' => ($item['question_type']+1),
                     'retry' => $this->retry_answer,
                 ];
+                $answer = trim(rtrim(trim($item['answer'][0]['answer']), '/'));
+
                 if (isset($item['question_id']) && $item['question_id'] > 0) {
                     $question = \App\Models\Question::where('id',$item['question_id'])->update($data);
                     Answer::where('id', $item['answer'][0]['answer_id'])->update([
-                        'answer' => $item['answer'][0]['answer']
+                        'answer' => $answer
                     ]);
                 } else {
                     $question = \App\Models\Question::create($data);
                     $answers = [[
                         'is_checked' => '1',
-                        'answer' => $item['answer'][0]['answer']
+                        'answer' => $answer
                     ]];
                     $status = $question->answers()->createMany($answers)->push();
                 }
