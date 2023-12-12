@@ -30,7 +30,7 @@ class UserAnswer extends Component
         // $this->isCorrect = (bool)($this->userAnswer->is_correct === '1');
         // $this->isWrong = (bool)($this->userAnswer->is_correct === '0');
         // $this->isHold = (bool)($this->userAnswer->is_correct === '2');
-        if ($this->question->type_id == 1) {
+        if (($this->question->type_id -1)== \App\Constants\Question::SELECTIVE) {
             $this->userAnswer->user_answer = explode(',', $this->userAnswer->user_answer);
         }
     }
