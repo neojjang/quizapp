@@ -160,10 +160,12 @@
                             다음 보기에서 구문을 선택하여 문장을 완성 해주세요.
                         </div>
                         <div class="block p-2 bg-green-100">
-                            @foreach($currentExample as $example_index => $item)
-                                <button id="example-{{$answer_id}}-{{$example_index}}"
-                                        wire:click="checkSentenceOrder({{$example_index}}, '{{addslashes(trim($item))}}')"
-                                    class="min-w-fit px-4 mb-2 rounded border-2 border-gray-800 text-base font-medium leading-normal text-primary-700  transition duration-150 ease-in-out hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10">{{trim($item)}}</button>
+                            @foreach($currentExample as $exampleIndex => $item)
+                                <button id="example-{{$answer_id}}-{{$exampleIndex}}"
+                                        @if($item[1])
+                                        wire:click="checkSentenceOrder({{$exampleIndex}}, '{{addslashes(trim($item[0]))}}')"
+                                        @endif
+                                    class="min-w-fit px-4 mb-2 rounded border-2 border-gray-800 text-base font-medium leading-normal text-primary-700  transition duration-150 ease-in-out @if($item[1]) hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 @else bg-gray-500 @endif  focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10">{{trim($item[0])}}</button>
                             @endforeach
                         </div>
                         <div class="block p-2 font-bold">

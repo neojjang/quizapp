@@ -409,8 +409,9 @@ class UserQuizlv extends Component
                 $this->selectedOrder = 0;
 
                 // 구문 섞기
-                $this->currentExample = explode('/', $this->currentQuestion->answers[0]->answer);
-                shuffle($this->currentExample);
+                // $this->currentExample = explode('/', $this->currentQuestion->answers[0]->answer);
+                // shuffle($this->currentExample);
+                $this->makeShuffledExample();
             }
         }
     }
@@ -596,26 +597,36 @@ class UserQuizlv extends Component
         $this->currentQuestion = $this->getNextQuestion();
 
         // 구문 섞기
-        $this->currentExample = explode('/', $this->currentQuestion->answers[0]->answer);
-        shuffle($this->currentExample);
+        // $this->currentExample = explode('/', $this->currentQuestion->answers[0]->answer);
+        // shuffle($this->currentExample);
+        $this->makeShuffledExample();
     }
 
-    public function checkSentenceOrder($index, $value)
+    public function checkSentenceOrder($exampleIndex, $value)
     {
         Log::debug(__METHOD__);
         Log::debug($value);
 
+        $userAnsweredCount = count($this->userAnswered);
+        $currentExampleCount = count($this->currentExample);
+
         // 모든 선택이 완료 된 상태에서는 추가 진행 없음
-        if (count($this->userAnswered) >= count($this->currentExample)) {
+        if ($userAnsweredCount >= $currentExampleCount) {
             return ;
         }
+
+        // 선택한 문구는 invisible
+        $this->currentExample[$exampleIndex][1] = false;
+
         // 기본 선택시 틀린 표시는 하지 않음, 마지막 구문이 선택 된 경우 전체 구문이 순서에 맞는지 검사
-        $this->userAnswered[] = [$value, true];
+        $this->userAnswered[] = [$value, true, $exampleIndex];
         $this->selectedOrder++;
 
+        $userAnsweredCount = count($this->userAnswered);
         $correctCount = 0;
-        if (count($this->userAnswered) == count($this->currentExample)) {
+        if ($userAnsweredCount == $currentExampleCount) {
             $correctAnswers = explode('/', $this->currentQuestion->answers[0]->answer);
+
             foreach ($correctAnswers as $index => $answer) {
                 // 틀린 경우 체크
                 if (trim($this->userAnswered[$index][0]) != trim($answer)) {
@@ -626,8 +637,8 @@ class UserQuizlv extends Component
 
         // 선택한 구문 수와 정답의 구문 수가 동일 하면 다음 문제 진행 허용
         $this->isDisabled = !(
-            $correctCount == count($this->currentExample)
-            || (count($this->userAnswered) == count($this->currentExample) && ($this->retryCount+1) >= $this->currentQuestion->retry)
+            $correctCount == $currentExampleCount
+            || ($userAnsweredCount == $currentExampleCount && ($this->retryCount+1) >= $this->currentQuestion->retry)
         );
         Log::debug($this->isDisabled);
         $this->showRetry = (($this->retryCount+1) < $this->currentQuestion->retry && $this->isDisabled);
@@ -641,6 +652,9 @@ class UserQuizlv extends Component
         Log::debug($this->showRetry);
         // 재시도 버튼이 표시 되면 더이상 수정 불가
         if (count($this->userAnswered) < count($this->currentExample)) {
+            $exampleIndex = $this->userAnswered[$index][2];
+            $this->currentExample[$exampleIndex][1] = true;
+
             array_splice($this->userAnswered, $index, 1);
             $this->selectedOrder--;
         }
@@ -657,8 +671,22 @@ class UserQuizlv extends Component
         // 구문 선택 순서
         $this->selectedOrder = 0;
         // 구문 섞기
-        $this->currentExample = explode('/', $this->currentQuestion->answers[0]->answer);
-        shuffle($this->currentExample);
+        $this->makeShuffledExample();
+
         $this->userAnswered = [];
+    }
+
+    public function makeShuffledExample()
+    {
+        // $this->currentExample = explode('/', $this->currentQuestion->answers[0]->answer);
+        // shuffle($this->currentExample);
+
+        $this->currentExample = [];
+        $currentExamples = explode('/', $this->currentQuestion->answers[0]->answer);
+        foreach ($currentExamples as $index => $sentence) {
+            $this->currentExample[] = [$sentence, true]; // [sentence, visible]
+        }
+        shuffle($this->currentExample);
+        Log::debug($this->currentExample);
     }
 }
