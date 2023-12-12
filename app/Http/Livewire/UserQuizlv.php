@@ -605,7 +605,11 @@ class UserQuizlv extends Component
         Log::debug(__METHOD__);
         Log::debug($value);
 
-        // TODO : 기본 선택시 틀린 표시는 하지 않음, 마지막 구문이 선택 된 경우 전체 구문이 순서에 맞는지 검사
+        // 모든 선택이 완료 된 상태에서는 추가 진행 없음
+        if (count($this->userAnswered) >= count($this->currentExample)) {
+            return ;
+        }
+        // 기본 선택시 틀린 표시는 하지 않음, 마지막 구문이 선택 된 경우 전체 구문이 순서에 맞는지 검사
         $this->userAnswered[] = [$value, true];
         $this->selectedOrder++;
 
