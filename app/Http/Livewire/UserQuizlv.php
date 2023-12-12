@@ -43,6 +43,7 @@ class UserQuizlv extends Component
     public $currentExample;
     public $selectedOrder = 0;
     public $retryCount = 0;
+    public $showRetry = false;
 
     protected $queryString = ['classRoomId', 'sectionId'];
 
@@ -587,6 +588,7 @@ class UserQuizlv extends Component
         ]);
         $this->count = 1;
         $this->retryCount = 0;
+        $this->showRetry = false;
         // 구문 선택 순서
         $this->selectedOrder = 0;
         // Get the first/next question for the quiz.
@@ -602,31 +604,53 @@ class UserQuizlv extends Component
     {
         Log::debug(__METHOD__);
         Log::debug($value);
-        // 선택 한 구문이 순서에 맞는지 검사
-        $correctAnswers = explode('/', $this->currentQuestion->answers[0]->answer);
-        if (count($correctAnswers) > $this->selectedOrder) {
-            $correct = (trim($correctAnswers[$this->selectedOrder++]) == trim($value));
 
-            $this->userAnswered[] = [$value, $correct];
+        // TODO : 기본 선택시 틀린 표시는 하지 않음, 마지막 구문이 선택 된 경우 전체 구문이 순서에 맞는지 검사
+        $this->userAnswered[] = [$value, true];
+        $this->selectedOrder++;
+
+        $correctCount = 0;
+        if (count($this->userAnswered) == count($this->currentExample)) {
+            $correctAnswers = explode('/', $this->currentQuestion->answers[0]->answer);
+            foreach ($correctAnswers as $index => $answer) {
+                // 틀린 경우 체크
+                if (trim($this->userAnswered[$index][0]) != trim($answer)) {
+                    $this->userAnswered[$index][1] = false;
+                } else $correctCount++;
+            }
         }
-        $correctCount = array_reduce($this->userAnswered, function ($count, $item) {
-            return $count + ($item[1] ? 1:0);
-        });
-        Log::debug($this->selectedOrder);
-        Log::debug($correctCount);
-        Log::debug(count($correctAnswers));
+//        $correctAnswers = explode('/', $this->currentQuestion->answers[0]->answer);
+//        if (count($correctAnswers) > $this->selectedOrder) {
+//            $correct = (trim($correctAnswers[$this->selectedOrder++]) == trim($value));
+//
+//            $this->userAnswered[] = [$value, $correct];
+//        }
+//        $correctCount = array_reduce($this->userAnswered, function ($count, $item) {
+//            return $count + ($item[1] ? 1:0);
+//        });
+//        Log::debug($this->selectedOrder);
+//        Log::debug($correctCount);
+//        Log::debug(count($correctAnswers));
         // 선택한 구문 수와 정답의 구문 수가 동일 하면 다음 문제 진행 허용
         $this->isDisabled = !(
-            $correctCount == count($correctAnswers)
-            || ($this->selectedOrder == count($correctAnswers) && ($this->retryCount+1) >= $this->currentQuestion->retry)
+            $correctCount == count($this->currentExample)
+            || (count($this->userAnswered) == count($this->currentExample) && ($this->retryCount+1) >= $this->currentQuestion->retry)
         );
         Log::debug($this->isDisabled);
+        $this->showRetry = (($this->retryCount+1) < $this->currentQuestion->retry && $this->isDisabled);
+        Log::debug($this->showRetry);
     }
 
     public function deleteSelectedSentence($index)
     {
-        array_splice($this->userAnswered, $index, 1);
-        $this->selectedOrder--;
+        Log::debug(__METHOD__);
+        Log::debug($index);
+        Log::debug($this->showRetry);
+        // 재시도 버튼이 표시 되면 더이상 수정 불가
+        if (count($this->userAnswered) < count($this->currentExample)) {
+            array_splice($this->userAnswered, $index, 1);
+            $this->selectedOrder--;
+        }
     }
 
     /**
@@ -636,6 +660,7 @@ class UserQuizlv extends Component
     public function retryQuestion()
     {
         $this->retryCount++;
+        $this->showRetry = false;
         // 구문 선택 순서
         $this->selectedOrder = 0;
         // 구문 섞기

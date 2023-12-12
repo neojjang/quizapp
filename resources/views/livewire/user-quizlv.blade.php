@@ -167,12 +167,12 @@
                             @endforeach
                         </div>
                         <div class="block p-2 font-bold">
-                            결과 :
+                            결과 : (<span class="text-red-400 text-sm">"재시도 버튼" 표시 전까지 구문을 눌러 삭제 가능합니다.</span>)
                         </div>
                         <div class="block p-2 bg-indigo-50">
                             @foreach($userAnswered as $user_answer_index => $item)
                                 <button id="answer-{{$answer_id}}-{{$user_answer_index}}"
-{{--                                        wire:click="deleteSelectedSentence({{$user_answer_index}})"--}}
+                                        wire:click="deleteSelectedSentence({{$user_answer_index}})"
                                         @if($item[1])
                                         class="min-w-fit px-4 mb-2 rounded border-2 border-primary-100 bg-blue-500 text-white text-sm font-medium leading-normal transition duration-150 ease-in-out hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
                                         @else
@@ -182,9 +182,9 @@
                             @endforeach
                         </div>
 
-                        <textarea id="question-{{$answer_id}}" type="text" wire:model="userAnswered" readonly
-                              class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">
-                        </textarea>
+{{--                        <textarea id="question-{{$answer_id}}" type="text" wire:model="userAnswered" readonly--}}
+{{--                              class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">--}}
+{{--                        </textarea>--}}
 
                     </div>
                     <div class="flex items-center justify-end mt-2">
@@ -193,7 +193,7 @@
                             <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{($retryCount+1) .'/'. $currentQuestion->retry}} 회</span>
                         </p>
                         @if(count($userAnswered) == count($currentExample))
-                            @if(($retryCount+1) < $currentQuestion->retry && $isDisabled)
+                            @if($showRetry)
                                 <button wire:click="retryQuestion" type="submit" class="m-4 inline-flex items-center px-4 py-2 bg-yellow-400 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
                                     {{ __('재시도') }}
                                 </button>
