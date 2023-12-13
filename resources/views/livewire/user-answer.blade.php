@@ -5,6 +5,7 @@
         @if(isset($userAnswer->extra_info) && $userAnswer->extra_info != "")
             @php($retry_data = json_decode($userAnswer->extra_info))
             @foreach($retry_data as $retry_index => $items)
+                @if(is_array($items))
                 <div class="mt-1 max-w-auto text-sm px-2 text-black bg-gray-200 ">
                     [{{($retry_index+1)}}]
                     @foreach($items as $value)
@@ -17,6 +18,11 @@
                         </div>
                     @endforeach
                 </div>
+                @else
+                <div class="mt-1 max-w-auto text-sm px-2 text-black bg-gray-200 ">
+                    [{{($retry_index+1)}}] {{$items}}
+                </div>
+                @endif
             @endforeach
         @endif
         @if($userAnswer->is_correct==='1')
