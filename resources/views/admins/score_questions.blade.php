@@ -31,7 +31,10 @@
                                 <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
                                     <div class="px-4 py-5 sm:px-6">
                                         <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
-                                            <span class="mr-2 font-extrabold"> {{$qkey + 1}}</span> {!! nl2br($question->question) !!} [{{$resultMark[$userAnswer->is_correct]}}] [재시도 {{$userAnswer->retry}}회]
+                                            <span class="mr-2 font-extrabold"> {{$qkey + 1}}</span> {!! nl2br($question->question) !!} [{{$resultMark[$userAnswer->is_correct]}}]
+                                            @if(in_array(($question->type_id-1), [\App\Constants\Question::ENGLISH_COMPOSITION_CLICK]))
+                                                [재시도 {{$userAnswer->retry}}회]
+                                            @endif
                                             <div x-data={show:false} class="block text-xs">
                                                 <div class="p-1" id="headingOne">
                                                     <button @click="show=!show" class="underline text-blue-500 hover:text-blue-700 focus:outline-none text-xs " type="button">

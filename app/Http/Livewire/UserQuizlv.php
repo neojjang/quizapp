@@ -44,6 +44,7 @@ class UserQuizlv extends Component
     public $selectedOrder = 0;
     public $retryCount = 0;
     public $showRetry = false;
+    public $extraInfo = null;
 
     protected $queryString = ['classRoomId', 'sectionId'];
 
@@ -350,6 +351,7 @@ class UserQuizlv extends Component
                 $isChoiceCorrect = $isChoiceCorrect & $item[1];
                 $userAnswered = $userAnswered . (($index == 0) ? trim($item[0]) : " / ".trim($item[0]));
             }
+            $this->extraInfo[] = $userAnswered;
 
             return [
                 'answerId' => $this->currentQuestion->answers[0]->id,
@@ -364,9 +366,11 @@ class UserQuizlv extends Component
     public function nextQuestion()
     {
         Log::debug("nextQuestion : 정답 여부 체크");
-        if ($this->sectionTypeId != \App\Constants\Section::OMR) {
-            $result = $this->checkCurrentAnswer();
-        }
+        // OMR 타입은 이 함수를 처리 하지 않기 때문에 비교가 필요없음
+//        if ($this->sectionTypeId != \App\Constants\Section::OMR) {
+//
+//        }
+        $result = $this->checkCurrentAnswer();
 
         // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
         Quiz::create([
@@ -377,7 +381,8 @@ class UserQuizlv extends Component
             'answer_id' => $result['answerId'],
             'user_answer' => $result['userAnswered'],
             'is_correct' => $result['isChoiceCorrect'],
-            'retry' => ($this->retryCount+1)
+            'retry' => ($this->retryCount+1),
+            'extra_info' => (isset($this->extraInfo)) ? json_encode($this->extraInfo) : $this->extraInfo
         ]);
 
         // Save the record
@@ -391,22 +396,22 @@ class UserQuizlv extends Component
         $answerId = '';
         $isChoiceCorrect = '';
         $this->reset('userAnswered');
-        $this->reset('currentExample');
         $this->isDisabled = true;
 
         // Finish the quiz when user has successfully taken all question in the quiz.
         if ($this->count == $this->quizSize + 1) {
             $this->showResults();
         } else {
-
             // Get the first/next question for the quiz.
             // Since we are using LiveWire component for quiz, the first quesiton and answers will be displayed through mount function.
             $this->currentQuestion = $this->getNextQuestion();
 
             if (($this->currentQuestion->type_id - 1) == \App\Constants\Question::ENGLISH_COMPOSITION_CLICK) {
+                $this->reset('currentExample');
                 $this->retryCount = 0;
                 // 구문 선택 순서
                 $this->selectedOrder = 0;
+                $this->extraInfo = [];
 
                 // 구문 섞기
                 // $this->currentExample = explode('/', $this->currentQuestion->answers[0]->answer);
@@ -590,6 +595,7 @@ class UserQuizlv extends Component
         $this->count = 1;
         $this->retryCount = 0;
         $this->showRetry = false;
+        $this->extraInfo = [];
         // 구문 선택 순서
         $this->selectedOrder = 0;
         // Get the first/next question for the quiz.
@@ -666,6 +672,7 @@ class UserQuizlv extends Component
      */
     public function retryQuestion()
     {
+        Log::debug(__METHOD__);
         $this->retryCount++;
         $this->showRetry = false;
         // 구문 선택 순서
@@ -673,7 +680,16 @@ class UserQuizlv extends Component
         // 구문 섞기
         $this->makeShuffledExample();
 
+//        $userAnswered = "";
+//        foreach ($this->userAnswered as $index => $item) {
+//            $userAnswered = $userAnswered . (($index == 0) ? trim($item[0]) : " / ".trim($item[0]));
+//        }
+        $userAnswered = array_reduce($this->userAnswered, function($result, $value) {
+            return (is_null($result) ? $value[0] : $result." / ".$value[0]);
+        }, null);
+        $this->extraInfo[] = $userAnswered;
         $this->userAnswered = [];
+        Log::debug(json_encode($this->extraInfo));
     }
 
     public function makeShuffledExample()
