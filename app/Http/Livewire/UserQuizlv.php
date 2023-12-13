@@ -351,7 +351,7 @@ class UserQuizlv extends Component
                 $isChoiceCorrect = $isChoiceCorrect & $item[1];
                 $userAnswered = $userAnswered . (($index == 0) ? trim($item[0]) : " / ".trim($item[0]));
             }
-            $this->extraInfo[] = $userAnswered;
+            $this->extraInfo[] = $this->userAnswered;
 
             return [
                 'answerId' => $this->currentQuestion->answers[0]->id,
@@ -680,14 +680,10 @@ class UserQuizlv extends Component
         // 구문 섞기
         $this->makeShuffledExample();
 
-//        $userAnswered = "";
-//        foreach ($this->userAnswered as $index => $item) {
-//            $userAnswered = $userAnswered . (($index == 0) ? trim($item[0]) : " / ".trim($item[0]));
-//        }
-        $userAnswered = array_reduce($this->userAnswered, function($result, $value) {
-            return (is_null($result) ? $value[0] : $result." / ".$value[0]);
-        }, null);
-        $this->extraInfo[] = $userAnswered;
+//        $userAnswered = array_reduce($this->userAnswered, function($result, $value) {
+//            return (is_null($result) ? $value[0] : $result." / ".$value[0]);
+//        }, null);
+        $this->extraInfo[] = $this->userAnswered;
         $this->userAnswered = [];
         Log::debug(json_encode($this->extraInfo));
     }

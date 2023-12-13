@@ -4,9 +4,18 @@
         @php($answer = $question->answers[0])
         @if(isset($userAnswer->extra_info) && $userAnswer->extra_info != "")
             @php($retry_data = json_decode($userAnswer->extra_info))
-            @foreach($retry_data as $retry_index => $value)
-                <div class="mt-1 max-w-auto text-sm px-2 text-black bg-gray-200">
-                    [{{($retry_index+1)}}] {{$value}}
+            @foreach($retry_data as $retry_index => $items)
+                <div class="mt-1 max-w-auto text-sm px-2 text-black bg-gray-200 ">
+                    [{{($retry_index+1)}}]
+                    @foreach($items as $value)
+                        @if($value[1])
+                        <div class="inline-flex min-w-fit px-4 mb-2 rounded border-2 border-primary-100 bg-blue-500 text-white text-sm font-medium leading-normal flex-wrap">
+                        @else
+                        <div class="inline-flex min-w-fit px-4 mb-2 rounded border-2 border-primary-100 bg-red-400 text-sm font-medium leading-normal text-primary-700 flex-wrap">
+                        @endif
+                            {{$value[0]}}
+                        </div>
+                    @endforeach
                 </div>
             @endforeach
         @endif
