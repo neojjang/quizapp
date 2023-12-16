@@ -139,7 +139,7 @@
                 <form wire:submit.prevent>
                     <div class="px-4 py-4 sm:px-6">
                         <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
-                            <span class="mr-2 font-extrabold"> {{$count}}.</span> {!! nl2br($currentQuestion->question) !!}
+                            <span class="mr-2 font-extrabold"> {{(isset($currentQuestion->question_no) && $currentQuestion->question_no !='') ? $currentQuestion->question_no : $count}}.</span> {!! nl2br($currentQuestion->question) !!}
 
 {{--                            <div x-data={show:false} class="block text-xs">--}}
 {{--                                <div class="p-1" id="headingOne">--}}
@@ -172,8 +172,9 @@
                                 @endif
                             @endforeach
                         </div>
-                        <div class="block p-2 font-bold">
+                        <div class="block p-2 font-bold" >
                             결과 : (<span class="text-red-400 text-sm">"재시도 버튼" 표시 전까지 구문을 눌러 삭제 가능합니다.</span>)
+
                         </div>
                         <div class="block p-2 bg-indigo-50">
                             @foreach($userAnswered as $user_answer_index => $item)
