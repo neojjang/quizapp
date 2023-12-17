@@ -17,7 +17,7 @@
                 @if($classRooms->isEmpty())
                 <div class="px-4 py-5 sm:px-6">
                     <h1 class="text-sm leading-6 font-medium text-gray-900">
-                        등록 한 수업이 없습니다. 
+                        등록 한 수업이 없습니다.
                     </h1>
                     <p class="mt-1 max-w-2xl text-sm text-gray-500">
                         수업을 등록하면 리스트를 볼 수 있습니다.
@@ -78,7 +78,7 @@
                                                         <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
                                                     </svg>
                                                 </a>
-                                                <form action="{{route('deleteClassRoom',$section->id)}}" method="post">
+                                                <form action="{{route('deleteClassRoom',$section->id)}}" method="post" onsubmit="return deleteClassRoom('{{ $section->name}}'); return false;">
                                                     @csrf
                                                     <a class="text-red-500 hover:text-red-700">
                                                         <button type="submit">
@@ -103,4 +103,39 @@
             </div>
         </div>
     </div>
+    <!-- Modal toggle -->
+    @push('js')
+        <script type="text/javascript">
+            function deleteClassRoom(title) {
+                return confirm(`[${title}] 수업을 삭제 하시겠습니까?`);
+                // console.log(form);
+                // Swal.fire({
+                //     "title":"\uc218\uc5c5 \uc0ad\uc81c",
+                //     "text":"\uc218\uc5c5\uc744 \uc0ad\uc81c \ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?",
+                //     "background":"#fff","width":"25rem","heightAuto":true,"padding":"1.25rem",
+                //     "showCloseButton":false,
+                //     "confirmButtonText":"Yes, delete it!",
+                //     "cancelButtonText":"Cancel",
+                //     "timerProgressBar":false,
+                //     "customClass":{
+                //         "container":null,
+                //         "popup":null,
+                //         "header":null,
+                //         "title":null,"closeButton":null,"icon":null,"image":null,
+                //         "content":null,"input":null,"actions":null,
+                //         "confirmButton":null,"cancelButton":null,"footer":null
+                //     },
+                //     "showCancelButton":true,
+                //     "confirmButtonColor":null,"icon":"warning",
+                //     "showLoaderOnConfirm":true,"allowEscapeKey":false,
+                //     "allowOutsideClick":false
+                // }).then(function(result) {
+                //     if (result.isConfirmed) {
+                //         form.submit();
+                //     }
+                // });
+                // return false;
+            }
+        </script>
+    @endpush
 </x-app-layout>
