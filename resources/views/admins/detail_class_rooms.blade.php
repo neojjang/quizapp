@@ -167,7 +167,7 @@
                                                         <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
                                                     </svg>
                                                 </a>
-                                                <form action="{{route('deleteSection',$section->id)}}" method="post">
+                                                <form action="{{route('deleteSection',$section->id)}}" method="post" onsubmit="return deleteSection('{{ $section->name}}'); return false;">
                                                     @csrf
                                                     <a class="text-red-500 hover:text-red-700">
                                                         <button type="submit">
@@ -192,4 +192,11 @@
                 <!-- ---------------- END NEW TABLE --------------------- -->
             </div>
         </div>
+        @push('js')
+            <script type="text/javascript">
+                function deleteSection(title) {
+                    return confirm(`[${title}] 시험을 삭제 하시겠습니까?`);
+                }
+            </script>
+        @endpush
 </x-app-layout>
