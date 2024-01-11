@@ -178,10 +178,13 @@ Route::middleware(['auth', 'verified', 'role:admin|user'])->prefix('appuser')->g
 });
 
 Route::middleware(['auth', 'verified', 'role:admin|user'])->prefix('quiz')->group(function () {
-    Route::get('/start/{major_group?}/{medium_group?}/{class_room?}', [AppUserController::class, 'startQuiz'])
+    Route::get('/start/major-{major_group?}/medium-{medium_group?}/class-{class_room?}', [AppUserController::class, 'startQuiz'])
+        ->name('startQuizWithClassRoom');
+    Route::get('/start/major-{major_group?}/medium-{medium_group?}', [AppUserController::class, 'startQuiz'])
+        ->name('startQuizWithMedium');
+    Route::get('/start/major-{major_group?}', [AppUserController::class, 'startQuiz'])
+        ->name('startQuizWithMajor');
+    Route::get('/start', [AppUserController::class, 'startQuiz'])
         ->name('startQuiz');
-
-    Route::get('/test/{major_group}/{medium_group}/{class_room}/{section}', [AppUserController::class, 'startQuiz'])
-        ->name('testQuiz');
 
 });

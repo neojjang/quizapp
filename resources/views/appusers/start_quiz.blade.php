@@ -63,11 +63,11 @@
                                                         <div class="text-lg font-medium text-gray-900">
                                                             <a class="text-blue-400 hover:underline"
                                                                 @if(!isset($majorGroup))
-                                                                href="{{ route('startQuiz', $section->id) }}">
+                                                                href="{{ route('startQuizWithMajor', $section->id) }}">
                                                                 @elseif(!isset($mediumGroup))
-                                                                href="{{ route('startQuiz', ['major_group'=>$majorGroup->id, 'medium_group'=>$section->id]) }}">
+                                                                href="{{ route('startQuizWithMedium', ['major_group'=>$majorGroup->id, 'medium_group'=>$section->id]) }}">
                                                                 @else
-                                                                href="{{ route('startQuiz', ['major_group'=>$majorGroup->id, 'medium_group'=>$mediumGroup->id, 'class_room'=>$section->id]) }}">
+                                                                href="{{ route('startQuizWithClassRoom', ['major_group'=>$majorGroup->id, 'medium_group'=>$mediumGroup->id, 'class_room'=>$section->id]) }}">
                                                                 @endif
                                                                     {{ $section->name}}
                                                             </a>
