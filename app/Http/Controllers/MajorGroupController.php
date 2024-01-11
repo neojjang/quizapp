@@ -50,15 +50,13 @@ class MajorGroupController extends Controller
 //        Log::debug($request->all());
         $data = $request->validate([
             'name' => 'required|min:2|max:255',
-            'description' => 'nullable|min:5|max:255',
+            'description' => 'nullable|max:255',
             'is_active' => 'required',
-            'details' =>    'nullable|min:10|max:1024',
+            'details' =>    'nullable|max:1024',
         ],[
             'name' => '과정 이름은 필수입니다.',
             'name.min' => '과정 이름은 2자 이상입니다.',
             'is_active' => '과정 활성화는 필수입니다.',
-            'details.min' => '과정 상세 설명은 10자 이상입니다.',
-            'description.min' => '과정 설명은 5자 이상입니다.',
         ]);
         if (!isset($data['description'])) {
             $data['description'] = '';
