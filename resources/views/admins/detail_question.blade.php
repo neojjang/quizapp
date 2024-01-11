@@ -8,15 +8,19 @@
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
             <div class="mx-auto">
                 <div class="flex justify-between items-center py-4">
-                    <form action="{{route('deleteQuestion',$question->id)}}" method="post">
+                    <span class="sm:flex">
+                        <a href="{{route('editQuestion',$question->id)}}" class="tracking-wide font-bold rounded border-2 border-green-500 hover:border-green-500 bg-green-500 text-white hover:bg-green-600 transition shadow-md py-2 px-6 items-center">문제 수정</a>
+                        <form action="{{route('deleteQuestion',$question->id)}}" method="post">
                         @csrf
-                        <button type="submit">
-                            <a class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">
-                                Delete Question
+                        <button type="submit" class="mt-2">
+                            <a class="tracking-wide font-bold rounded border-2 border-red-500 hover:border-red-500 bg-red-500 text-white hover:bg-red-600 transition shadow-md py-2 px-6 items-center">
+                                문제 삭제
                             </a>
                         </button>
                     </form>
-                    <a href="{{route('detailSection', $question->section_id)}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>
+                    </span>
+
+                    <a href="#" onclick="history.back();" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>
                 </div>
                 <!-- --------------------- START NEW TABLE --------------------->
 
@@ -27,11 +31,11 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="tracking-wide font-bold rounded border-2 bg-green-500 text-white  transition shadow-md py-2 px-6 items-center">
                                         <tr>
-                                            <th scope=" col" class="px-6 py-3 text-left text-xs font-extrabold  uppercase tracking-wider">
-                                                Item
+                                            <th scope=" col" class="px-6 py-3 text-left text-xs font-extrabold  uppercase tracking-wider md:w-1/4">
+                                                항목
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-extrabold  uppercase tracking-wider">
-                                                Details
+                                                내용
                                             </th>
                                         </tr>
                                     </thead>
@@ -41,7 +45,7 @@
                                                 <div class="flex items-center">
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900">
-                                                            Question
+                                                            문제
                                                         </div>
                                                     </div>
                                                 </div>
@@ -55,7 +59,7 @@
                                                 <div class="flex items-center">
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900">
-                                                            Explanation
+                                                            설명
                                                         </div>
                                                     </div>
                                                 </div>
@@ -69,13 +73,13 @@
                                                 <div class="flex items-center">
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900">
-                                                            Status
+                                                            공개
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <div class="text-sm text-gray-900">{{ $question->is_active === '1'  ? 'Active' : 'Not Active' }}</div>
+                                                <div class="text-sm text-gray-900">{{ $question->is_active === '1'  ? 'Yes' : 'No' }}</div>
                                             </td>
                                         </tr>
                                         <tr>
@@ -83,13 +87,13 @@
                                                 <div class="flex items-center">
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900">
-                                                            Details
+                                                            상세 설명
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 text-lg text-bold">
-                                                <div class="text-sm text-gray-900">{{ $question->section->name }}</div>
+                                                <div class="text-sm text-gray-900">{{ $question->details }}</div>
                                             </td>
                                         </tr>
                                         <tr>
@@ -120,10 +124,10 @@
                         <thead class="tracking-wide font-bold rounded border-2 bg-green-500 text-white  transition shadow-md py-2 px-6 items-center">
                             <tr class="max-w-auto">
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                                    Answer
+                                    답
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                                    Choice
+                                    정답?
                                 </th>
                             </tr>
                         </thead>

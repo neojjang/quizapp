@@ -1,13 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Admin Home') }}
-        </h2>
-    </x-slot>
+{{--    <x-slot name="header">--}}
+{{--        <h2 class="font-semibold text-xl text-gray-800 leading-tight">--}}
+{{--            {{ __('Admin Home') }}--}}
+{{--        </h2>--}}
+{{--    </x-slot>--}}
     <div class="max-w-7xl m-4 mx-auto sm:px-6 lg:px-8">
         <div class="bg-white mt-4 overflow-hidden shadow-xl sm:rounded-lg">
             <div class="mx-auto bg-green-200">
-                <h2 class="text-2xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">Question 수정</h2>
+                <h2 class="text-2xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">{{ __('문제 수정') }}</h2>
                 <div class="mt-2 max-w-auto mx-auto card p-4 bg-white rounded-b-lg shadow-md">
                     <div class="grid grid-cols-1 gap-6">
                         <form action="{{route('updateQuestion', $question->id)}}" method="post">
@@ -119,7 +119,7 @@
                                 @endif
                             </div>
                             <div class="flex items-center justify-end mt-4">
-                                <a href="{{route('detailSection', $question->section_id)}}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent text-xs  font-semibold text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">Back</a>
+                                <a href="#" onclick="history.back();" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent text-xs  font-semibold text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">Back</a>
                                 <x-jet-button type="submit" class="ml-4">
                                     {{ __('Update') }}
                                 </x-jet-button>

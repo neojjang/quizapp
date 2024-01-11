@@ -62,11 +62,21 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
+    public function majorGroups()
+    {
+        return $this->hasMany(MajorGroup::class);
+    }
+
+    public function mediumGroups()
+    {
+        return $this->hasMany(MediumGroup::class);
+    }
+
     public function classRooms()
     {
         return $this->hasMany(ClassRoom::class);
     }
-    
+
     public function sections()
     {
         return $this->hasMany(Section::class);

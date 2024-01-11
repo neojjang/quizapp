@@ -7,7 +7,8 @@ use App\Http\Controllers\ManageUserController;
 use App\Http\Controllers\SectionsController;
 use App\Http\Controllers\QuestionsController;
 use App\Http\Controllers\ClassRoomsController;
-
+use App\Http\Controllers\MajorGroupController;
+use App\Http\Controllers\MediumGroupController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -30,94 +31,157 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::get('/users', [ManageUserController::class, 'index'])->name('usersIndex');
     Route::get('/users/{id}', [ManageUserController::class, 'detailUser'])->name('detailUser');
 
-    Route::get('/adminhome', [AdminController::class, 'adminhome'])->name('adminhome');
+    Route::get('/home', [AdminController::class, 'adminhome'])->name('adminhome');
 
     // 섹션 관리
-    Route::get('/createSection/{class_room}', [SectionsController::class, 'createSection'])
+    Route::get('/classroom/{class_room}/section/new', [SectionsController::class, 'createSection'])
         ->name('createSection');
 
-    Route::post('/deleteSection/{id}', [SectionsController::class, 'deleteSection'])
+    Route::post('/section/{id}/delete', [SectionsController::class, 'deleteSection'])
         ->name('deleteSection');
 
-    Route::post('/storeSection/{class_room}', [SectionsController::class, 'storeSection'])
+    Route::post('/classroom/{class_room}/section/new', [SectionsController::class, 'storeSection'])
         ->name('storeSection');
 
-    Route::get('/editSection/{section}', [SectionsController::class, 'editSection'])
+    Route::get('/section/{section}/edit', [SectionsController::class, 'editSection'])
         ->name('editSection');
 
-    Route::post('/updateSection/{section}', [SectionsController::class, 'updateSection'])
+    Route::post('/section/{section}/edit', [SectionsController::class, 'updateSection'])
         ->name('updateSection');
 
-    Route::get('/listSection', [SectionsController::class, 'listSection'])
+    Route::get('/sections', [SectionsController::class, 'listSection'])
         ->name('listSection');
 
-    Route::get('/detailSection/{section}', [SectionsController::class, 'detailSection'])
+    Route::get('/section/{section}', [SectionsController::class, 'detailSection'])
         ->name('detailSection');
 
-    Route::get('/scoreSection/{section}', [SectionsController::class, 'scoreSection'])
+    Route::get('/section/{section}/score', [SectionsController::class, 'scoreSection'])
         ->name('scoreSection');
 
     // 문제 관리
-    Route::get('/createQuestion/{section}', [QuestionsController::class, 'createQuestion'])
+    Route::get('/section/{section}/question/new', [QuestionsController::class, 'createQuestion'])
         ->name('createQuestion');
 
-    Route::get('/detailQuestion/{question}', [QuestionsController::class, 'detailQuestion'])
-        ->name('detailQuestion');
-
-    Route::get('/editQuestion/{question}', [QuestionsController::class, 'editQuestion'])
-        ->name('editQuestion');
-
-    Route::post('/updateQuestion/{question}', [QuestionsController::class, 'updateQuestion'])
-        ->name('updateQuestion');
-
-    Route::post('/storeQuestion/{section}', [QuestionsController::class, 'storeQuestion'])
+    Route::post('/section/{section}/question/new', [QuestionsController::class, 'storeQuestion'])
         ->name('storeQuestion');
 
-    Route::post('/deleteQuestion/{id}', [QuestionsController::class, 'deleteQuestion'])
+    Route::get('/question/{question}', [QuestionsController::class, 'detailQuestion'])
+        ->name('detailQuestion');
+
+    Route::get('/question/{question}/edit', [QuestionsController::class, 'editQuestion'])
+        ->name('editQuestion');
+
+    Route::post('/question/{question}/edit', [QuestionsController::class, 'updateQuestion'])
+        ->name('updateQuestion');
+
+    Route::post('/question/{id}/delete', [QuestionsController::class, 'deleteQuestion'])
         ->name('deleteQuestion');
 
-    Route::get('/createOMRSheet/{section}', [QuestionsController::class, 'createOMRSheet'])
+    Route::get('/section/{section}/question/omrsheet', [QuestionsController::class, 'createOMRSheet'])
         ->name('createOMRSheet');
 
-    Route::get('/createAnswerSheet/{section}', [QuestionsController::class, 'createAnswerSheet'])
+    Route::get('/section/{section}/question/answersheet', [QuestionsController::class, 'createAnswerSheet'])
         ->name('createAnswerSheet');
 
-    Route::get('/scoreQuestion/{section}/{quiz_header}', [QuestionsController::class, 'scoreQuestion'])
+    Route::get('/section/{section}/question/{quiz_header}/score', [QuestionsController::class, 'scoreQuestion'])
         ->name('scoreQuestion');
 
     // ClassRoom 관리
-    Route::get('/createClassRoom', [ClassRoomsController::class, 'createClassRoom'])
+    Route::get('/mediumgroup/{medium_group}/classroom/new', [ClassRoomsController::class, 'createClassRoom'])
+        ->name('createClassRoomWithMediumGroup');
+
+    Route::get('/classroom/new', [ClassRoomsController::class, 'create'])
         ->name('createClassRoom');
 
-    Route::post('/deleteClassRoom/{id}', [ClassRoomsController::class, 'deleteClassRoom'])
-        ->name('deleteClassRoom');
+    Route::post('/mediumgroup/{medium_group}/classroom', [ClassRoomsController::class, 'storeWithMediumGroup'])
+        ->name('storeClassRoomWithMediumGroup');
 
-    Route::post('/storeClassRoom/class', [ClassRoomsController::class, 'storeClassRoom'])
+    Route::post('/classroom/new', [ClassRoomsController::class, 'store'])
         ->name('storeClassRoom');
 
-    Route::get('/editClassRoom/{class_room}', [ClassRoomsController::class, 'editClassRoom'])
+    Route::post('/classroom/{id}/delete', [ClassRoomsController::class, 'deleteClassRoom'])
+        ->name('deleteClassRoom');
+
+    Route::get('/classroom/{class_room}/edit', [ClassRoomsController::class, 'editClassRoom'])
         ->name('editClassRoom');
 
-    Route::post('/updateClassRoom/{class_room}', [ClassRoomsController::class, 'updateClassRoom'])
+    Route::post('/classroom/{class_room}/edit', [ClassRoomsController::class, 'updateClassRoom'])
         ->name('updateClassRoom');
 
-    Route::get('/listClassRoom', [ClassRoomsController::class, 'listClassRoom'])
+    Route::get('/classrooms', [ClassRoomsController::class, 'listClassRoom'])
         ->name('listClassRoom');
-    Route::get('/detailClassRoom/{class_room}', [ClassRoomsController::class, 'detailClassRoom'])
+
+    Route::get('/classroom/{class_room}', [ClassRoomsController::class, 'detailClassRoom'])
         ->name('detailClassRoom');
+
+    // MajorGroup 관리
+    Route::get('/majorgroup/new', [MajorGroupController::class, 'create'])
+        ->name('createMajorGroup');
+
+    Route::post('/majorgroup/{id}/delete', [MajorGroupController::class, 'delete'])
+        ->name('deleteMajorGroup');
+
+    Route::post('/majorgroup/new', [MajorGroupController::class, 'store'])
+        ->name('storeMajorGroup');
+
+    Route::get('/majorgroup/{major_group}/edit', [MajorGroupController::class, 'edit'])
+        ->name('editMajorGroup');
+
+    Route::post('/majorgroup/{major_group}/edit', [MajorGroupController::class, 'update'])
+        ->name('updateMajorGroup');
+
+    Route::get('/majorgroups', [MajorGroupController::class, 'list'])
+        ->name('listMajorGroups');
+
+    Route::get('/majorgroup/{major_group}', [MajorGroupController::class, 'detail'])
+        ->name('detailMajorGroup');
+
+    // MediumGroup 관리
+    Route::get('/majorgroup/{major_group}/mediumgroup/new', [MediumGroupController::class, 'createWithMajorGroup'])
+        ->name('createMediumGroupWithMajorGroup');
+
+    Route::post('/majorgroup/{major_group}/mediumgroup/', [MediumGroupController::class, 'storeWithMajorGroup'])
+        ->name('storeMediumGroupWithMajorGroup');
+
+    Route::get('/mediumgroup/new', [MediumGroupController::class, 'create'])
+        ->name('createMediumGroup');
+    Route::post('/mediumgroup/new', [MediumGroupController::class, 'store'])
+        ->name('storeMediumGroup');
+
+    Route::post('/mediumgroup/{id}/delete', [MediumGroupController::class, 'delete'])
+        ->name('deleteMediumGroup');
+
+
+    Route::get('/mediumgroup/{medium_group}/edit', [MediumGroupController::class, 'edit'])
+        ->name('editMediumGroup');
+
+    Route::post('/mediumgroup/{medium_group}/update', [MediumGroupController::class, 'update'])
+        ->name('updateMediumGroup');
+
+    Route::get('/mediumgroups', [MediumGroupController::class, 'list'])
+        ->name('listMediumGroups');
+    Route::get('/mediumgroup/{medium_group}/', [MediumGroupController::class, 'detail'])
+        ->name('detailMediumGroup');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin|user'])->prefix('appuser')->group(function () {
 
-    Route::get('/userQuizHome', [AppUserController::class, 'userQuizHome'])
+    Route::get('/quiz/home', [AppUserController::class, 'userQuizHome'])
         ->name('userQuizHome');
 
-    Route::get('/userQuizDetails/{id}', [AppUserController::class, 'userQuizDetails'])
+    Route::get('/quiz/{id}', [AppUserController::class, 'userQuizDetails'])
         ->name('userQuizDetails');
 
-    Route::post('/deleteUserQuiz/{id}', [AppUserController::class, 'deleteUserQuiz'])
+    Route::post('/quiz/{id}/delete', [AppUserController::class, 'deleteUserQuiz'])
         ->name('deleteUserQuiz');
 
-    Route::get('/startQuiz', [AppUserController::class, 'startQuiz'])
+});
+
+Route::middleware(['auth', 'verified', 'role:admin|user'])->prefix('quiz')->group(function () {
+    Route::get('/start/{major_group?}/{medium_group?}/{class_room?}', [AppUserController::class, 'startQuiz'])
         ->name('startQuiz');
+
+    Route::get('/test/{major_group}/{medium_group}/{class_room}/{section}', [AppUserController::class, 'startQuiz'])
+        ->name('testQuiz');
+
 });

@@ -25,30 +25,41 @@ class SectionsController extends Controller
     public function listSection()
     {
 
-        $sections = Section::withCount('questions')->orderBy('updated_at','desc')->paginate(10);
+        $sections = Section::withCount('questions')->orderBy('updated_at','desc')->paginate(20);
         return view('admins.list_sections', compact('sections'));
     }
 
     public function storeSection(ClassRoom $classRoom, Request $request)
     {
-        $classRoom = $classRoom;
         $data = $request->validate([
-            'section.name' => 'required',
-            'section.is_active' => 'required',
+            'name' => 'required',
+            'is_active' => 'required',
+            'description' => 'nullable|max:255',
+            'details' =>    'nullable|max:2048',
+        ], [
+            "name" => '이름은 필수입니다.',
+            "is_active"=> '공개여부는 필수입니다.'
         ]);
 
-        // `name`, `description`, `is_active`, `details`, `class_room_id`, `updated_at`, `created_at`
-        $section = Section::create([
-            'name' => $request->section['name'],
-            'description' => (isset($request->section['description']) ? $request->section['description']:''),
-            'is_active' => $request->section['is_active'],
-            'type_id' => $request->section['type_id'],
-            'details' => (isset($request->section['details']) ? $request->section['details']:''),
-            'user_id' => Auth::id(),
-            'class_room_id' => $classRoom->id
-        ]);
-        // auth()->user()->sections()->createMany($data);
-        // $classRoom->sections()->add($section);
+//        $section = Section::create([
+//            'name' => $data['name'],
+//            'description' => (isset($data['description']) ? $data['description']:''),
+//            'is_active' => $data['is_active'],
+//            'type_id' => $data['type_id'],
+//            'details' => (isset($data['details']) ? $data['details']:''),
+//            'user_id' => Auth::id(),
+//            'class_room_id' => $classRoom->id
+//        ]);
+        if (!isset($data['description'])) {
+            $data['description'] = '';
+        }
+        if (!isset($data['details'])) {
+            $data['details'] = '';
+        }
+        if (isset($classRoom)) {
+            $data['class_room_id'] = $classRoom->id;
+        }
+        auth()->user()->sections()->createMany([$data]);
         return redirect()->route('detailClassRoom', $classRoom->id)->with('success', 'Section created successfully!');
 //        return redirect()->route('listSection', $classRoom->id)->with('success', 'Section created successfully!');
     }
@@ -56,7 +67,8 @@ class SectionsController extends Controller
     public function editSection(Section $section)
     {
         $section_types = ConstSection::TYPES;
-        return view('admins.edit_section', compact('section', 'section_types'));
+        $classRooms = ClassRoom::query()->where('is_active', '1')->orderBy('id', 'desc')->get();
+        return view('admins.edit_section', compact('section', 'section_types', 'classRooms'));
     }
 
     public function updateSection(Section $section, Request $request)
@@ -67,12 +79,14 @@ class SectionsController extends Controller
             'is_active' => 'required',
             'type_id' => 'required',
             'details' =>    'nullable|min:10|max:1024',
+            'class_room_id' => 'required|int'
         ],[
             'name.required' => '섹션 이름은 필수입니다.',
             'is_active.required' => '섹션 활성화는 필수입니다.',
             'type_id.required' => '섹션 활성화는 필수입니다.',
             'details.min' => '섹션 상세 설명은 10자 이상입니다.',
             'description.min' => '섹션 설명은 5자 이상입니다.',
+            'class_room_id' => '수업 선택은 필수입니다.'
         ]);
         if (!isset($data['description'])) {
             $data['description'] = '';
@@ -88,12 +102,12 @@ class SectionsController extends Controller
 //        Log::debug($data);
         $record->fill($data)->save();
         session()->flash('success', 'Section saved successfully!');
-        return redirect()->route('detailClassRoom', $section->class_room_id);
+        return redirect()->route('detailSection', $section->id);
     }
 
     public function detailSection(Section $section)
     {
-        $questions = $section->questions()->paginate(10);
+        $questions = $section->questions()->paginate(20);
         return view('admins.detail_sections', compact('questions', 'section'));
     }
 

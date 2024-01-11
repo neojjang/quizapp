@@ -19,7 +19,7 @@ class UserQuizlv extends Component
     public $classRooms;
     public $sections;
     public $count = 0;
-    public $classRoomId;
+    public $classRoomId = 0;
     public $sectionId;
     public $quizSize = 1;
     public $quizPecentage;
@@ -46,7 +46,7 @@ class UserQuizlv extends Component
     public $showRetry = false;
     public $extraInfo = null;
 
-    protected $queryString = ['classRoomId', 'sectionId'];
+    protected $queryString = ['sectionId'];
 
     protected $rules = [
         'sectionId' => 'required',
@@ -92,8 +92,10 @@ class UserQuizlv extends Component
             ->orderBy('name')
             ->get();
 
-        $this->classRooms = ClassRoom::withcount('sections')->where('is_active', '1')
-            ->orderBy('name')->get();
+        if ($this->classRoomId === 0) {
+            $this->classRooms = ClassRoom::withcount('sections')->where('is_active', '1')
+                ->orderBy('name')->get();
+        }
         return view('livewire.user-quizlv');
     }
 
@@ -123,9 +125,16 @@ class UserQuizlv extends Component
 
     }
 
-    public function mount()
+    public function mount($major_group, $medium_group, $class_room)
     {
         Log::debug(__METHOD__);
+        Log::debug($major_group->name);
+        Log::debug($medium_group->name);
+        Log::debug($class_room);
+        if (isset($class_room)) {
+            $this->classRoomId = $class_room->id;
+            $this->classRoomName = $class_room->name;
+        }
         $this->quote = Quote::inRandomOrder()->first();
     }
 

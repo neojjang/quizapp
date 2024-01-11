@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ClassRoom extends Model
+class MediumGroup extends Model
 {
     use HasFactory;
 
@@ -14,7 +14,7 @@ class ClassRoom extends Model
         'description',
         'is_active',
         'details',
-        'medium_group_id',
+        'major_group_id',
     ];
 
     public function user()
@@ -22,13 +22,13 @@ class ClassRoom extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function sections()
+    public function major_group()
     {
-        return $this->hasMany(Section::class);
+        return $this->belongsTo(MajorGroup::class);
     }
 
-    public function medium_group()
+    public function classRooms()
     {
-        return $this->belongsTo(MediumGroup::class);
+        return $this->hasMany(ClassRoom::class);
     }
 }

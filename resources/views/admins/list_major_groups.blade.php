@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="md:flex justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('수업 리스트') }}
+                {{ __('수업 대분류 리스트') }}
             </h2>
         </div>
     </x-slot>
@@ -10,17 +10,17 @@
     <div class="max-w-7xl m-4 mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
             <div class="mx-auto">
-                <div class="flex justify-end items-center py-4">
-{{--                    <a href="{{route('createClassRoom')}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">수업 생성</a>--}}
+                <div class="flex justify-between items-center py-4">
+                    <a href="{{route('createMajorGroup')}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">수업 대분류 생성</a>
                     <a href="{{route('adminhome')}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>
                 </div>
-                @if($classRooms->isEmpty())
+                @if($majorGroups->isEmpty())
                 <div class="px-4 py-5 sm:px-6">
                     <h1 class="text-sm leading-6 font-medium text-gray-900">
-                        등록 한 수업이 없습니다.
+                        등록 한 수업 대분류가 없습니다.
                     </h1>
                     <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                        수업을 등록하면 리스트를 볼 수 있습니다.
+                        수업 대분류를 등록해 주세요.
                     </p>
                 </div>
                 @else
@@ -32,20 +32,14 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="tracking-wide font-bold rounded border-2 bg-green-500 text-white  transition shadow-md py-2 px-6 items-center">
                                         <tr>
-{{--                                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">--}}
-{{--                                                대분류--}}
-{{--                                            </th>--}}
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                                                수업 중분류
-                                            </th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">
                                                 이름
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
                                                 공개
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                                                섹션수
+                                                중분류 수
                                             </th>
                                             <th scope="col" class="relative px-6 py-3">
                                                 <span class="sr-only">Edit</span>
@@ -53,39 +47,13 @@
                                         </tr>
                                     </thead>
                                     <tbody class="capitalize bg-white divide-y divide-gray-200">
-                                        @foreach($classRooms as $section)
+                                        @foreach($majorGroups as $section)
                                         <tr class="hover:bg-green-100">
-{{--                                            <td class="px-6 ">--}}
-{{--                                                <div class="flex items-center">--}}
-{{--                                                    <div class="ml-4">--}}
-{{--                                                        @if(isset($section->medium_group))--}}
-{{--                                                        <div class="text-sm font-medium text-gray-900">--}}
-{{--                                                            <a class="text-blue-400 hover:underline" href="{{ route('detailClassRoom', $section->id) }}">--}}
-{{--                                                                {{ $section->medium_group->major_group->name}}--}}
-{{--                                                            </a>--}}
-{{--                                                        </div>--}}
-{{--                                                        @endif--}}
-{{--                                                    </div>--}}
-{{--                                                </div>--}}
-{{--                                            </td>--}}
-                                            <td class="px-6 ">
-                                                <div class="flex items-center">
-                                                    <div class="ml-4">
-                                                        @if(isset($section->medium_group))
-                                                        <div class="text-sm font-medium text-gray-900">
-                                                            <a class="text-blue-400 hover:underline" href="{{ route('detailMediumGroup', $section->medium_group->id) }}">
-                                                                {{ $section->medium_group->name}}
-                                                            </a>
-                                                        </div>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 ">
+                                            <td class="px-6 text-center">
                                                 <div class="flex items-center">
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900">
-                                                            <a class="text-blue-400 hover:underline" href="{{ route('detailClassRoom', $section->id) }}">
+                                                            <a class="text-blue-400 hover:underline" href="{{ route('detailMajorGroup', $section->id) }}">
                                                                 {{ $section->name}}
                                                             </a>
                                                         </div>
@@ -96,21 +64,21 @@
                                                 <div class="text-sm text-gray-900">{{ $section->is_active === '1'  ? 'Yes' : 'No' }}</div>
                                             </td>
                                             <td class="px-6 py-1">
-                                                <div class="text-sm text-gray-900">{{ $section->sections_count }}</div>
+                                                <div class="text-sm text-gray-900">{{ $section->medium_groups_count }}</div>
                                             </td>
                                             <td class="sm:flex align-middle justify-center items-center px-6 py-1 text-right text-sm font-medium">
-                                                <a href="{{ route('createSection', $section->id )}}" class="text-green-500 hover:text-green-700">
+                                                <a href="{{ route('createMediumGroupWithMajorGroup', $section->id )}}" class="text-green-500 hover:text-green-700">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="text-blue-500 hover:text-blue-700 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
                                                     </svg>
                                                 </a>
-                                                <a href="{{ route('editClassRoom', $section->id )}} " class="text-green-500 hover:text-green-700">
+                                                <a href="{{ route('editMajorGroup', $section->id )}} " class="text-green-500 hover:text-green-700">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
                                                         <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
                                                         <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
                                                     </svg>
                                                 </a>
-                                                <form action="{{route('deleteClassRoom',$section->id)}}" method="post" onsubmit="return deleteClassRoom('{{ $section->name}}'); return false;">
+                                                <form action="{{route('deleteMajorGroup',$section->id)}}" method="post" onsubmit="return deleteMajorGroup('{{ $section->name}}'); return false;">
                                                     @csrf
                                                     <a class="text-red-500 hover:text-red-700">
                                                         <button type="submit">
@@ -126,7 +94,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                            {{ $classRooms->links() }}
+                            {{ $majorGroups->links() }}
                         </div>
                     </div>
                 </div>
@@ -138,35 +106,8 @@
     <!-- Modal toggle -->
     @push('js')
         <script type="text/javascript">
-            function deleteClassRoom(title) {
+            function deleteMajorGroup(title) {
                 return confirm(`[${title}] 수업을 삭제 하시겠습니까?`);
-                // console.log(form);
-                // Swal.fire({
-                //     "title":"\uc218\uc5c5 \uc0ad\uc81c",
-                //     "text":"\uc218\uc5c5\uc744 \uc0ad\uc81c \ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?",
-                //     "background":"#fff","width":"25rem","heightAuto":true,"padding":"1.25rem",
-                //     "showCloseButton":false,
-                //     "confirmButtonText":"Yes, delete it!",
-                //     "cancelButtonText":"Cancel",
-                //     "timerProgressBar":false,
-                //     "customClass":{
-                //         "container":null,
-                //         "popup":null,
-                //         "header":null,
-                //         "title":null,"closeButton":null,"icon":null,"image":null,
-                //         "content":null,"input":null,"actions":null,
-                //         "confirmButton":null,"cancelButton":null,"footer":null
-                //     },
-                //     "showCancelButton":true,
-                //     "confirmButtonColor":null,"icon":"warning",
-                //     "showLoaderOnConfirm":true,"allowEscapeKey":false,
-                //     "allowOutsideClick":false
-                // }).then(function(result) {
-                //     if (result.isConfirmed) {
-                //         form.submit();
-                //     }
-                // });
-                // return false;
             }
         </script>
     @endpush

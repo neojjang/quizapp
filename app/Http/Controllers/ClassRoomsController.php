@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MajorGroup;
+use App\Models\MediumGroup;
 use Illuminate\Http\Request;
 use App\Models\ClassRoom;
 use Illuminate\Support\Facades\Session;
@@ -10,9 +12,13 @@ use Illuminate\Support\Facades\Log;
 
 class ClassRoomsController extends Controller
 {
-    public function createClassRoom()
+    public function create()
     {
-        return view('admins.create_class_room');
+        return $this->_create(null);
+    }
+    public function createClassRoom(MediumGroup $mediumGroup)
+    {
+        return $this->_create($mediumGroup);
     }
 
     public function listClassRoom()
@@ -21,29 +27,20 @@ class ClassRoomsController extends Controller
         return view('admins.list_class_rooms', compact('classRooms'));
     }
 
-    public function storeClassRoom(Request $request)
+    public function storeWithMediumGroup(MediumGroup $mediumGroup, Request $request)
     {
-        $data = $request->validate([
-            'class_room.name' => 'required',
-            'class_room.is_active' => 'required'
-        ],[
-            'class_room.name' => '수업 이름은 필수입니다.',
-            'class_room.is_active' => '수업 활성화는 필수입니다.',
-        ]);
+        return $this->_store($mediumGroup, $request);
+    }
 
-        if (!isset($data['class_room']['description'])) {
-            $data['class_room']['description'] = '';
-        }
-        if (!isset($data['class_room']['details'])) {
-            $data['class_room']['details'] = '';
-        }
-        auth()->user()->classRooms()->createMany($data);
-        return redirect()->route('listClassRoom')->with('success', 'ClassRoom created successfully!');
+    public function store(Request $request)
+    {
+        return $this->_store(null, $request);
     }
 
     public function editClassRoom(ClassRoom $classRoom)
     {
-        return view('admins.edit_class_room', compact('classRoom'));
+        $mediumGroups = MediumGroup::query()->where('is_active', '1')->orderBy('id', 'desc')->get();
+        return view('admins.edit_class_room', compact('classRoom', 'mediumGroups'));
     }
 
     public function updateClassRoom(ClassRoom $classRoom, Request $request)
@@ -54,11 +51,13 @@ class ClassRoomsController extends Controller
             'description' => 'nullable|min:5|max:255',
             'is_active' => 'required',
             'details' =>    'nullable|min:10|max:1024',
+            'medium_group_id' => 'required|int',
         ],[
             'name' => '수업 이름은 필수입니다.',
             'is_active' => '수업 활성화는 필수입니다.',
             'details.min' => '수업 상세 설명은 10자 이상입니다.',
             'description.min' => '수업 설명은 5자 이상입니다.',
+            'medium_group_id' => '수업 중분류 선택은 필수입니다.'
         ]);
         if (!isset($data['description'])) {
             $data['description'] = '';
@@ -85,5 +84,39 @@ class ClassRoomsController extends Controller
         $classRoom = ClassRoom::findOrFail($id);
         $classRoom->delete();
         return redirect()->back()->withSuccess('ClassRoom with id: ' . $id . ' deleted successfully');
+    }
+
+    private function _create($mediumGroup)
+    {
+        $mediumGroups = null;
+        if (!isset($mediumGroup)) {
+            $mediumGroups = MediumGroup::query()->where('is_active', '1')->orderBy('id', 'desc')->get();
+        }
+        return view('admins.create_class_room', compact('mediumGroup', 'mediumGroups'));
+    }
+
+    private function _store($mediumGroup, Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required',
+            'is_active' => 'required',
+            'description' => 'nullable|max:255',
+            'details' =>    'nullable|max:2048',
+            'medium_group_id' => 'nullable|int',
+        ],[
+            'name' => '수업 이름은 필수입니다.',
+            'is_active' => '수업 활성화는 필수입니다.',
+        ]);
+
+        if (!isset($data['description'])) {
+            $data['description'] = '';
+        }
+        if (!isset($data['details'])) {
+            $data['details'] = '';
+        }
+        if (isset($mediumGroup)) $data['medium_group_id'] = $mediumGroup->id;
+        Log::debug($data);
+        auth()->user()->classRooms()->createMany([$data]);
+        return redirect()->route('listClassRoom')->with('success', 'ClassRoom created successfully!');
     }
 }

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassRoom;
+use App\Models\MajorGroup;
+use App\Models\MediumGroup;
 use App\Models\Quiz;
 use App\Models\User;
 use App\Models\Section;
@@ -11,10 +14,36 @@ use Illuminate\Support\Facades\Log;
 
 class AppUserController extends Controller
 {
-    public function startQuiz()
+    public function startQuiz(MajorGroup $majorGroup=null, MediumGroup $mediumGroup=null, ClassRoom $classRoom=null)
     {
         Log::info("AppUserController::startQuiz");
-        return view('appusers.quiz');
+        Log::debug($majorGroup);
+        Log::debug($mediumGroup);
+        Log::debug($classRoom);
+        if ($majorGroup && $mediumGroup && $classRoom) {
+            return view('appusers.quiz', compact('majorGroup', 'mediumGroup', 'classRoom'));
+        }
+
+        $targetGroups = [];
+        if (!isset($majorGroup) && !isset($mediumGroup) && !isset($classRoom)) {
+            $targetGroups = MajorGroup::withCount('mediumGroups')->where('is_active', '1')->orderBy('id','desc')->paginate(20);
+        } elseif (isset($majorGroup) && !isset($mediumGroup) && !isset($classRoom)) {
+            $targetGroups = MediumGroup::withCount('classRooms')->where(
+                'major_group_id', $majorGroup->id
+            )->where('is_active', '1')->orderBy('id', 'desc')->paginate(20);
+        } else {
+            $targetGroups = ClassRoom::withCount('sections')->where(
+                'medium_group_id', $mediumGroup->id
+            )->where('is_active', '1')->orderBy('id', 'desc')->paginate(20);
+        }
+        return view('appusers.start_quiz', compact(
+            'majorGroup', 'mediumGroup', 'classRoom', 'targetGroups'
+        ));
+    }
+
+    public function testQuiz()
+    {
+
     }
 
     public function userQuizHome()

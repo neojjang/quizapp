@@ -301,28 +301,30 @@
                 <div class="p-4 md:w-1/2 w-full">
                     <form wire:submit.prevent="startQuiz">
                         @csrf
-                        <h2 class="text-gray-900 text-lg font-medium title-font mb-5">Take a Quiz</h2>
-                        <div class="relative mx-full mb-4">
+                        <h2 class="text-gray-900 text-lg font-medium title-font mb-5">시험 선택</h2>
+                        <div class="relative mx-full mb-4 ">
+                            @if($classRoomId === 0)
                             <select name="classRoom" id="classRoom_id" wire:model="classRoomId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
                                 @if($classRooms->isEmpty())
                                 <option value="">선택 가능한 수업이 없습니다.</option>
                                 @else
                                 <option value="">수업을 선택해 주세요.</option>
                                 @foreach($classRooms as $classRoom)
-                                @if($classRoom->sections_count>0)
                                 <option value="{{$classRoom->id}}">{{$classRoom->name}}</option>
-                                @endif
                                 @endforeach
                                 @endif
                             </select>
+                            @else
+                                <span class="text-blue-800 font-bold text-xl" >{{$classRoomName}}</span>
+                            @endif
                             @error('sectionId') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                         </div>
                         <div class="relative mx-full mb-4">
                             <select name="section" id="section_id" wire:model="sectionId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
                                 @if($sections->isEmpty())
-                                <option value="">No Quiz Sections Available Yet</option>
+                                <option value="">등록 된 시험이 없습니다.</option>
                                 @else
-                                <option value="">Select a Quiz Section</option>
+                                <option value="">시험을 선택해 주세요.</option>
                                 @foreach($sections as $section)
                                 @if($section->questions_count>0)
                                 <option value="{{$section->id}}">{{$section->name}}</option>
@@ -330,24 +332,19 @@
                                 @endforeach
                                 @endif
                             </select>
-                            @error('sectionId') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                            @error('sectionId') <span class="text-red-400 text-xs">{{ __('테스트 할 시험을 선택해 주세요.') }}</span> @enderror
                         </div>
-                        <div class="flex items-start">
-                            <div class="flex items-center h-5">
-                                <input wire:model="learningMode" id="learningMode" name="learningMode" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                            </div>
-                            <div class="ml-3 text-sm">
-                                <label for="learningMode" class="font-medium text-gray-700">Learning Mode?</label>
-                                <p class="text-gray-500">If checked, this will enable explanation tab for each question.</p>
-                            </div>
+                        <div class="flex items-start py-10">
+{{--                            <div class="flex items-center h-5">--}}
+{{--                                <input wire:model="learningMode" id="learningMode" name="learningMode" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">--}}
+{{--                            </div>--}}
+{{--                            <div class="ml-3 text-sm">--}}
+{{--                                <label for="learningMode" class="font-medium text-gray-700">Learning Mode?</label>--}}
+{{--                                <p class="text-gray-500">If checked, this will enable explanation tab for each question.</p>--}}
+{{--                            </div>--}}
                         </div>
-                        <!-- <div class="relative mb-4">
-                            <select name="quiz_size" id="quiz_size" wire:model="quizSize" class="max-w-full block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
-                                @for ($i = 1; $i <= 50; $i++) <option value="{{ $i }}">{{ $i }}</option> @endfor
-                            </select>
-                            @error('quizSize') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
-                        </div> -->
-                        <button type="submit" class="block w-full text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Start Quiz</button>
+                        <button type="submit" @if($sections->isEmpty())disabled="true" @endif
+                                class="block w-full text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Start Quiz</button>
                     </form>
                 </div>
             </div>
