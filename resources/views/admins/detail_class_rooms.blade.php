@@ -69,6 +69,27 @@
                                             </td>
                                         </tr>
                                         <tr>
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center">
+                                                    <div class="ml-4">
+                                                        <div class="text-sm font-medium text-gray-900">
+                                                            시험 페이지
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="text-sm text-gray-900">
+                                                    @if(isset($classRoom->medium_group))
+                                                    <a class="text-blue-400 hover:underline"
+                                                        href="{{route("startQuizWithClassRoom", ['major_group'=>$classRoom->medium_group->major_group->id, 'medium_group'=>$classRoom->medium_group->id, 'class_room'=>$classRoom->id])}}">
+                                                        {{route("startQuizWithClassRoom", ['major_group'=>$classRoom->medium_group->major_group->id, 'medium_group'=>$classRoom->medium_group->id, 'class_room'=>$classRoom->id])}}
+                                                    </a>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <td class="px-6 py-4 ">
                                                 <div class="flex items-center">
                                                     <div class="ml-4">
