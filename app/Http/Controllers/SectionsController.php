@@ -34,11 +34,13 @@ class SectionsController extends Controller
         $data = $request->validate([
             'name' => 'required',
             'is_active' => 'required',
+            'type_id' => 'required|int',
             'description' => 'nullable|max:255',
             'details' =>    'nullable|max:2048',
         ], [
             "name" => '이름은 필수입니다.',
-            "is_active"=> '공개여부는 필수입니다.'
+            "is_active"=> '공개여부는 필수입니다.',
+            "type_id"=> '시험유형은 필수입니다.',
         ]);
 
 //        $section = Section::create([
