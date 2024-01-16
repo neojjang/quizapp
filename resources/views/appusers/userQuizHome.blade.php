@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="md:flex justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('User Quiz Home') }}
+                {{ __('학생 홈') }}
             </h2>
         </div>
     </x-slot>
@@ -85,8 +85,8 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="tracking-wide font-bold rounded border-2 bg-green-500 text-white  transition shadow-md py-2 px-6 items-center">
                                         <tr>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                                                Quiz Size
+                                            <th scope="col" class="px-10 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                                참여한 시험(문제 수)
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
                                                 Status
@@ -110,7 +110,7 @@
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900">
                                                             <a class="text-white px-6 font-extrabold py-1 rounded-lg bg-blue-500 hover:bg-blue-600 hover:underline" href="{{route('userQuizDetails', $quiz->id)}}">
-                                                                {{ $quiz->quiz_size}}
+                                                                {{$quiz->section->name}}({{ $quiz->quiz_size}})
                                                             </a>
                                                         </div>
                                                     </div>

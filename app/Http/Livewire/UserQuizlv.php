@@ -87,11 +87,18 @@ class UserQuizlv extends Component
     public function render()
     {
         Log::debug(__METHOD__);
-        $this->sections = Section::withcount('questions')->where('is_active', '1')
+        $sections = Section::withcount('questions')->where('is_active', '1')
             ->where('class_room_id', $this->classRoomId)
             ->orderBy('name')
             ->get();
-
+        // 참여한 시험인지 확인 
+        $this->sections = collect($sections)->transform(function ($section) {
+//            Log::debug($section->name);
+            $quizHeader = $section->quizHeaders()->where('user_id', auth()->id())->first();
+//            Log::debug($quizHeader);
+            $section['been_taken'] = isset($quizHeader);
+            return $section;
+        });
         if ($this->classRoomId === 0) {
             $this->classRooms = ClassRoom::withcount('sections')->where('is_active', '1')
                 ->orderBy('name')->get();
@@ -128,9 +135,9 @@ class UserQuizlv extends Component
     public function mount($major_group, $medium_group, $class_room)
     {
         Log::debug(__METHOD__);
-        Log::debug($major_group->name);
-        Log::debug($medium_group->name);
-        Log::debug($class_room);
+//        Log::debug($major_group->name);
+//        Log::debug($medium_group->name);
+//        Log::debug($class_room);
         if (isset($class_room)) {
             $this->classRoomId = $class_room->id;
             $this->classRoomName = $class_room->name;
