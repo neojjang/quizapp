@@ -91,10 +91,10 @@ class UserQuizlv extends Component
             ->where('class_room_id', $this->classRoomId)
             ->orderBy('name')
             ->get();
-        // 참여한 시험인지 확인 
+        // 참여한 시험인지 확인
         $this->sections = collect($sections)->transform(function ($section) {
 //            Log::debug($section->name);
-            $quizHeader = $section->quizHeaders()->where('user_id', auth()->id())->first();
+            $quizHeader = $section->quizHeaders()->where('user_id', auth()->id())->where('completed', 1)->first();
 //            Log::debug($quizHeader);
             $section['been_taken'] = isset($quizHeader);
             return $section;
