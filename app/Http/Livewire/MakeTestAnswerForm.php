@@ -160,18 +160,18 @@ class MakeTestAnswerForm extends Component
                     'type_id' => ($item['question_type']+1)
                 ]);
                 $answers = [];
-                if ($item['question_type'] == Question::SHORT_ANSWER) {
-                    $answers[] = [
-                        'is_checked' => '1',
-                        'answer' => $item['answer'][0]
-                    ];
-                } else {
+                if ($item['question_type'] == Question::SELECTIVE) {
                     for ($i=0; $i < 5; $i++) {
                         $answers[] = [
                             'is_checked' => ($item['answer'][$i])? '1': '0',
                             'answer' => ($i+1)
                         ];
                     }
+                } else {
+                    $answers[] = [
+                        'is_checked' => '1',
+                        'answer' => $item['answer'][0]
+                    ];
                 }
 
                 $status = $question->answers()->createMany($answers)->push();
