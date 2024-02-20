@@ -326,7 +326,7 @@
                                 @else
                                 <option value="">시험을 선택해 주세요.</option>
                                 @foreach($sections as $section)
-                                <option value="{{$section->id}}" @if($section->questions_count===0 || $section->been_taken) disabled @endif>{{$section->been_taken ? '[완료]':''}}{{$section->name}}</option>
+                                <option value="{{$section->id}}" @if($section->questions_count===0) disabled @endif>{{$section->been_taken ? '[완료]':''}}{{$section->name}}</option>
                                 @endforeach
                                 @endif
                             </select>
