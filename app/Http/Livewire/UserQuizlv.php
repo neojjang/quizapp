@@ -682,6 +682,20 @@ class UserQuizlv extends Component
         }
     }
 
+    public function rearrangeUserAnswer($newIndexes)
+    {
+        Log::debug(__METHOD__);
+        $newUserAnswered = [];
+        foreach ($newIndexes as $item) {
+//            Log::debug($item["value"]);
+            $newUserAnswered[] = $this->userAnswered[intval($item["value"])];
+        }
+        Log::debug(json_encode($this->userAnswered));
+        Log::debug(json_encode($newUserAnswered));
+        unset($this->userAnswered);
+        $this->userAnswered = $newUserAnswered;
+    }
+
     /**
      * 문제 반복 테스트
      * @return void

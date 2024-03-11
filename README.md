@@ -76,3 +76,18 @@ $ docker-compose up
 $ docker-compose down
 $ docker-compose stop
 
+
+
+### 순서 나열 문제
+- drag & drop 구현 : Livewire Sortable 
+- 1번과 2번 중에서 2번을 사용
+1. https://github.com/livewire/sortable?tab=readme-ov-file
+- Livewire v3 : version=v1.x.x, Livewire v2 : version=0.2.2
+```html
+<script src="https://cdn.jsdelivr.net/gh/livewire/sortable@v0.2.2/dist/livewire-sortable.js"></script>
+```
+2. https://github.com/nextapps-be/livewire-sortablejs
+- Livewire V3 : version=0.4.0, Livewire v2 : version=0.2.0
+```html
+<script src="https://unpkg.com/@nextapps-be/livewire-sortablejs@0.2.0/dist/livewire-sortable.js"></script>
+```

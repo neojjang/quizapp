@@ -173,20 +173,26 @@
                             @endforeach
                         </div>
                         <div class="block p-2 font-bold" >
-                            결과 : (<span class="text-red-400 text-sm">"재시도 버튼" 표시 전까지 구문을 눌러 삭제 가능합니다.</span>)
-
+                            결과 : <br />
+                            <span class="text-red-400 text-sm">! "재시도 버튼" 표시 전까지 구문을 눌러 삭제(더블클릭) 가능합니다. <br />! 구문을 움직여 순서를 변경 할 수 있습니다.</span>
                         </div>
-                        <div class="block p-2 bg-indigo-50">
+                        <div class="block p-2 bg-indigo-50" >
+                            <ul @if(count($userAnswered) !== count($currentExample)) wire:sortable="rearrangeUserAnswer" @endif>
                             @foreach($userAnswered as $user_answer_index => $item)
-                                <button id="answer-{{$answer_id}}-{{$user_answer_index}}"
-                                        wire:click="deleteSelectedSentence({{$user_answer_index}})"
+                                <li id="answer-{{$answer_id}}-{{$user_answer_index}}"
+                                    @if(count($userAnswered) !== count($currentExample))
+                                        wire:sortable.item="{{$user_answer_index}}"
+                                        wire:key="answer-{{$answer_id}}-{{$user_answer_index}}"
+                                        x-on:dblclick="$wire.deleteSelectedSentence({{$user_answer_index}})"
+                                    @endif
                                         @if($item[1])
-                                        class="min-w-fit px-4 mb-2 rounded border-2 border-primary-100 bg-blue-500 text-white text-sm font-medium leading-normal transition duration-150 ease-in-out hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
+                                        class="inline-flex min-w-fit px-6 py-2 mb-2 rounded border-2 border-primary-100 bg-blue-500 text-white text-sm font-medium leading-normal transition duration-150 ease-in-out hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
                                         @else
-                                        class="min-w-fit px-4 mb-2 rounded border-2 border-primary-100 bg-red-400 text-sm font-medium leading-normal text-primary-700  transition duration-150 ease-in-out hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
+                                        class="inline-flex min-w-fit px-6 py-2 mb-2 rounded border-2 border-primary-100 bg-red-400 text-sm font-medium leading-normal text-primary-700  transition duration-150 ease-in-out hover:border-primary-accent-100 hover:bg-neutral-500 hover:bg-opacity-10 focus:border-primary-accent-100 focus:outline-none focus:ring-0 active:border-primary-accent-200 dark:text-primary-100 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
                                         @endif
-                                >{{trim($item[0])}}</button>
+                                ><span wire:sortable.handle>{{trim($item[0])}}</span></li>
                             @endforeach
+                            </ul>
                         </div>
 
 {{--                        <textarea id="question-{{$answer_id}}" type="text" wire:model="userAnswered" readonly--}}
