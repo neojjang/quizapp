@@ -58,7 +58,7 @@ class MakeTestAnswerForm extends Component
                 $this->questions[] = [
                     'question_type' => Question::SELECTIVE, // Question::SHORT_ANSWER,  //
                     'title' => sprintf("%d번 문제", ($i+1)),
-                    'answer' => [true,false,false,false,false]
+                    'answer' => [false,false,false,false,false]
                 ];
             }
             $this->question_start_no = 0;
@@ -71,7 +71,7 @@ class MakeTestAnswerForm extends Component
         Log::debug($this->questions[$index]);
         $this->questions[$index]['question_type'] = $question_type;
         if ($question_type == Question::SELECTIVE) {
-            $this->questions[$index]['answer'] = [true,false,false,false,false];
+            $this->questions[$index]['answer'] = [false,false,false,false,false];
         } else {
             $this->questions[$index]['answer'] = [''];
         }
