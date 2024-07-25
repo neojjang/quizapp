@@ -24,6 +24,9 @@
                     <x-jet-nav-link href="{{ route('userQuizHome') }}" :active="request()->routeIs('userQuizHome')">
                         {{ __('User Quiz Home') }}
                     </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('userQuizHome') }}" :active="request()->routeIs('userQuizHome')">
+                        {{ __('오답노트') }}
+                    </x-jet-nav-link>
                     @endhasrole
                 </div>
             </div>
@@ -158,6 +161,9 @@
             </x-jet-responsive-nav-link>
             <x-jet-responsive-nav-link href="{{ route('userQuizHome') }}" :active="request()->routeIs('userQuizHome')">
                 {{ __('User Quiz Home') }}
+            </x-jet-responsive-nav-link>
+            <x-jet-responsive-nav-link href="{{ route('userQuizHome') }}" :active="request()->routeIs('userQuizHome')">
+                {{ __('오답노트') }}
             </x-jet-responsive-nav-link>
             @endhasrole
         </div>
