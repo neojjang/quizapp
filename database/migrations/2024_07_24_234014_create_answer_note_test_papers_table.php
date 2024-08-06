@@ -8,7 +8,7 @@ class CreateAnswerNoteTestPapersTable extends Migration
 {
     /**
      * Run the migrations.
-     *
+     * 오답노트 문제지 관리 테이블
      * @return void
      */
     public function up()

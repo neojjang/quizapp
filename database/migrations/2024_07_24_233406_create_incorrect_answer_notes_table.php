@@ -8,7 +8,7 @@ class CreateIncorrectAnswerNotesTable extends Migration
 {
     /**
      * Run the migrations.
-     *
+     * 학생의 오답노트 테이블
      * @return void
      */
     public function up()
