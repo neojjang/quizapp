@@ -83,6 +83,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::get('/section/{section}/question/answersheet', [QuestionsController::class, 'createAnswerSheet'])
         ->name('createAnswerSheet');
 
+    Route::get('/section/{section}/question/listening', [QuestionsController::class, 'createListeningTest'])
+        ->name('createListeningTest');
+
     Route::get('/section/{section}/question/{quiz_header}/score', [QuestionsController::class, 'scoreQuestion'])
         ->name('scoreQuestion');
 

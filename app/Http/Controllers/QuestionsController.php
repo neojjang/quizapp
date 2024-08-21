@@ -161,4 +161,11 @@ class QuestionsController extends Controller
         $section = $section;
         return view('admins.create_answer_sheet', compact('section', 'question_types'));
     }
+
+   public function createListeningTest(Section $section)
+    {
+        $question_types = ConstQuestion::TYPES;
+        $section = $section;
+        return view('admins.create_listening_test', compact('section', 'question_types'));
+    }
 }

@@ -2,6 +2,9 @@
 
 namespace App\Constants;
 
+/**
+ * 문제 유형
+ */
 class Question {
     const TYPES = ["선택형", "번역:서술형(첫번째 답만 사용)", "영작:서술형(첫번째 답만 사용)", "영작:구문나열형(선택)", "영작:구문나열형"];
     const SELECTIVE = 0; // 선택형
