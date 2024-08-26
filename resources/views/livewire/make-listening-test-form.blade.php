@@ -3,11 +3,15 @@
     <div class="max-w-7xl m-4 mx-auto sm:px-6 lg:px-8">
         <div class="bg-white mt-4 overflow-hidden shadow-xl sm:rounded-lg">
             <div class="mx-auto bg-green-200">
-                <h2 class="text-2xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">OMR 카드 답안 생성</h2>
+                <h2 class="text-2xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">듣기평가 답안 생성</h2>
                 <div class="max-w-auto mx-auto card p-4 bg-white rounded-b-lg shadow-md">
                     <div class="grid grid-cols-1 gap-6">
                         @if(!$flagExternalAnswerInputs)
                             <form wire:submit.prevent>
+                                <label class="flex items-center">
+                                    <span class="text-gray-700">듣기평가 파일 &nbsp;</span>
+                                    <input name="listening_file" id="listening_file" type="file" />
+                                </label>
                                 <label class="flex items-center">
                                     <span class="text-gray-700">전체 문제 수</span>
                                     <input name="total_questions" type="text" wire:model.defer="total_questions" class="mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
@@ -15,8 +19,7 @@
                                             class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > 답지 생성 </button>
                                     <button wire:click="showSetQuestionStartNo(true)" id="showSetQuestionStartNo"
                                             class="m-4 inline-flex items-center px-4 py-2 bg-sky-300 hover:bg-sky-500 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-sm text-black uppercase " > 문제시작번호 설정 </button>
-                                    <button wire:click="showExternAnswerInputs" id="showExternAnswerInputs"
-                                            class="m-4 inline-flex items-center px-4 py-2 bg-yellow-300 hover:bg-yellow-500 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-sm text-black uppercase " > 외부 답지 입력 </button>
+
                                 </label>
                             </form>
                         @endif

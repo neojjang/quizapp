@@ -16,7 +16,9 @@ class MakeListeningTestForm extends Component
     public $total_questions;
     public $questions;
 
-    public $flagExternalAnswerInputs;
+    // 듣기평가 mp3 파일
+    public $listening_file;
+
     public $external_answers;
 
     public $flagSetQuestionStartNo;
@@ -33,7 +35,6 @@ class MakeListeningTestForm extends Component
     {
         $this->total_questions = 10;
         $this->question_start_no = 0;
-        $this->flagExternalAnswerInputs = false;
         $this->flagSetQuestionStartNo = false;
         $this->initializeQuestions();
     }
@@ -107,17 +108,6 @@ class MakeListeningTestForm extends Component
 
             Log::debug($this->questions);
         }
-    }
-
-    public function showExternAnswerInputs()
-    {
-        $this->flagExternalAnswerInputs = true;
-    }
-
-    public function hideExternAnswerInputs()
-    {
-        Log::debug(__METHOD__);
-        $this->flagExternalAnswerInputs = false;
     }
 
     public function makeAnswerSheets()

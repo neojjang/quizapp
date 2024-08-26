@@ -25,8 +25,15 @@
                                 @if($questions->isEmpty()){{'문제지 생성'}}@else{{'문제지 수정'}}@endif
                             </a>
                             @break
+                        @case(\App\Constants\Section::LISTENING_TEST)
+                            <a href="{{route('createListeningTest',$section->id)}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">
+                                @if($questions->isEmpty()){{'듣기평가 답안지 생성'}}@else{{'듣기평가 답안지 수정'}}@endif
+                            </a>
+                            @break
                         @default
-                            <a href="{{route('createQuestion',$section->id)}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Create a Question</a>
+                            <a href="{{route('createQuestion',$section->id)}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">
+                                시험문제 생성
+                            </a>
                     @endswitch
 
                     <a href="{{route('scoreSection',$section->id)}}" class="tracking-wide font-bold rounded border-2 border-red-500 hover:border-red-500 bg-red-500 text-white hover:bg-red-600 transition shadow-md py-2 px-6 items-center">채점 하기</a>
