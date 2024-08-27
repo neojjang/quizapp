@@ -10,7 +10,8 @@
                             <form wire:submit.prevent>
                                 <label class="flex items-center">
                                     <span class="text-gray-700">듣기평가 파일 &nbsp;</span>
-                                    <input name="listening_file" id="listening_file" type="file" />
+                                    <input wire:model="listening_file"  name="listening_file" id="listening_file" type="file" accept="audio/mpeg" />
+                                    @error('listening_file')<span class="text-red-500">{{$message}}</span>@enderror
                                 </label>
                                 <label class="flex items-center">
                                     <span class="text-gray-700">전체 문제 수</span>

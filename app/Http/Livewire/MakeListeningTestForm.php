@@ -7,9 +7,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class MakeListeningTestForm extends Component
 {
+    use WithFileUploads;
+
     public $section;
     public $question_types;
 
@@ -49,6 +52,14 @@ class MakeListeningTestForm extends Component
 
     }
 
+    public function upload()
+    {
+        $this->validate([
+            '' => 'required|mimes:audio/mpeg'
+        ]);
+
+        $filename = time().'.'.$this->listening_file->extension();
+    }
     public function changeSheets()
     {
         Log::debug(__METHOD__);
