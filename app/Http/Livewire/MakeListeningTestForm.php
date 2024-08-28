@@ -20,14 +20,13 @@ class MakeListeningTestForm extends Component
     public $questions;
 
     // 듣기평가 mp3 파일
-    public $listening_file;
+    public $mp3File;
+    public $uploading = false;
 
     public $external_answers;
 
     public $flagSetQuestionStartNo;
     public $question_start_no;
-
-    public $rules = [];
 
     public function render()
     {
@@ -35,7 +34,7 @@ class MakeListeningTestForm extends Component
     }
 
     public function mount()
-    {
+    {Log::info("mount()");
         $this->total_questions = 10;
         $this->question_start_no = 0;
         $this->flagSetQuestionStartNo = false;
@@ -44,22 +43,46 @@ class MakeListeningTestForm extends Component
 
     public function boot()
     {
-
+        Log::info("boot()");
     }
 
     public function booted()
     {
-
+        Log::info("booted()");
     }
 
+    public function updated($propertyName)
+    {
+        Log::info("updated !@!@#!~@#!@#    ".$propertyName);
+    }
     public function upload()
     {
+        Log::info("upload");
         $this->validate([
-            '' => 'required|mimes:audio/mpeg'
+            'mp3File' => 'required|file|mimes:mp3|max:102400'
+        ], [
+            'mp3File.mimes' => 'The file must be a file of type: audio/mpeg.',
+            'mp3File.required' => 'The file is required.',
+
         ]);
 
-        $filename = time().'.'.$this->listening_file->extension();
+        $filename = time().'.'.$this->mp3File->extension();
+//        $url = Storage::disk('s3')->put('mp3-uploads', $this->mp3File);
+//
+//        UploadedMP3::create([
+//            'file_name' => $fileName,
+//            'file_url' => $url
+//        ]);
+
+        session()->flash('success', 'MP3 file uploaded successfully.');
+        $this->reset('mp3File');
     }
+
+    public function updatedFiles()
+    {
+        Log::info("updatedFiles");
+    }
+
     public function changeSheets()
     {
         Log::debug(__METHOD__);
