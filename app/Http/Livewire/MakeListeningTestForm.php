@@ -21,12 +21,18 @@ class MakeListeningTestForm extends Component
 
     // 듣기평가 mp3 파일
     public $mp3File;
+    public $tempUrl;
     public $uploading = false;
 
     public $external_answers;
 
     public $flagSetQuestionStartNo;
     public $question_start_no;
+
+    protected $rules = [
+        'mp3File' => 'required|file|mimes:mp3|max:20480', // 10MB Max
+
+    ];
 
     public function render()
     {
@@ -38,6 +44,7 @@ class MakeListeningTestForm extends Component
         $this->total_questions = 10;
         $this->question_start_no = 0;
         $this->flagSetQuestionStartNo = false;
+        $this->mp3File = null;
         $this->initializeQuestions();
     }
 
@@ -55,11 +62,20 @@ class MakeListeningTestForm extends Component
     {
         Log::info("updated !@!@#!~@#!@#    ".$propertyName);
     }
+
+    public function updatedMp3File()
+    {
+        Log::info('updatedMp3File called');
+        Log::info($this->mp3File);
+        $this->validateOnly('mp3File');
+
+        $this->tempUrl = $this->mp3File->temporaryUrl();
+    }
     public function upload()
     {
         Log::info("upload");
         $this->validate([
-            'mp3File' => 'required|file|mimes:mp3|max:102400'
+            'mp3File' => 'required|file|mimes:mp3|max:102400000'
         ], [
             'mp3File.mimes' => 'The file must be a file of type: audio/mpeg.',
             'mp3File.required' => 'The file is required.',

@@ -6,13 +6,13 @@
                 <h2 class="text-2xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">듣기평가 답안 생성</h2>
                 <div class="max-w-auto mx-auto card p-4 bg-white rounded-b-lg shadow-md">
                     <div class="grid grid-cols-1 gap-6">
-                        <form wire:submit.prevent="upload" enctype="multipart/form-data" >
+                        <form wire:submit.prevent >
                             <label class="flex items-center">
                                 <span class="text-gray-700">듣기평가 파일 &nbsp;</span>
-                                <input wire:model.defer="mp3File" type="file" accept="audio/mp3" />
-                                <x-jet-button type="submit" class="text-center ml-4 bg-blue-500">
-                                    {{ __('  업로드  ') }}
-                                </x-jet-button>
+                                <input  type="file" wire:model="mp3File" name="mp3File" id="mp3File" accept="audio/mp3"  wire:loading.attr="disabled"/>
+{{--                                <x-jet-button type="submit" class="text-center ml-4 bg-blue-500">--}}
+{{--                                    {{ __('  업로드  ') }}--}}
+{{--                                </x-jet-button>--}}
 
                             </label>
                             <div wire:loading wire:target="mp3File">Uploading...</div>
