@@ -5,29 +5,27 @@
             <div class="mx-auto bg-green-200">
                 <h2 class="text-2xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">듣기평가 답안 생성</h2>
                 <div class="max-w-auto mx-auto card p-4 bg-white rounded-b-lg shadow-md">
-                    <div class="grid grid-cols-1 gap-6">
+                    <label class="grid grid-cols-1 gap-6">
                         <form wire:submit.prevent >
                             <label class="flex items-center">
-                                <span class="text-gray-700">듣기평가 파일 &nbsp;</span>
-                                <input  type="file" wire:model="mp3File" name="mp3File" id="mp3File" accept="audio/mp3"  wire:loading.attr="disabled"/>
-{{--                                <x-jet-button type="submit" class="text-center ml-4 bg-blue-500">--}}
-{{--                                    {{ __('  업로드  ') }}--}}
-{{--                                </x-jet-button>--}}
-
+                                <span class="text-gray-700">듣기평가 파일 : &nbsp;</span>
+{{--                                <input  type="file" wire:model="mp3File" name="mp3File" id="mp3File" accept="audio/mp3" wire:loading.attr="disabled"/>--}}
+                                @if($mp3File)
+                                    <span class="text-gray-600 font-bold"> {{$mp3File->getClientOriginalName()}}</span>&nbsp;
+                                    <button wire:click="cancelUploadFile" id="cancelUploadFile"
+                                            class="inline-flex items-center px-4 py-2 bg-red-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition" > 업로드 취소 </button>
+                                @else
+                                    <input  type="file" wire:model="mp3File" name="mp3File" id="mp3File" accept="audio/mp3" wire:loading.attr="disabled"/>
+                                @endif
                             </label>
-                            <div wire:loading wire:target="mp3File">Uploading...</div>
-                            @error('mp3File')<label><span class="text-red-500">{{$message}}</span></label>@enderror
-                            @if (session()->has('success'))
-                                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                                    <strong class="font-bold">Success!</strong>
-                                    <span class="block sm:inline">{{ session('success') }}</span>
-                                </div>
-                            @endif
-                        @if($mp3File)
-                            <div class="mt-4">
-                                <p class="text-gray-600">Uploading: {{ $mp3File->getClientOriginalName() }}</p>
+                            <div wire:loading wire:target="mp3File">업로드중...
+                                <svg class="inline-flex animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
                             </div>
-                        @endif
+                            @error('mp3File')<label><span class="text-red-500">{{$message}}</span></label>@enderror
+
                         </form>
                         <form wire:submit.prevent>
 
@@ -37,7 +35,7 @@
                                 <button wire:click="changeSheets" id="changeSheets"
                                         class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > 답지 생성 </button>
                                 <button wire:click="showSetQuestionStartNo(true)" id="showSetQuestionStartNo"
-                                        class="m-4 inline-flex items-center px-4 py-2 bg-sky-300 hover:bg-sky-500 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-sm text-black uppercase " > 문제시작번호 설정 </button>
+                                        class=" inline-flex items-center px-4 py-2 bg-sky-300 hover:bg-sky-500 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-sm text-black uppercase " > 문제시작번호 설정 </button>
 
                             </label>
                         </form>

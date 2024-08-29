@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use App\Constants\Question;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -71,33 +72,36 @@ class MakeListeningTestForm extends Component
 
         $this->tempUrl = $this->mp3File->temporaryUrl();
     }
-    public function upload()
-    {
-        Log::info("upload");
-        $this->validate([
-            'mp3File' => 'required|file|mimes:mp3|max:102400000'
-        ], [
-            'mp3File.mimes' => 'The file must be a file of type: audio/mpeg.',
-            'mp3File.required' => 'The file is required.',
-
-        ]);
-
-        $filename = time().'.'.$this->mp3File->extension();
-//        $url = Storage::disk('s3')->put('mp3-uploads', $this->mp3File);
+//    public function upload()
+//    {
+//        Log::info("upload");
+//        $this->validate([
+//            'mp3File' => 'required|file|mimes:mp3|max:102400000'
+//        ], [
+//            'mp3File.mimes' => 'The file must be a file of type: audio/mpeg.',
+//            'mp3File.required' => 'The file is required.',
 //
-//        UploadedMP3::create([
-//            'file_name' => $fileName,
-//            'file_url' => $url
 //        ]);
-
-        session()->flash('success', 'MP3 file uploaded successfully.');
+//
+//        $filename = time().'.'.$this->mp3File->extension();
+////        $url = Storage::disk('s3')->put('mp3-uploads', $this->mp3File);
+////
+////        UploadedMP3::create([
+////            'file_name' => $fileName,
+////            'file_url' => $url
+////        ]);
+//
+//        session()->flash('success', 'MP3 file uploaded successfully.');
+//        $this->reset('mp3File');
+//    }
+    public function cancelUploadFile()
+    {
+        Log::info("delete file path=".$this->mp3File->path());
+        File::delete($this->mp3File->path());
+//        $this->mp3File = null;
         $this->reset('mp3File');
     }
 
-    public function updatedFiles()
-    {
-        Log::info("updatedFiles");
-    }
 
     public function changeSheets()
     {
