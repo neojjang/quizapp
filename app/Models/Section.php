@@ -25,7 +25,7 @@ class Section extends Model
     {
         return $this->belongsTo(ClassRoom::class);
     }
-    
+
     public function questions()
     {
         return $this->hasMany(Question::class);
@@ -34,5 +34,10 @@ class Section extends Model
     public function quizHeaders()
     {
         return $this->hasMany(QuizHeader::class);
+    }
+
+    public function sectionFiles()
+    {
+        return $this->hasMany(SectionFiles::class);
     }
 }
