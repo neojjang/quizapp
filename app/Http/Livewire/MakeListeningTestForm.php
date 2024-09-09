@@ -3,10 +3,12 @@
 namespace App\Http\Livewire;
 
 use App\Constants\Question;
+use App\Models\SectionFiles;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -221,8 +223,12 @@ class MakeListeningTestForm extends Component
 
                 $status = $question->answers()->createMany($answers)->push();
             }
+            $this->saveFileToDB();
             DB::commit();
-            session()->flash('success', 'OMR 답안지를 생성 했습니다.');
+
+            // tmp에 저장 된 파일 삭제
+            $this->cancelUploadFile();
+            session()->flash('success', '듣기평가 답안지를 생성 했습니다.');
             return redirect()->route('detailSection', $this->section->id);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -254,6 +260,24 @@ class MakeListeningTestForm extends Component
             $this->questions[$i]['title'] = sprintf("%d번 문제", ($this->question_start_no+$i));
         }
         $this->flagSetQuestionStartNo = false;
+    }
+
+    /**
+     * tmp에 저장 된 mp3 파일을 S3에 저장하고 DB에 정보 저장
+     * @return void
+     */
+    public function saveFileToDB(): void
+    {
+// 파일 정보 저장, S3저장
+        $originalFilename = $this->mp3File->getClientOriginalName();
+        $filename = 'dongwon_' . time() . '.' . $this->mp3File->extension();
+        $url = Storage::disk('s3')->put($filename, $this->mp3File);
+        $sectionFile = \App\Models\SectionFiles::create([
+            'file_name' => $originalFilename,
+            'file_url' => $url,
+            'section_id' => $this->section->id,
+            'user_id' => Auth::id(),
+        ]);
     }
 
 }
