@@ -233,6 +233,7 @@ class MakeListeningTestForm extends Component
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error($e);
+            session()->flash('error', '문제 저장에서 오류가 발생했습니다. <br/>'.$e->getMessage());
         }
         // 오류 표시
     }
@@ -270,7 +271,7 @@ class MakeListeningTestForm extends Component
     {
 // 파일 정보 저장, S3저장
         $originalFilename = $this->mp3File->getClientOriginalName();
-        $filename = 'dongwon_' . time() . '.' . $this->mp3File->extension();
+        $filename = 'listening/dongwon_' . time() . '.' . $this->mp3File->extension();
         $url = Storage::disk('s3')->put($filename, $this->mp3File);
         $sectionFile = \App\Models\SectionFiles::create([
             'file_name' => $originalFilename,
