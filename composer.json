@@ -6,7 +6,8 @@
     "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
-        "consoletvs/charts": "7.*",
+        "bahadorbzd/consoletvs-charts": "dev-main",
+        "consoletvs/charts": "^6.7.0",
         "doctrine/dbal": "^3.3",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
@@ -15,6 +16,7 @@
         "laravel/jetstream": "^2.3",
         "laravel/sanctum": "^2.6",
         "laravel/tinker": "^2.5",
+        "league/flysystem-aws-s3-v3": "*",
         "livewire/livewire": "^2.5",
         "realrashid/sweet-alert": "^4.0",
         "spatie/laravel-permission": "^4.2"
