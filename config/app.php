@@ -1,5 +1,7 @@
 <?php
 
+use ConsoleTVs\Charts\ChartsServiceProvider;
+
 return [
 
     /*
@@ -232,7 +234,6 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'Alert' => RealRashid\SweetAlert\Facades\Alert::class,
-
     ],
 
 ];

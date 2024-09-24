@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\App;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use ConsoleTVs\Charts\Registrar as Charts;
 
