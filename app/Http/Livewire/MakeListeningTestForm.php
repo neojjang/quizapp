@@ -24,6 +24,7 @@ class MakeListeningTestForm extends Component
 
     // 듣기평가 mp3 파일
     public $mp3File;
+    public $originalFilename;
     public $tempUrl;
     public $uploading = false;
 
@@ -73,6 +74,7 @@ class MakeListeningTestForm extends Component
         $this->validateOnly('mp3File');
 
         $this->tempUrl = $this->mp3File->temporaryUrl();
+        $this->originalFilename = $this->mp3File->getClientOriginalName();
     }
 //    public function upload()
 //    {
@@ -141,6 +143,10 @@ class MakeListeningTestForm extends Component
         $this->questions = [];
         // DB에서 $this->section->id 의 quesiton 데이터를 읽어서 초기화 해야 함
         $questions = $this->section->questions()->where('is_active', '1')->orderBy('id', 'asc')->get();
+        $mp3File = $this->section->sectionFiles()->get();
+        if ($mp3File->count() > 0) {
+            $this->originalFilename = $mp3File[0]->file_name;
+        }
         foreach ($questions as $question) {
             $answers = $question->answers()->get();
             if (($question->type_id-1)== Question::SELECTIVE) {
@@ -269,16 +275,36 @@ class MakeListeningTestForm extends Component
      */
     public function saveFileToDB(): void
     {
-// 파일 정보 저장, S3저장
-        $originalFilename = $this->mp3File->getClientOriginalName();
-        $filename = 'listening/dongwon_' . time(); // . '.' . $this->mp3File->extension();
-        $url = Storage::disk('s3')->put($filename, $this->mp3File);
+        // 업로드 한 파일이 없다면 pass
+        if (is_null($this->mp3File)) return ;
+
+        $this->deleteFileWithDB();
+
+        // 파일 정보 저장, S3저장
+        $this->originalFilename = $this->mp3File->getClientOriginalName();
+        // $filename = 'listening/dongwon_' . time(); // . '.' . $this->mp3File->extension();
+        $filepath = 'listening/'. $this->section->id ;
+        $url = Storage::disk('s3')->put($filepath, $this->mp3File);
         $sectionFile = \App\Models\SectionFiles::create([
-            'file_name' => $originalFilename,
+            'file_name' => $this->originalFilename,
             'file_url' => $url,
             'section_id' => $this->section->id,
             'user_id' => Auth::id(),
         ]);
     }
 
+    /**
+     * S3에 섹션id path 삭제
+     * @return bool
+     */
+    public function deleteFileWithDB()
+    {
+        // section_id의 file 삭제
+        $this->section->sectionFiles()->delete();
+
+        // S3 삭제
+        $filepath = 'listening/'. $this->section->id ;
+        $ret = Storage::disk('s3')->delete($filepath);
+        return $ret;
+    }
 }

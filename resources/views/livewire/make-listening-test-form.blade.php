@@ -9,7 +9,11 @@
                         <form wire:submit.prevent >
                             <div class="flex items-center">
                                 <span class="text-gray-700">듣기평가 파일 : &nbsp;</span>
-                                <input type="file" wire:model="mp3File" name="mp3File" id="mp3File" accept="audio/mp3" wire:loading.attr="disabled"  />
+                                <span>{{$originalFilename}}</span>&nbsp;
+                                <button onclick="document.getElementById('mp3File').click(); return false;"
+                                        class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest"
+                                 >듣기 파일 업로드</button>
+                                <input type="file" wire:model="mp3File" name="mp3File" id="mp3File" accept="audio/mp3" wire:loading.attr="disabled" style="width:0px;opacity: 0;" />
                                 <div wire:loading wire:target="mp3File">업로드중...
                                     <svg class="inline-flex animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
