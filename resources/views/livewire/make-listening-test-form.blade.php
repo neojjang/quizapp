@@ -12,6 +12,7 @@
                                 <span>{{$originalFilename}}</span>&nbsp;
                                 <button onclick="document.getElementById('mp3File').click(); return false;"
                                         class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest"
+                                        @if(!is_null($originalFilename))style="display: none;"@endif
                                  >듣기 파일 업로드</button>
                                 <input type="file" wire:model="mp3File" name="mp3File" id="mp3File" accept="audio/mp3" wire:loading.attr="disabled" style="width:0px;opacity: 0;" />
                                 <div wire:loading wire:target="mp3File">업로드중...
@@ -22,7 +23,7 @@
                                 </div>
                                 <button wire:click="cancelUploadFile" id="cancelUploadFile"
                                         class="inline-flex items-center px-4 py-2 bg-red-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25"
-                                        @if(is_null($mp3File))style="display: none"@endif> 업로드 취소 </button>
+                                        @if(is_null($originalFilename))style="display: none"@endif> 업로드 취소 </button>
                             </div>
                             @error('mp3File')<label><span class="text-red-500">{{$message}}</span></label>@enderror
                         </form>
@@ -105,8 +106,9 @@
                             <form wire:submit.prevent="saveQuestions">
                                 <div class="flex items-center justify-start mt-4">
                                     <a href="{{route('detailSection', $section->id)}}" class="inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent text-xs rounded-md font-semibold text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">Back</a>
-                                    <x-jet-button type="submit" class="text-center ml-4 bg-blue-500">
-                                        {{ __('  저  장  ') }}
+                                    <x-jet-button type="submit" class="text-center ml-4 bg-blue-500" wire:loading.attr="disabled"  wire:target="saveQuestions">
+                                    <span wire:loading.remove wire:target="saveQuestions">{{ __('  저  장  ') }}</span>
+                                    <span wire:loading wire:target="saveQuestions">{{ __('  저장 중... ') }}</span>
                                     </x-jet-button>
                                 </div>
                             </form>

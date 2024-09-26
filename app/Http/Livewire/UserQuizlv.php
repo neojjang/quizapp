@@ -6,6 +6,7 @@ use App\Models\Quiz;
 use App\Models\Quote;
 use App\Models\ClassRoom;
 use App\Models\Section;
+use App\Models\SectionFiles;
 use Illuminate\Support\Arr;
 use Livewire\Component;
 use App\Models\Question;
@@ -38,6 +39,7 @@ class UserQuizlv extends Component
     public $sectionName;
     public $sectionTypeId = \App\Constants\Section::NORMAL;
     public $questions;
+    public $mp3File;
     public $omrAnswered = [];
 
     public $currentExample;
@@ -202,6 +204,9 @@ class UserQuizlv extends Component
                     break;
                 case \App\Constants\Section::ENGLISH_COMPOSITION_CLICK:
                     $this->startEnglishCompositionClick();
+                    break;
+                case \App\Constants\Section::LISTENING_TEST:
+                    $this->startListeningTestQuiz();
                     break;
                 default:
                     Log::debug("Error Section Type :".$this->sectionTypeId);
@@ -491,6 +496,29 @@ class UserQuizlv extends Component
         $this->quizInProgress = true;
     }
 
+    public function startListeningTestQuiz()
+    {
+        Log::debug(__METHOD__);
+        $this->reset('userAnswered');
+
+        $this->quizSize = Question::query()->where('section_id', $this->sectionId)->where('is_active', '1')->count();
+        Log::debug("startQuiz quizSize=" . $this->quizSize);
+        $this->quizid = QuizHeader::create([
+            'user_id' => auth()->id(),
+            'quiz_size' => $this->quizSize,
+            'section_id' => $this->sectionId,
+        ]);
+        $this->count = 1;
+
+        // Get the first/next question for the quiz.
+        // Since we are using LiveWire component for quiz, the first quesiton and answers will be displayed through mount function.
+        $this->questions = $this->getAllQuestions();
+        $this->mp3File = $this->getListeningFile();
+
+        $this->setupQuiz = false;
+        $this->quizInProgress = true;
+    }
+
     private function getAllQuestions()
     {
         Log::debug(__METHOD__);
@@ -730,5 +758,11 @@ class UserQuizlv extends Component
         }
         shuffle($this->currentExample);
         Log::debug($this->currentExample);
+    }
+
+    private function getListeningFile()
+    {
+        Log::debug(__METHOD__);
+        return SectionFiles::where('section_id', $this->sectionId)->get();
     }
 }

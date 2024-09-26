@@ -98,12 +98,26 @@ class MakeListeningTestForm extends Component
 //        session()->flash('success', 'MP3 file uploaded successfully.');
 //        $this->reset('mp3File');
 //    }
-    public function cancelUploadFile()
+
+    private function deleteTmpUploadFile()
     {
+        Log::debug("deleteTmpUploadFile called");
+        if (is_null($this->mp3File)) return ;
+
         Log::info("delete file path=".$this->mp3File->path());
         File::delete($this->mp3File->path());
 //        $this->mp3File = null;
         $this->reset('mp3File');
+    }
+
+    public function cancelUploadFile()
+    {
+        Log::debug("cancelUploadFile called");
+        if (!is_null($this->originalFilename)) {
+            $this->deleteFileWithDB();
+            $this->reset('originalFilename');
+        }
+        $this->deleteTmpUploadFile();
     }
 
 
@@ -202,6 +216,8 @@ class MakeListeningTestForm extends Component
     {
         try {
             DB::beginTransaction();
+            $this->deleteFileWithDB();
+
             $this->section->questions()->delete();
             foreach ($this->questions as $no => $item) {
                 $question = \App\Models\Question::create([
@@ -233,7 +249,7 @@ class MakeListeningTestForm extends Component
             DB::commit();
 
             // tmp에 저장 된 파일 삭제
-            $this->cancelUploadFile();
+            $this->deleteTmpUploadFile();
             session()->flash('success', '듣기평가 답안지를 생성 했습니다.');
             return redirect()->route('detailSection', $this->section->id);
         } catch (\Throwable $e) {
@@ -275,10 +291,9 @@ class MakeListeningTestForm extends Component
      */
     public function saveFileToDB(): void
     {
+        Log::debug("saveFileToDB....");
         // 업로드 한 파일이 없다면 pass
         if (is_null($this->mp3File)) return ;
-
-        $this->deleteFileWithDB();
 
         // 파일 정보 저장, S3저장
         $this->originalFilename = $this->mp3File->getClientOriginalName();
@@ -299,12 +314,17 @@ class MakeListeningTestForm extends Component
      */
     public function deleteFileWithDB()
     {
+        Log::debug("deleteFileWithDB....");
         // section_id의 file 삭제
-        $this->section->sectionFiles()->delete();
+        $mp3File = $this->section->sectionFiles()->get();
+        if ($mp3File->count() == 0) return False;
 
+        $filepath = $mp3File[0]->file_url;
         // S3 삭제
-        $filepath = 'listening/'. $this->section->id ;
+        // $filepath = 'listening/'. $this->section->id ;
         $ret = Storage::disk('s3')->delete($filepath);
+        Log::debug("delete s3 :".$filepath." ret=".$ret);
+        $this->section->sectionFiles()->delete();
         return $ret;
     }
 }

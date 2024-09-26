@@ -3,7 +3,7 @@
     <!-- Start of quiz box -->
 {{--    @if($quizInProgress && $isOMR)--}}
     @if($quizInProgress)
-        @if($sectionTypeId == \App\Constants\Section::OMR)
+        @if(in_array($sectionTypeId, [\App\Constants\Section::OMR, \App\Constants\Section::LISTENING_TEST]))
             <div class="px-4 -py-3 sm:px-6 ">
                 <div class="flex max-w-auto mb-3">
                     <h1 class="text-2xl font-bold font-medium text-gray-900">[{{$classRoomName}} - {{$sectionName}}]</h1>
@@ -15,10 +15,32 @@
                     </h1>
                 </div>
             </div>
+            @if($sectionTypeId == \App\Constants\Section::LISTENING_TEST)
+
+            @endif
             <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-4">
-                <h4 class="text-xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">각 문항의 답을 입력해 주세요.</h4>
+                <h4 class="text-xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">
+                    @if($sectionTypeId == \App\Constants\Section::LISTENING_TEST)
+                    다음 듣기 파일을 잘 듣고 각 문항의 답을 입력해 주세요.
+                    @else
+                    각 문항의 답을 입력해 주세요.
+                    @endif
+                </h4>
                 <form wire:submit.prevent>
                     <table class="table-fixed border border-slate-400 w-full">
+                        @if($sectionTypeId == \App\Constants\Section::LISTENING_TEST)
+                        <tr>
+                            <th colspan="2" class="border border-slate-400 bg-blue-100 border px-8 py-4">
+                                @if(!is_null($mp3File) && $mp3File->count() > 0)
+                                    <audio id="player" controls>
+                                        <source src="{{env('AWS_URL'). $mp3File[0]->file_url }}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                @endif
+
+                            </th>
+                        </tr>
+                        @endif
                         <tr>
                             <th class="border border-slate-400 bg-blue-100 border px-8 py-4 w-1/6">문번</th>
                             <th class="border border-slate-400 bg-blue-100 border px-8 py-4 w-1/2">답안</th>
