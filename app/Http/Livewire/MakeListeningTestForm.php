@@ -71,6 +71,7 @@ class MakeListeningTestForm extends Component
     {
         Log::info('updatedMp3File called');
         Log::info($this->mp3File);
+        Log::info('File size: ' . $this->mp3File->getSize() . ' bytes');
         $this->validateOnly('mp3File');
 
         $this->tempUrl = $this->mp3File->temporaryUrl();
