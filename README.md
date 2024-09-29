@@ -1,31 +1,3 @@
-## Todo
-```
-Currently busy with some other important things, will definately would like to imporove the app with
-1. Multiple choices selection and mapping to detail results
-2. Question difficulty levels
-3. Section subscription for registered users
-4. User crud functionality in admin pannel
-5. Modal implementation for user crud.
-6. Plenty of other functionalites ofcourese.
-
-
-
-Pull reqeusts are welcome, acceptance will depend on availability of time to review the pull requests.
-
-```
-
-## User Quiz Home
-![image](https://user-images.githubusercontent.com/52659978/130816735-6e881068-360d-4930-8d1b-333f9055719a.png)
-
-## Start A Quiz
-![image](https://user-images.githubusercontent.com/52659978/130816837-77995e62-a1c3-4f58-8f1a-d43f76fd8f69.png)
-
-## Quiz Screen
-![image](https://user-images.githubusercontent.com/52659978/130816969-3025d9bf-3960-4b1e-a404-03971ab62d58.png)
-
-
-## Quiz Details
-![image](https://user-images.githubusercontent.com/52659978/130817166-73e83d99-d2ae-4bcb-8f03-cfa2b7c11491.png)
 
 ## QuizApp
 A laravel based QuizApp
@@ -90,4 +62,33 @@ $ docker-compose stop
 - Livewire V3 : version=0.4.0, Livewire v2 : version=0.2.0
 ```html
 <script src="https://unpkg.com/@nextapps-be/livewire-sortablejs@0.2.0/dist/livewire-sortable.js"></script>
+```
+
+### 파일 업로드 관련 설정 
+```shell
+
+; nginx 설정에서 http or server or location 에 다음 추가/수정
+client_max_body_size 128M;
+
+; php.ini 파일에 다음 내용 수정 
+upload_max_filesize = 128M
+post_max_size = 128M
+
+```
+
+### S3 업로드시 public 권한 부여 
+```php
+; config/filesystems.php 에서 's3' 설정에 다음 추가 
+'s3' => [
+...
+    'visibility' => 'public',
+...
+]
+    
+; S3에 파일 업로드 함수에 ACL 설정 
+Storage::disk('s3')->put($path, file_get_contents($file), [
+    'ACL' => 'public-read',
+    'Visibility' => 'public',
+])    
+
 ```
