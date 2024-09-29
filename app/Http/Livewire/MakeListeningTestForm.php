@@ -299,7 +299,10 @@ class MakeListeningTestForm extends Component
         $this->originalFilename = $this->mp3File->getClientOriginalName();
         // $filename = 'listening/dongwon_' . time(); // . '.' . $this->mp3File->extension();
         $filepath = 'listening/'. $this->section->id ;
-        $url = Storage::disk('s3')->put($filepath, $this->mp3File);
+        $url = Storage::disk('s3')->put($filepath, $this->mp3File, [
+            'ACL' => 'public-read',
+            'Visibility' => 'public',
+        ]);
         $sectionFile = \App\Models\SectionFiles::create([
             'file_name' => $this->originalFilename,
             'file_url' => $url,
