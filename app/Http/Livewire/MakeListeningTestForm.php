@@ -34,7 +34,7 @@ class MakeListeningTestForm extends Component
     public $question_start_no;
 
     protected $rules = [
-        'mp3File' => 'required|file|mimes:mp3|max:20480', // 10MB Max
+        'mp3File' => 'required|file|mimes:mp3|max:41000', // 40MB Max
 
     ];
 
@@ -72,7 +72,8 @@ class MakeListeningTestForm extends Component
         Log::info('updatedMp3File called');
         Log::info($this->mp3File);
         Log::info('File size: ' . $this->mp3File->getSize() . ' bytes');
-        $this->validateOnly('mp3File');
+        // $this->validateOnly('mp3File');
+        $this->validate();
 
         $this->tempUrl = $this->mp3File->temporaryUrl();
         $this->originalFilename = $this->mp3File->getClientOriginalName();
