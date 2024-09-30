@@ -18,6 +18,8 @@ class MakeListeningTestForm extends Component
 
     public $section;
     public $question_types;
+    // 현재 수정 상태 여부
+    public $isEditing;
 
     public $total_questions;
     public $questions;
@@ -37,7 +39,7 @@ class MakeListeningTestForm extends Component
         'mp3File' => 'required|file|mimes:mp3|max:102400', // 40MB Max
     ];
     protected $messages = [
-        'mp3File.max' => '파일 크기는 40MB를 초과할 수 없습니다.',
+        'mp3File.max' => '파일 크기는 60MB를 초과할 수 없습니다.',
     ];
 
     public function render()
@@ -51,6 +53,7 @@ class MakeListeningTestForm extends Component
         $this->question_start_no = 0;
         $this->flagSetQuestionStartNo = false;
         $this->mp3File = null;
+        $this->isEditing = false;
         $this->initializeQuestions();
     }
 
@@ -80,28 +83,6 @@ class MakeListeningTestForm extends Component
         $this->tempUrl = $this->mp3File->temporaryUrl();
         $this->originalFilename = $this->mp3File->getClientOriginalName();
     }
-//    public function upload()
-//    {
-//        Log::info("upload");
-//        $this->validate([
-//            'mp3File' => 'required|file|mimes:mp3|max:102400000'
-//        ], [
-//            'mp3File.mimes' => 'The file must be a file of type: audio/mpeg.',
-//            'mp3File.required' => 'The file is required.',
-//
-//        ]);
-//
-//        $filename = time().'.'.$this->mp3File->extension();
-////        $url = Storage::disk('s3')->put('mp3-uploads', $this->mp3File);
-////
-////        UploadedMP3::create([
-////            'file_name' => $fileName,
-////            'file_url' => $url
-////        ]);
-//
-//        session()->flash('success', 'MP3 file uploaded successfully.');
-//        $this->reset('mp3File');
-//    }
 
     private function deleteTmpUploadFile()
     {
@@ -120,8 +101,11 @@ class MakeListeningTestForm extends Component
         if (!is_null($this->originalFilename)) {
             $this->deleteFileWithDB();
             $this->reset('originalFilename');
+            $this->reset('tempUrl');
         }
         $this->deleteTmpUploadFile();
+
+        $this->isEditing = false;
     }
 
 
@@ -161,9 +145,13 @@ class MakeListeningTestForm extends Component
         $this->questions = [];
         // DB에서 $this->section->id 의 quesiton 데이터를 읽어서 초기화 해야 함
         $questions = $this->section->questions()->where('is_active', '1')->orderBy('id', 'asc')->get();
+        if ($questions->count() > 0) {
+            $this->isEditing = true;
+        }
         $mp3File = $this->section->sectionFiles()->get();
         if ($mp3File->count() > 0) {
             $this->originalFilename = $mp3File[0]->file_name;
+            $this->tempUrl = $mp3File[0]->file_url;
         }
         foreach ($questions as $question) {
             $answers = $question->answers()->get();
@@ -180,7 +168,6 @@ class MakeListeningTestForm extends Component
                 'title' => $question->question,
                 'answer' => $answer_data
             ];
-
         }
         if (count($this->questions) > 0) {
             $this->total_questions = count($this->questions);
