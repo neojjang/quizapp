@@ -34,8 +34,10 @@ class MakeListeningTestForm extends Component
     public $question_start_no;
 
     protected $rules = [
-        'mp3File' => 'required|file|mimes:mp3|max:41000', // 40MB Max
-
+        'mp3File' => 'required|file|mimes:mp3|max:102400', // 40MB Max
+    ];
+    protected $messages = [
+        'mp3File.max' => '파일 크기는 40MB를 초과할 수 없습니다.',
     ];
 
     public function render()
