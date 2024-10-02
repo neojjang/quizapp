@@ -289,7 +289,8 @@ class MakeListeningTestForm extends Component
         // 파일 정보 저장, S3저장
         $this->originalFilename = $this->mp3File->getClientOriginalName();
         // $filename = 'listening/dongwon_' . time(); // . '.' . $this->mp3File->extension();
-        $filepath = 'listening/'. $this->section->id ;
+        // "수업id / 시험(섹션)id" 기준으로 저장
+        $filepath = 'listening/'. $this->section->class_room_id . '/' . $this->section->id ;
         $url = Storage::disk('s3')->put($filepath, $this->mp3File, [
             'ACL' => 'public-read',
             'Visibility' => 'public',
