@@ -115,8 +115,9 @@ class SectionsController extends Controller
 
     public function deleteSection($id)
     {
-        //$sections = Section::paginate(10);
         $section = Section::findOrFail($id);
+        $section->questions()->delete();
+        $section->sectionFiles()->delete();
         $section->delete();
         return redirect()->back()->withSuccess('Section with id: ' . $section->id . ' deleted successfully');
     }
