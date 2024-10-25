@@ -79,7 +79,7 @@
                                            value="{{$question['question_no']}}" class="w-11/12 mx-2"/>
                                     </td>
                                     <td class="flex align-middle border border-slate-400 justify-items-start">
-                                        지문 :<textarea rows="2" type="text" wire:model="questions.{{$index}}.title"
+                                        해석 :<textarea rows="2" type="text" wire:model="questions.{{$index}}.title"
                                                   name="questions.{{$index}}.title" class="w-11/12 mx-3">{{old($question["title"])}}</textarea>
                                     </td>
                                     <td rowspan="3" class="justify-items-start border border-slate-400">
@@ -100,7 +100,7 @@
                                 </tr>
                                 <tr>
                                     <td class="flex align-middle border border-slate-100 justify-items-start text-center">
-                                        정답 :<textarea rows="2" type="text" wire:model.defer="questions.{{$index}}.answer.0.answer" answer_id="{{$question["answer"][0]['answer_id']}}"
+                                        문제 :<textarea rows="2" type="text" wire:model.defer="questions.{{$index}}.answer.0.answer" answer_id="{{$question["answer"][0]['answer_id']}}"
                                               placeholder="I / am / a boy."
                                               name="questions.{{$index}}.answer.0" id="questions.{{$index}}.answer"  class="w-11/12 mx-3">{{old($question["answer"][0]['answer'])}}</textarea>
                                     </td>
