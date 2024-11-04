@@ -130,6 +130,7 @@ class MakeAnswerSheetForm extends Component
                 ],
                 'example' => explode('/', $answers[0]->answer),
                 'retry' => $question->retry,
+                'timer' => $question->timer,
             ];
 
         }
@@ -208,6 +209,7 @@ class MakeAnswerSheetForm extends Component
                     'section_id' => $this->section->id,
                     'type_id' => ($item['question_type']+1),
                     'retry' => $this->retry_answer,
+                    'timer' => $item['timer'],
                 ];
                 $answer = trim(rtrim(trim($item['answer'][0]['answer']), '/'));
 

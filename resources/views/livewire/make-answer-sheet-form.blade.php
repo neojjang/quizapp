@@ -75,8 +75,14 @@
                                 @foreach($questions as $index => $question)
                                 <tr>
                                     <td rowspan="3" class="border border-slate-400 text-center bg-green-100">
-                                    <input type="text" wire:model="questions.{{$index}}.question_no" name="questions.{{$index}}.question_no"
+                                        <input type="text" wire:model="questions.{{$index}}.question_no" name="questions.{{$index}}.question_no"
                                            value="{{$question['question_no']}}" class="w-11/12 mx-2"/>
+                                        <br />
+                                        시간 : <select class="mt-1" id="timer-{{$index}}-select" wire:model="questions.{{$index}}.timer">
+                                            @for($i=0;$i<7;$i++)
+                                                <option value="{{$i*15}}" @if($i*15 == $question['timer']) selected @endif >{{$i*15}}</option>
+                                            @endfor
+                                        </select> 초
                                     </td>
                                     <td class="flex align-middle border border-slate-400 justify-items-start">
                                         해석 :<textarea rows="2" type="text" wire:model="questions.{{$index}}.title"

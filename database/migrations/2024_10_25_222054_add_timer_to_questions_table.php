@@ -15,7 +15,7 @@ class AddTimerToQuestionsTable extends Migration
     {
         Schema::table('questions', function (Blueprint $table) {
             // 문제당 반복 횟수. 기본값 1
-            $table->tinyInteger('timer', false, true)->default(0)->after('retry')->comment('타이머, 0:disable, 단위는 분');
+            $table->tinyInteger('timer', false, true)->default(0)->after('retry')->comment('타이머, 0:disable, 단위는 초');
         });
     }
 
