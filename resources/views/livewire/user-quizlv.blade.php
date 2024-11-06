@@ -162,18 +162,6 @@
                     <div class="px-4 py-4 sm:px-6">
                         <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
                             <span class="mr-2 font-extrabold"> {{(isset($currentQuestion->question_no) && $currentQuestion->question_no !='') ? $currentQuestion->question_no : $count}}.</span> {!! nl2br($currentQuestion->question) !!}
-
-{{--                            <div x-data={show:false} class="block text-xs">--}}
-{{--                                <div class="p-1" id="headingOne">--}}
-{{--                                    <button @click="show=!show" class="underline text-blue-500 hover:text-blue-700 focus:outline-none text-xs px-3" type="button">--}}
-{{--                                        Explanation--}}
-{{--                                    </button>--}}
-{{--                                </div>--}}
-{{--                                <div x-show="show" class="block p-2 bg-green-100 text-xs">--}}
-{{--                                    {{$currentQuestion->explanation}}--}}
-{{--                                </div>--}}
-{{--                            </div>--}}
-
                         </h3>
                         @php
                         $answer_id = $currentQuestion->answers[0]->id;
@@ -216,13 +204,14 @@
                             @endforeach
                             </ul>
                         </div>
-
-{{--                        <textarea id="question-{{$answer_id}}" type="text" wire:model="userAnswered" readonly--}}
-{{--                              class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">--}}
-{{--                        </textarea>--}}
-
                     </div>
                     <div class="flex items-center justify-end mt-2">
+                        @if($currentQuestion->timer > 0)
+                        <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4">
+                            <span class="text-gray-400 font-extrabold p-1">시간:</span>
+                            <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span id="timer-display">{{$currentQuestion->timer}}</span> 초</span>
+                        </p>
+                        @endif
                         <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4">
                             <span class="text-gray-400 font-extrabold p-1">테스트</span>
                             <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{($retryCount+1) .'/'. $currentQuestion->retry}} 회</span>
@@ -247,6 +236,36 @@
                     </div>
                 </form>
             </div>
+                @if($currentQuestion->timer > 0)
+                    <script>
+                        console.log("1");
+
+                            let countdown;
+                            let timeRemaining = @json($currentQuestion->timer);
+                            const timerDisplay = document.getElementById('timer-display');
+
+                            function startTimer(initialTime) {
+                                timeRemaining = initialTime;
+                                timerDisplay.textContent = timeRemaining;
+
+                                clearInterval(countdown); // 기존 타이머 정지
+
+                                countdown = setInterval(() => {
+                                    if (timeRemaining <= 0) {
+                                        clearInterval(countdown);
+                                        // Livewire.emit('complete');
+                                    } else {
+                                        timeRemaining--;
+                                        timerDisplay.textContent = timeRemaining;
+                                    }
+                                }, 1000);
+                            }
+
+                            // 초기 타이머 시작
+                            startTimer(timeRemaining);
+
+                    </script>
+                @endif
         @endif
     @endif
     <!-- end of quiz box -->
