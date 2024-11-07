@@ -48,6 +48,8 @@ class UserQuizlv extends Component
     public $showRetry = false;
     public $extraInfo = null;
 
+    public $isTimeout = false;
+
     protected $queryString = ['sectionId'];
 
     protected $rules = [

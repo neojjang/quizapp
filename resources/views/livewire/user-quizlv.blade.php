@@ -207,7 +207,13 @@
                     </div>
                     <div class="flex items-center justify-end mt-2">
                         @if($currentQuestion->timer > 0)
-                        <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4">
+                        <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4"
+                           x-data="{
+                                timeLeft: {{$currentQuestion->timer}},
+                                timerInterval: null,
+                                formattedTime: '00:00'
+                           }"
+                        >
                             <span class="text-gray-400 font-extrabold p-1">시간:</span>
                             <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span id="timer-display">{{$currentQuestion->timer}}</span> 초</span>
                         </p>
@@ -216,7 +222,7 @@
                             <span class="text-gray-400 font-extrabold p-1">테스트</span>
                             <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{($retryCount+1) .'/'. $currentQuestion->retry}} 회</span>
                         </p>
-                        @if(count($userAnswered) == count($currentExample))
+                        @if(count($userAnswered) == count($currentExample) || $isTimeout)
                             @if($showRetry)
                                 <button wire:click="retryQuestion" type="submit" class="m-4 inline-flex items-center px-4 py-2 bg-yellow-400 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
                                     {{ __('재시도') }}
