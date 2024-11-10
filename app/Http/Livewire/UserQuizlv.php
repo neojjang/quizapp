@@ -48,6 +48,7 @@ class UserQuizlv extends Component
     public $showRetry = false;
     public $extraInfo = null;
 
+    public $currentTimer = 0;
     public $isTimeout = false;
 
     protected $queryString = ['sectionId'];
@@ -428,7 +429,8 @@ class UserQuizlv extends Component
             // Get the first/next question for the quiz.
             // Since we are using LiveWire component for quiz, the first quesiton and answers will be displayed through mount function.
             $this->currentQuestion = $this->getNextQuestion();
-
+            // 현재 타이머 설정
+            $this->currentTimer = $this->currentQuestion->timer;
             if (($this->currentQuestion->type_id - 1) == \App\Constants\Question::ENGLISH_COMPOSITION_CLICK) {
                 $this->reset('currentExample');
                 $this->retryCount = 0;
@@ -441,6 +443,8 @@ class UserQuizlv extends Component
                 // shuffle($this->currentExample);
                 $this->makeShuffledExample();
             }
+            Log::debug("call timerRestart event");
+            $this->emit('timerRestart');
         }
     }
 
@@ -467,6 +471,7 @@ class UserQuizlv extends Component
         $this->currentQuestion = $this->getNextQuestion();
         $this->setupQuiz = false;
         $this->quizInProgress = true;
+        $this->currentTimer = 0;
     }
 
     /**
@@ -496,6 +501,7 @@ class UserQuizlv extends Component
 
         $this->setupQuiz = false;
         $this->quizInProgress = true;
+        $this->currentTimer = 0;
     }
 
     public function startListeningTestQuiz()
@@ -519,6 +525,7 @@ class UserQuizlv extends Component
 
         $this->setupQuiz = false;
         $this->quizInProgress = true;
+        $this->currentTimer = 0;
     }
 
     private function getAllQuestions()
@@ -648,6 +655,8 @@ class UserQuizlv extends Component
         // Since we are using LiveWire component for quiz, the first quesiton and answers will be displayed through mount function.
         $this->currentQuestion = $this->getNextQuestion();
 
+        // 타이머 설정
+        $this->currentTimer = $this->currentQuestion->timer;
         // 구문 섞기
         // $this->currentExample = explode('/', $this->currentQuestion->answers[0]->answer);
         // shuffle($this->currentExample);
@@ -659,24 +668,12 @@ class UserQuizlv extends Component
         Log::debug(__METHOD__);
         Log::debug($value);
 
+        $correctCount = 0;
         $userAnsweredCount = count($this->userAnswered);
         $currentExampleCount = count($this->currentExample);
 
-        // 모든 선택이 완료 된 상태에서는 추가 진행 없음
-        if ($userAnsweredCount >= $currentExampleCount) {
-            return ;
-        }
-
-        // 선택한 문구는 invisible
-        $this->currentExample[$exampleIndex][1] = false;
-
-        // 기본 선택시 틀린 표시는 하지 않음, 마지막 구문이 선택 된 경우 전체 구문이 순서에 맞는지 검사
-        $this->userAnswered[] = [$value, true, $exampleIndex];
-        $this->selectedOrder++;
-
-        $userAnsweredCount = count($this->userAnswered);
-        $correctCount = 0;
-        if ($userAnsweredCount == $currentExampleCount) {
+        if ($this->isTimeout) {
+            Log::debug(__METHOD__." timeout");
             $correctAnswers = explode('/', $this->currentQuestion->answers[0]->answer);
 
             foreach ($correctAnswers as $index => $answer) {
@@ -684,6 +681,30 @@ class UserQuizlv extends Component
                 if (trim($this->userAnswered[$index][0]) != trim($answer)) {
                     $this->userAnswered[$index][1] = false;
                 } else $correctCount++;
+            }
+        } else {
+            // 모든 선택이 완료 된 상태에서는 추가 진행 없음
+            if ($userAnsweredCount >= $currentExampleCount) {
+                return ;
+            }
+            // 선택한 문구는 invisible
+            $this->currentExample[$exampleIndex][1] = false;
+
+            // 기본 선택시 틀린 표시는 하지 않음, 마지막 구문이 선택 된 경우 전체 구문이 순서에 맞는지 검사
+            $this->userAnswered[] = [$value, true, $exampleIndex];
+            $this->selectedOrder++;
+
+            $userAnsweredCount = count($this->userAnswered);
+
+            if ($userAnsweredCount == $currentExampleCount) {
+                $correctAnswers = explode('/', $this->currentQuestion->answers[0]->answer);
+
+                foreach ($correctAnswers as $index => $answer) {
+                    // 틀린 경우 체크
+                    if (trim($this->userAnswered[$index][0]) != trim($answer)) {
+                        $this->userAnswered[$index][1] = false;
+                    } else $correctCount++;
+                }
             }
         }
 
@@ -695,6 +716,10 @@ class UserQuizlv extends Component
         Log::debug($this->isDisabled);
         $this->showRetry = (($this->retryCount+1) < $this->currentQuestion->retry && $this->isDisabled);
         Log::debug($this->showRetry);
+        if ($userAnsweredCount == $currentExampleCount) {
+            Log::debug('call timerStop event');
+            $this->emit('timerStop');
+        }
     }
 
     public function deleteSelectedSentence($index)
@@ -720,8 +745,8 @@ class UserQuizlv extends Component
 //            Log::debug($item["value"]);
             $newUserAnswered[] = $this->userAnswered[intval($item["value"])];
         }
-        Log::debug(json_encode($this->userAnswered));
-        Log::debug(json_encode($newUserAnswered));
+//        Log::debug(json_encode($this->userAnswered));
+//        Log::debug(json_encode($newUserAnswered));
         unset($this->userAnswered);
         $this->userAnswered = $newUserAnswered;
     }
@@ -735,6 +760,7 @@ class UserQuizlv extends Component
         Log::debug(__METHOD__);
         $this->retryCount++;
         $this->showRetry = false;
+        $this->isTimeout = false;
         // 구문 선택 순서
         $this->selectedOrder = 0;
         // 구문 섞기
@@ -745,6 +771,9 @@ class UserQuizlv extends Component
 //        }, null);
         $this->extraInfo[] = $this->userAnswered;
         $this->userAnswered = [];
+
+        Log::debug("call timerRestart event");
+        $this->emit('timerRestart');
         Log::debug(json_encode($this->extraInfo));
     }
 

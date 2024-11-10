@@ -206,24 +206,25 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-end mt-2">
-                        @if($currentQuestion->timer > 0)
                         <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4"
                            x-data="{
-                                timeLeft: {{$currentQuestion->timer}},
-                                timerInterval: null,
-                                formattedTime: '00:00'
-                           }"
+                       init() {
+                            console.log('init()');
+                            window.testCall();
+                       }
+                   }"
                         >
-                            <span class="text-gray-400 font-extrabold p-1">시간:</span>
-                            <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span id="timer-display">{{$currentQuestion->timer}}</span> 초</span>
+                            <span class="text-gray-400 font-extrabold p-1">!시간:</span>
+                            <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span id="timer">00:00</span> 초</span>
+{{--                            <span x-show="timeLeft > 10" class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span x-text="formattedTime"></span> 초</span>--}}
+{{--                            <span x-show="timeLeft <= 10" class="font-bold p-3 leading-loose bg-red-500 text-white rounded-full"><span x-text="formattedTime"></span> 초</span>--}}
                         </p>
-                        @endif
                         <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4">
                             <span class="text-gray-400 font-extrabold p-1">테스트</span>
                             <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{($retryCount+1) .'/'. $currentQuestion->retry}} 회</span>
                         </p>
                         @if(count($userAnswered) == count($currentExample) || $isTimeout)
-                            @if($showRetry)
+                            @if($showRetry && ($retryCount+1) != $currentQuestion->retry)
                                 <button wire:click="retryQuestion" type="submit" class="m-4 inline-flex items-center px-4 py-2 bg-yellow-400 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
                                     {{ __('재시도') }}
                                 </button>
@@ -242,36 +243,85 @@
                     </div>
                 </form>
             </div>
-                @if($currentQuestion->timer > 0)
-                    <script>
-                        console.log("1");
+            <script>
+                // document.addEventListener('alpine:init', () => {
+                //    Alpine.data('timer', () => ());
+                // });
+                window.testCall = function() {
+                    console.log('testCall ~~~~~');
+                    startTimer();
 
-                            let countdown;
-                            let timeRemaining = @json($currentQuestion->timer);
-                            const timerDisplay = document.getElementById('timer-display');
+                    @this.on('timerRestart', () => {
+                        console.log('event timerRestart')
+                        startTimer();
+                    });
 
-                            function startTimer(initialTime) {
-                                timeRemaining = initialTime;
-                                timerDisplay.textContent = timeRemaining;
+                    @this.on('timerStop', () => {
+                        console.log('event timerStop : call handleTimerEnd');
+                        handleTimerEnd();
+                    });
+                }
+                let timerInterval = null;
+                let timeLeft = @this.currentTimer;
+                let isTimerRunning = true;
+                function startTimer() {
+                    console.log('startTimer');
 
-                                clearInterval(countdown); // 기존 타이머 정지
+                    if (timerInterval) {
+                        console.log('startTimer. clearInterval');
+                        clearInterval(timerInterval);
+                    }
 
-                                countdown = setInterval(() => {
-                                    if (timeRemaining <= 0) {
-                                        clearInterval(countdown);
-                                        // Livewire.emit('complete');
-                                    } else {
-                                        timeRemaining--;
-                                        timerDisplay.textContent = timeRemaining;
-                                    }
-                                }, 1000);
+                    isTimerRunning = true;
+
+                    timeLeft = @this.currentTimer;
+                    updateFormattedTime();
+                    console.log(`startTimer this.timeLeft=${timeLeft}`);
+                    if (timeLeft > 0) {
+                        timerInterval = setInterval(() => {
+                            console.log(`tick ..... `);
+                            if (timeLeft > 0) {
+                                countDownTime();
+                            } else {
+                                handleTimerEnd();
                             }
+                        }, 1000);
+                    }
+                }
 
-                            // 초기 타이머 시작
-                            startTimer(timeRemaining);
+                function countDownTime() {
+                    timeLeft --;
+                    updateFormattedTime();
+                    if (timeLeft == 0) {
+                        @this.isTimeout = true;
+                        @this.showRetry = true;
+                        console.log('countDownTime : call handleTimerEnd');
+                        handleTimerEnd();
+                    }
+                }
 
-                    </script>
-                @endif
+                function updateFormattedTime() {
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    console.log(`this.timeLeft=${timeLeft}, minutes=${minutes}, seconds=${seconds}`);
+                    let formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2,'0')}`;
+                    document.getElementById('timer').innerText = formattedTime;
+                }
+
+                function handleTimerEnd() {
+                    console.log(`handleTimerEnd`);
+                    updateFormattedTime();
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    isTimerRunning = false;
+                }
+                async function handleRestart() {
+                    @this.call('retryQuestion');
+                    // await $wire.retryQuestion();
+                    console.log('handleRestart after call to retryQuestion')
+                    startTimer();
+                }
+            </script>
         @endif
     @endif
     <!-- end of quiz box -->
