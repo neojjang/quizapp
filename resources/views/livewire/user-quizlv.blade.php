@@ -206,15 +206,9 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-end mt-2">
-                        <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4"
-                           x-data="{
-                       init() {
-                            console.log('init()');
-                            window.testCall();
-                       }
-                   }"
-                        >
+                        <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4" >
                             <span class="text-gray-400 font-extrabold p-1">!시간:</span>
+                            <input type="hidden" id="current-timer" value="{{$currentTimer}}" />
                             <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span id="timer">00:00</span> 초</span>
 {{--                            <span x-show="timeLeft > 10" class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span x-text="formattedTime"></span> 초</span>--}}
 {{--                            <span x-show="timeLeft <= 10" class="font-bold p-3 leading-loose bg-red-500 text-white rounded-full"><span x-text="formattedTime"></span> 초</span>--}}
@@ -247,9 +241,17 @@
                 // document.addEventListener('alpine:init', () => {
                 //    Alpine.data('timer', () => ());
                 // });
+                /*
+                 x-data="{
+                       init() {
+                            console.log('init()');
+                            window.testCall();
+                       }
+                   }"
+                 */
                 window.testCall = function() {
                     console.log('testCall ~~~~~');
-                    startTimer();
+                    //startTimer();
 
                     @this.on('timerRestart', () => {
                         console.log('event timerRestart')
@@ -262,10 +264,12 @@
                     });
                 }
                 let timerInterval = null;
-                let timeLeft = @this.currentTimer;
+                let timeLeft = 0;
                 let isTimerRunning = true;
+                let formattedTime = '00:00';
                 function startTimer() {
                     console.log('startTimer');
+                    timeLeft = document.getElementById('current-timer').value;
 
                     if (timerInterval) {
                         console.log('startTimer. clearInterval');
@@ -274,7 +278,6 @@
 
                     isTimerRunning = true;
 
-                    timeLeft = @this.currentTimer;
                     updateFormattedTime();
                     console.log(`startTimer this.timeLeft=${timeLeft}`);
                     if (timeLeft > 0) {
@@ -304,14 +307,14 @@
                     const minutes = Math.floor(timeLeft / 60);
                     const seconds = timeLeft % 60;
                     console.log(`this.timeLeft=${timeLeft}, minutes=${minutes}, seconds=${seconds}`);
-                    let formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2,'0')}`;
+                    formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2,'0')}`;
                     document.getElementById('timer').innerText = formattedTime;
                 }
 
                 function handleTimerEnd() {
                     console.log(`handleTimerEnd`);
                     updateFormattedTime();
-                    clearInterval(timerInterval);
+                    if (timerInterval) clearInterval(timerInterval);
                     timerInterval = null;
                     isTimerRunning = false;
                 }
@@ -321,6 +324,8 @@
                     console.log('handleRestart after call to retryQuestion')
                     startTimer();
                 }
+
+                window.testCall();
             </script>
         @endif
     @endif

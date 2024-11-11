@@ -190,6 +190,9 @@ class UserQuizlv extends Component
         // Keep the instance in $this->quizid veriable for later updates to quiz.
         $this->validate();
 
+        $this->isDisabled = false;
+        $this->isTimeout = false;
+        $this->showRetry = false;
         // 수업 리스트 선택
         // 섹션 퀴즈의 전체 갯수를 항상 처리
         Log::debug("startQuiz sectionId=".$this->sectionId);
@@ -443,8 +446,12 @@ class UserQuizlv extends Component
                 // shuffle($this->currentExample);
                 $this->makeShuffledExample();
             }
-            Log::debug("call timerRestart event");
-            $this->emit('timerRestart');
+            if ($this->currentQuestion->timer > 0) {
+                Log::debug("call timerRestart event");
+                $this->emit('timerRestart');
+            }
+
+            $this->isDisabled = !($this->count <= $this->quizSize);
         }
     }
 
@@ -472,6 +479,7 @@ class UserQuizlv extends Component
         $this->setupQuiz = false;
         $this->quizInProgress = true;
         $this->currentTimer = 0;
+        $this->startTimer();
     }
 
     /**
@@ -502,6 +510,7 @@ class UserQuizlv extends Component
         $this->setupQuiz = false;
         $this->quizInProgress = true;
         $this->currentTimer = 0;
+        $this->startTimer();
     }
 
     public function startListeningTestQuiz()
@@ -526,6 +535,7 @@ class UserQuizlv extends Component
         $this->setupQuiz = false;
         $this->quizInProgress = true;
         $this->currentTimer = 0;
+        $this->startTimer();
     }
 
     private function getAllQuestions()
@@ -661,6 +671,7 @@ class UserQuizlv extends Component
         // $this->currentExample = explode('/', $this->currentQuestion->answers[0]->answer);
         // shuffle($this->currentExample);
         $this->makeShuffledExample();
+        $this->startTimer();
     }
 
     public function checkSentenceOrder($exampleIndex, $value)
@@ -674,13 +685,9 @@ class UserQuizlv extends Component
 
         if ($this->isTimeout) {
             Log::debug(__METHOD__." timeout");
-            $correctAnswers = explode('/', $this->currentQuestion->answers[0]->answer);
 
-            foreach ($correctAnswers as $index => $answer) {
-                // 틀린 경우 체크
-                if (trim($this->userAnswered[$index][0]) != trim($answer)) {
-                    $this->userAnswered[$index][1] = false;
-                } else $correctCount++;
+            foreach($this->currentExample as $index => $example) {
+                $example[1] = false;
             }
         } else {
             // 모든 선택이 완료 된 상태에서는 추가 진행 없음
@@ -713,7 +720,7 @@ class UserQuizlv extends Component
             $correctCount == $currentExampleCount
             || ($userAnsweredCount == $currentExampleCount && ($this->retryCount+1) >= $this->currentQuestion->retry)
         );
-        Log::debug($this->isDisabled);
+        Log::debug("checkSentenceOrder isDisabled={$this->isDisabled}");
         $this->showRetry = (($this->retryCount+1) < $this->currentQuestion->retry && $this->isDisabled);
         Log::debug($this->showRetry);
         if ($userAnsweredCount == $currentExampleCount) {
@@ -761,6 +768,7 @@ class UserQuizlv extends Component
         $this->retryCount++;
         $this->showRetry = false;
         $this->isTimeout = false;
+        $this->isDisabled = !($this->count <= $this->quizSize);
         // 구문 선택 순서
         $this->selectedOrder = 0;
         // 구문 섞기
@@ -772,8 +780,7 @@ class UserQuizlv extends Component
         $this->extraInfo[] = $this->userAnswered;
         $this->userAnswered = [];
 
-        Log::debug("call timerRestart event");
-        $this->emit('timerRestart');
+        $this->startTimer();
         Log::debug(json_encode($this->extraInfo));
     }
 
@@ -795,5 +802,16 @@ class UserQuizlv extends Component
     {
         Log::debug(__METHOD__);
         return SectionFiles::where('section_id', $this->sectionId)->get();
+    }
+
+    /**
+     * @return void
+     */
+    public function startTimer(): void
+    {
+        if ($this->currentQuestion->timer > 0) {
+            Log::debug("call timerRestart event");
+            $this->emit('timerRestart');
+        }
     }
 }
