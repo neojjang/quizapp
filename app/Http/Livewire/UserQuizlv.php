@@ -190,7 +190,7 @@ class UserQuizlv extends Component
         // Keep the instance in $this->quizid veriable for later updates to quiz.
         $this->validate();
 
-        $this->isDisabled = false;
+        $this->isDisabled = true;
         $this->isTimeout = false;
         $this->showRetry = false;
         // 수업 리스트 선택
@@ -372,7 +372,8 @@ class UserQuizlv extends Component
 //            $isChoiceCorrect = ($resultScore >= 0.75) ? '1': (($resultScore >= 0.40) ? '2': '0');
 //            $userAnswered = $this->userAnswered;
         } else if ($currentQuestionTypeId == \App\Constants\Question::ENGLISH_COMPOSITION_CLICK) {
-            $isChoiceCorrect = true;
+            // 유저가 입력한 값이 있으면 true에서 시작
+            $isChoiceCorrect = (count($this->userAnswered)>0);
             $userAnswered = "";
             foreach ($this->userAnswered as $index => $item) {
                 $isChoiceCorrect = $isChoiceCorrect & $item[1];
@@ -446,12 +447,14 @@ class UserQuizlv extends Component
                 // shuffle($this->currentExample);
                 $this->makeShuffledExample();
             }
+            $this->showRetry = false;
+            $this->isTimeout = false;
             if ($this->currentQuestion->timer > 0) {
                 Log::debug("call timerRestart event");
                 $this->emit('timerRestart');
             }
 
-            $this->isDisabled = !($this->count <= $this->quizSize);
+            $this->isDisabled = ($this->count <= $this->quizSize);
         }
     }
 
@@ -768,7 +771,7 @@ class UserQuizlv extends Component
         $this->retryCount++;
         $this->showRetry = false;
         $this->isTimeout = false;
-        $this->isDisabled = !($this->count <= $this->quizSize);
+        $this->isDisabled = !(($this->retryCount+1) >= $this->currentQuestion->retry);
         // 구문 선택 순서
         $this->selectedOrder = 0;
         // 구문 섞기

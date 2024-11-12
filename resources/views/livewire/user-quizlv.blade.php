@@ -206,13 +206,15 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-end mt-2">
+                        @if ($currentQuestion->timer > 0)
                         <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4" >
-                            <span class="text-gray-400 font-extrabold p-1">!시간:</span>
+                            <span class="text-gray-400 font-extrabold p-1">!시간: </span>
                             <input type="hidden" id="current-timer" value="{{$currentTimer}}" />
-                            <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span id="timer">00:00</span> 초</span>
+                            <span id="timerContainer" class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span id="timer">00:00</span> 초</span>
 {{--                            <span x-show="timeLeft > 10" class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span x-text="formattedTime"></span> 초</span>--}}
 {{--                            <span x-show="timeLeft <= 10" class="font-bold p-3 leading-loose bg-red-500 text-white rounded-full"><span x-text="formattedTime"></span> 초</span>--}}
                         </p>
+                        @endif
                         <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4">
                             <span class="text-gray-400 font-extrabold p-1">테스트</span>
                             <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{($retryCount+1) .'/'. $currentQuestion->retry}} 회</span>
@@ -249,8 +251,8 @@
                        }
                    }"
                  */
-                window.testCall = function() {
-                    console.log('testCall ~~~~~');
+                window.timerCall = function() {
+                    console.log('timerCall ~~~~~');
                     //startTimer();
 
                     @this.on('timerRestart', () => {
@@ -260,6 +262,7 @@
 
                     @this.on('timerStop', () => {
                         console.log('event timerStop : call handleTimerEnd');
+                        countDownTime();
                         handleTimerEnd();
                     });
                 }
@@ -267,6 +270,8 @@
                 let timeLeft = 0;
                 let isTimerRunning = true;
                 let formattedTime = '00:00';
+                const timerContainer = document.getElementById('timerContainer');
+
                 function startTimer() {
                     console.log('startTimer');
                     timeLeft = document.getElementById('current-timer').value;
@@ -282,7 +287,6 @@
                     console.log(`startTimer this.timeLeft=${timeLeft}`);
                     if (timeLeft > 0) {
                         timerInterval = setInterval(() => {
-                            console.log(`tick ..... `);
                             if (timeLeft > 0) {
                                 countDownTime();
                             } else {
@@ -294,6 +298,11 @@
 
                 function countDownTime() {
                     timeLeft --;
+                    if (timeLeft < 10) {
+                        timerContainer.classList.replace('bg-blue-500', 'bg-red-500');
+                    } else {
+                        timerContainer.classList.replace('bg-red-500', 'bg-blue-500');
+                    }
                     updateFormattedTime();
                     if (timeLeft == 0) {
                         @this.isTimeout = true;
@@ -306,9 +315,9 @@
                 function updateFormattedTime() {
                     const minutes = Math.floor(timeLeft / 60);
                     const seconds = timeLeft % 60;
-                    console.log(`this.timeLeft=${timeLeft}, minutes=${minutes}, seconds=${seconds}`);
+
                     formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2,'0')}`;
-                    document.getElementById('timer').innerText = formattedTime;
+                    document.getElementById('timer').textContent = formattedTime;
                 }
 
                 function handleTimerEnd() {
@@ -325,7 +334,7 @@
                     startTimer();
                 }
 
-                window.testCall();
+                window.timerCall();
             </script>
         @endif
     @endif
