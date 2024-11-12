@@ -208,7 +208,7 @@
                     <div class="flex items-center justify-end mt-2">
                         @if ($currentQuestion->timer > 0)
                         <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4" >
-                            <span class="text-gray-400 font-extrabold p-1">!시간: </span>
+                            <span class="text-gray-400 font-extrabold p-1">!남은 시간: </span>
                             <input type="hidden" id="current-timer" value="{{$currentTimer}}" />
                             <span id="timerContainer" class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span id="timer">00:00</span> 초</span>
 {{--                            <span x-show="timeLeft > 10" class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full"><span x-text="formattedTime"></span> 초</span>--}}
