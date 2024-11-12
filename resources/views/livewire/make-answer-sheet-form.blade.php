@@ -8,7 +8,7 @@
                     <div class="grid grid-cols-1" x-data={showUploadFile:false} >
 {{--                        <form wire:submit.prevent>--}}
                         <div class="inline-flex items-center" x-show="!showUploadFile">
-                            <span class="text-gray-700">전체 문제 수</span>
+                            <span class="text-gray-700 font-bold">전체 문제 수</span>
                             <input name="total_questions" id="total_questions" type="text" wire:model.defer="total_questions" class="mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                             <button wire:click="changeSheets" id="changeSheets"
                                     class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-500 focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > 문제지 생성 </button>
@@ -43,24 +43,34 @@
                         </div>
                         @endif
                         <div class="inline-flex items-center">
-                            <span class="text-gray-700">문제당 반복 테스트</span>
+                            <span class="text-gray-700 font-bold">문제당 반복 테스트</span>
                             <input name="retry_answer" type="text" size="3" wire:model="retry_answer" class="mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                             <span class="text-gray-700">회</span>
                             <span class="mx-4"></span>
-                            <span class="text-gray-700">문제 시작 번호</span>
+                            <span class="text-gray-700 font-bold">문제 시작 번호</span>
                             <input name="question_start_no" type="text" size="5" wire:model.defer="question_start_no" class="inline-flex items-center mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                             <button wire:click="updateQuestionStartNo" id="updatedQuestionStartNo"
                                     class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > {{' 변경 '}} </button>
                         </div>
 {{--                        </form>--}}
                         <div class="inline-flex items-center">
-                            <span class="text-gray-700r">일괄 문장 분할 &nbsp;:&nbsp;</span>
+                            <span class="text-gray-700r font-bold">일괄 문장 분할 &nbsp;:&nbsp;</span>
                             <input name="split_count" type="radio" id="split_0" value="0" checked /><label for="split_0">&nbsp; 없음 &nbsp;</label> /&nbsp;
                             <input name="split_count" type="radio" id="split_1" value="1" /><label for="split_1">&nbsp; 1단어 &nbsp;</label> /&nbsp;
                             <input name="split_count" type="radio" id="split_2" value="2" /><label for="split_2">&nbsp; 2단어 &nbsp;</label> /&nbsp;
-                            <input name="split_count" type="radio" id="split_3" value="3" /><label for="split_3">&nbsp; 3단어 &nbsp;</label> &nbsp;&nbsp;
+                            <input name="split_count" type="radio" id="split_3" value="3" /><label for="split_3">&nbsp; 3단어 &nbsp;</label> &nbsp;
                             <button onclick="splitAllAnswers(); return false;" id="splitAnswers"
-                                    class="m-4 inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 outline-none focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > {{' 분할 하기 '}} </button>
+                                    class="mb-1  inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 outline-none focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > {{' 분할 하기 '}} </button>
+                            &nbsp;|&nbsp;&nbsp;
+                            <span class="text-gray-700r font-bold">일괄 타이머&nbsp;:&nbsp;</span>
+                            <input name="question_timer" type="radio" id="question_timer_0" value="0" checked /><label for="question_timer_0">&nbsp; 없음 &nbsp;</label> /&nbsp;
+                            <input name="question_timer" type="radio" id="question_timer_1" value="30" /><label for="question_timer_1">&nbsp;30초 &nbsp;</label> /&nbsp;
+                            <input name="question_timer" type="radio" id="question_timer_2" value="45" /><label for="question_timer_2">&nbsp;45초 &nbsp;</label> /&nbsp;
+                            <input name="question_timer" type="radio" id="question_timer_3" value="60" /><label for="question_timer_3">&nbsp;60초 &nbsp;</label> /&nbsp;
+                            <input name="question_timer" type="radio" id="question_timer_3" value="90" /><label for="question_timer_3">&nbsp;90초 &nbsp;</label> /&nbsp;
+                            <input name="question_timer" type="radio" id="question_timer_3" value="120" /><label for="question_timer_3">&nbsp;120초 &nbsp;</label> &nbsp;
+                            <button onclick="setAllTimer(); return false;" id="setAllTimer"
+                                    class="mb-1 inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 outline-none focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > {{' 설정 하기 '}} </button>
                         </div>
 
                         @if(count($questions) > 0)
@@ -79,7 +89,7 @@
                                            value="{{$question['question_no']}}" class="w-11/12 mx-2"/>
                                         <br />
                                         시간 : <select class="mt-1" id="timer-{{$index}}-select" wire:model="questions.{{$index}}.timer">
-                                            @for($i=0;$i<7;$i++)
+                                            @for($i=0;$i<9;$i++)
                                                 <option value="{{$i*15}}" @if($i*15 == $question['timer']) selected @endif >{{$i*15}}</option>
                                             @endfor
                                         </select> 초
@@ -186,6 +196,19 @@
             }
 
             return false;
+        }
+
+        function setAllTimer() {
+            const timerObj = document.querySelector('input[name="question_timer"]:checked');
+            if (timerObj == null) return false;
+
+            const timerValue = timerObj.value;
+            const totalQuestionCount = parseInt(document.getElementById('total_questions').value);
+            for (var i = 0; i < totalQuestionCount; i++) {
+                var selectObj = document.getElementById(`timer-${i}-select`)
+                selectObj.value = timerValue;
+                @this.set(`questions.${i}.timer`, timerValue);
+            }
         }
     </script>
 </div>
