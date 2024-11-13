@@ -812,6 +812,8 @@ class UserQuizlv extends Component
      */
     public function startTimer(): void
     {
+        if (!isset($this->currentQuestion)) return;
+
         if ($this->currentQuestion->timer > 0) {
             Log::debug("call timerRestart event");
             $this->emit('timerRestart');
