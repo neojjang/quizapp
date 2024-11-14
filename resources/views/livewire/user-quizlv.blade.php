@@ -215,12 +215,16 @@
 {{--                            <span x-show="timeLeft <= 10" class="font-bold p-3 leading-loose bg-red-500 text-white rounded-full"><span x-text="formattedTime"></span> 초</span>--}}
                         </p>
                         @endif
+                        <input type="hidden" id="currentRetryCount" value="{{$retryCount}}" />
+                        <input type="hidden" id="totalRetryCount" value="{{$currentQuestion->retry}}" />
+                        @if($currentQuestion->retry > 0)
                         <p class="items-center mt-1 max-w-2xl text-sm text-gray-500 px-4 py-4">
                             <span class="text-gray-400 font-extrabold p-1">테스트</span>
                             <span class="font-bold p-3 leading-loose bg-blue-500 text-white rounded-full">{{($retryCount+1) .'/'. $currentQuestion->retry}} 회</span>
                         </p>
+                        @endif
                         @if(count($userAnswered) == count($currentExample) || $isTimeout)
-                            @if($showRetry && ($retryCount+1) != $currentQuestion->retry)
+                            @if($showRetry && ($retryCount+1) < $currentQuestion->retry)
                                 <button wire:click="retryQuestion" type="submit" class="m-4 inline-flex items-center px-4 py-2 bg-yellow-400 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">
                                     {{ __('재시도') }}
                                 </button>
@@ -271,10 +275,14 @@
                 let isTimerRunning = true;
                 let formattedTime = '00:00';
                 const timerContainer = document.getElementById('timerContainer');
+                let currentRetryCount = 0;
+                let totalRetryCount = 0;
 
                 function startTimer() {
                     console.log('startTimer');
                     timeLeft = document.getElementById('current-timer').value;
+                    currentRetryCount = parseInt(document.getElementById('currentRetryCount').value);
+                    totalRetryCount = parseInt(document.getElementById('totalRetryCount').value);
 
                     if (timerInterval) {
                         console.log('startTimer. clearInterval');
@@ -306,7 +314,13 @@
                     updateFormattedTime();
                     if (timeLeft == 0) {
                         @this.isTimeout = true;
-                        @this.showRetry = true;
+                        if (currentRetryCount+1 < totalRetryCount) {
+                            @this.showRetry = true;
+                            @this.isDisabled = true;
+                        } else {
+                            @this.showRetry = false;
+                            @this.isDisabled = false;
+                        }
                         console.log('countDownTime : call handleTimerEnd');
                         handleTimerEnd();
                     }
