@@ -76,7 +76,8 @@ class MakeAnswerSheetForm extends Component
                     'question_type' => Question::ENGLISH_COMPOSITION_CLICK,
                     'answer' => [['answer_id'=>null, 'answer'=>$item[2]]],
                     'title' => $item[1],
-                    'example' => explode("/", "I / am / a boy.")
+                    'example' => explode("/", "I / am / a boy."),
+                    'timer' => (isset($item[3]) ? $item[3] : 0),
                 ];
             } else {
                 Log::debug(json_encode($item));
@@ -101,7 +102,8 @@ class MakeAnswerSheetForm extends Component
                     'question_type' => Question::ENGLISH_COMPOSITION_CLICK,
                     'answer' => [['answer_id'=>null, 'answer'=>""]],
                     'title' => "",
-                    'example' => explode("/", "I / am / a boy.")
+                    'example' => explode("/", "I / am / a boy."),
+                    'timer' => 0
                 ];
             }
         }
