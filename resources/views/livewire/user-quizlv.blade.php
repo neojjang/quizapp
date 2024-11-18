@@ -311,6 +311,7 @@
                     } else {
                         timerContainer.classList.replace('bg-red-500', 'bg-blue-500');
                     }
+                    document.getElementById('current-timer').value = timeLeft;
                     updateFormattedTime();
                     if (timeLeft == 0) {
                         @this.isTimeout = true;
