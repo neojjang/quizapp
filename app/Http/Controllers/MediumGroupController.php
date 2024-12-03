@@ -72,7 +72,7 @@ class MediumGroupController extends Controller
 
     public function detail(MediumGroup $mediumGroup)
     {
-        $sections = $mediumGroup->classRooms()->paginate(20);
+        $sections = $mediumGroup->classRooms()->orderBy('updated_at', 'desc')->paginate(20);
         return view('admins.detail_medium_groups', compact('sections', 'mediumGroup'));
     }
 

@@ -74,7 +74,7 @@ class MajorGroupController extends Controller
 
     public function detail(MajorGroup $majorGroup)
     {
-        $sections = $majorGroup->mediumGroups()->paginate(20);
+        $sections = $majorGroup->mediumGroups()->orderBy('updated_at', 'desc')->paginate(20);
         return view('admins.detail_major_groups', compact('sections', 'majorGroup'));
     }
 
