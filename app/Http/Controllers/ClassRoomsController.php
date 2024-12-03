@@ -75,7 +75,7 @@ class ClassRoomsController extends Controller
 
     public function detailClassRoom(ClassRoom $classRoom)
     {
-        $sections = $classRoom->sections()->paginate(10);
+        $sections = $classRoom->sections()->orderBy('updated_at', 'desc')->paginate(10);
         return view('admins.detail_class_rooms', compact('sections', 'classRoom'));
     }
 
