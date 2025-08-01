@@ -61,7 +61,7 @@ class UserAnswer extends Component
         $quizPecentage = round(($currectQuizAnswers / $totalQuizQuestions) * 100, 2);
 
         $this->quizHeader->score = $quizPecentage;
-        $this->quizHeader->reviewed = true;
+
         $this->quizHeader->save();
     }
 }

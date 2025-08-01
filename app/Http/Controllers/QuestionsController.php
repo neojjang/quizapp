@@ -144,6 +144,9 @@ class QuestionsController extends Controller
         // $questions = collect($questions)->transform(function($item) {
         //     return $item;
         // });
+        $quizHeader->reviewed = true;
+        $quizHeader->save();
+        Log::debug("update quiz_header.id={$quizHeader->id} reviewed=true ");
 
         return view('admins.score_questions', compact('section', 'user', 'questions', 'userQuiz', 'quizHeader', 'choice', 'resultMark')); // , ["userQuiz" => $userQuiz]
     }
