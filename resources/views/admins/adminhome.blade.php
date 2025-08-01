@@ -6,6 +6,22 @@
     </x-slot>
     <section class="text-gray-600 body-font">
         <div class="container px-5 py-5 mx-auto">
+        <h3 class="font-semibold text-xl text-gray-800 leading-tight">Today Testers</h3>
+            <div class="h-24 overflow-y-auto border border-gray-400 p-2">
+                <p>이것은 50px 높이의 div입니다.</p>
+                <p>내용이 계속해서 추가되면...</p>
+                <p>자동으로 수직 스크롤이 생깁니다.</p>
+                <p>이것은 50px 높이의 div입니다.</p>
+                <p>내용이 계속해서 추가되면...</p>
+                <p>자동으로 수직 스크롤이 생깁니다.</p>
+                <p>이것은 50px 높이의 div입니다.</p>
+                <p>내용이 계속해서 추가되면...</p>
+                <p>자동으로 수직 스크롤이 생깁니다.</p>
+            </div>
+        </div>
+    </section>
+    <section class="text-gray-600 body-font">
+        <div class="container px-5 py-5 mx-auto">
             <div class="flex flex-wrap -m-4 text-center ">
                 <div class="p-4 md:w-1/4 sm:w-1/2 w-full ">
                     <a href="{{route('listMajorGroups')}}">
