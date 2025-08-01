@@ -131,7 +131,7 @@ class SectionsController extends Controller
         // });
         // Log::debug($user_id_list);
         // $users = User::whereIn('id', $user_id_list)->orderBy('id', 'ASC')->get();
-        $quiz_headers = $section->quizHeaders()->where("completed", "1")->paginate(30);
+        $quiz_headers = $section->quizHeaders()->where("completed", "1")->orderBy('updated_at', 'desc')->paginate(30);
         return view('admins.score_sections', compact('section', 'quiz_headers')); // 'questions'
     }
 }

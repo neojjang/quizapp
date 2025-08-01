@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 class UserAnswer extends Component
 {
     public $choice;
-    public Quiz $userAnswer;
+    public ?Quiz $userAnswer;  // nullable
     public Question $question;
     public QuizHeader $quizHeader;
 
@@ -30,7 +30,7 @@ class UserAnswer extends Component
         // $this->isCorrect = (bool)($this->userAnswer->is_correct === '1');
         // $this->isWrong = (bool)($this->userAnswer->is_correct === '0');
         // $this->isHold = (bool)($this->userAnswer->is_correct === '2');
-        if (($this->question->type_id -1)== \App\Constants\Question::SELECTIVE) {
+        if (($this->question->type_id -1)== \App\Constants\Question::SELECTIVE && isset($this->userAnswer)) {
             $this->userAnswer->user_answer = explode(',', $this->userAnswer->user_answer);
         }
     }
@@ -61,6 +61,7 @@ class UserAnswer extends Component
         $quizPecentage = round(($currectQuizAnswers / $totalQuizQuestions) * 100, 2);
 
         $this->quizHeader->score = $quizPecentage;
+        $this->quizHeader->reviewed = true;
         $this->quizHeader->save();
     }
 }
