@@ -47,7 +47,7 @@
                     @if(isset($testerCount))
                         <div class="mt-1 space-y-1">
                             @foreach($testerCount as $tester)
-                                <div class="bg-blue-500 text-white text-sm font-medium px-1 rounded truncate hover:bg-yellow-600 cursor-pointer" title="{{ $dayKey }}-{{$tester['section']->id}}">
+                                <div class="bg-blue-500 text-white text-sm font-medium px-1 rounded truncate hover:bg-yellow-600 cursor-pointer" title="{{$tester['section']->name}}:{{ $tester['count'] }}명">
                                     <a href="{{route('scoreSection',[$tester['section']->id, $dayKey])}}" target="_blank">{{$tester['section']->name}} : {{ $tester['count'] }}명</a>
                                 </div>
                             @endforeach
