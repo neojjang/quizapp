@@ -36,7 +36,7 @@
     <div class="grid grid-cols-7 gap-2">
         @foreach($calendarDays as $day)
             @if($day)
-                <div class="relative h-24 p-2 border rounded-md {{ $day->isCurrentDay() ? 'bg-blue-100 border-blue-400' : 'bg-gray-50 border-gray-200' }}">
+                <div class="relative min-h-24 p-2 border rounded-md {{ $day->isCurrentDay() ? 'bg-blue-100 border-blue-400' : 'bg-gray-50 border-gray-200' }}">
                     <span class="font-bold text-gray-800">{{ $day->day }}</span>
 
                     @php
@@ -55,7 +55,7 @@
                     @endif
                 </div>
             @else
-                <div class="h-24 p-2 bg-gray-100 rounded-md"></div>
+                <div class="min-h-24 p-2 bg-transparent rounded-md"></div>
             @endif
         @endforeach
     </div>
