@@ -122,7 +122,7 @@ class SectionsController extends Controller
         return redirect()->back()->withSuccess('Section with id: ' . $section->id . ' deleted successfully');
     }
 
-    public function scoreSection(Section $section)
+    public function scoreSection(Section $section, $date=null)
     {
         // $questions = $section->questions()->paginate(10);
         // $quiz_headers = QuizHeader::where("section_id", $section->id)->orderBy("id", "DESC")->get();
@@ -131,7 +131,12 @@ class SectionsController extends Controller
         // });
         // Log::debug($user_id_list);
         // $users = User::whereIn('id', $user_id_list)->orderBy('id', 'ASC')->get();
-        $quiz_headers = $section->quizHeaders()->where("completed", "1")->orderBy('created_at', 'desc')->paginate(30);
+        $quiz_headers = $section->quizHeaders()
+            ->where("completed", "1")
+            ->when($date, function ($query, $date) {
+                return $query->whereDate('created_at', $date);
+            })
+            ->orderBy('created_at', 'desc')->paginate(30);
         return view('admins.score_sections', compact('section', 'quiz_headers')); // 'questions'
     }
 }

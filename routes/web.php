@@ -55,7 +55,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::get('/section/{section}', [SectionsController::class, 'detailSection'])
         ->name('detailSection');
 
-    Route::get('/section/{section}/score', [SectionsController::class, 'scoreSection'])
+    Route::get('/section/{section}/score/{date?}', [SectionsController::class, 'scoreSection'])
         ->name('scoreSection');
 
     // 문제 관리
