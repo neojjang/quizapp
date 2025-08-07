@@ -79,7 +79,7 @@
     <section class="text-gray-600 body-font">
         <div class="container px-5 py-5 mx-auto">
             <h3 class="font-semibold text-xl text-gray-800 leading-tight ">Today Testers</h3>
-            @livewire('test-calendar')
+            @livewire('test-calendar', ['target_date'=>null])
         </div>
     </section>
     <!-- Cards -->

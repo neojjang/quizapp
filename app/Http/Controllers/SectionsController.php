@@ -7,6 +7,7 @@ use App\Models\Section;
 use App\Models\ClassRoom;
 use App\Models\QuizHeader;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -138,5 +139,20 @@ class SectionsController extends Controller
             })
             ->orderBy('created_at', 'desc')->paginate(30);
         return view('admins.score_sections', compact('section', 'quiz_headers')); // 'questions'
+    }
+
+    public function todayGrading(Request $request, $date=null)
+    {
+        if (!isset($date))
+        {
+            $date = Carbon::now()->format('Y-m-d');
+        }
+        $quiz_headers = QuizHeader::query()
+            ->where("completed", "1")
+            ->when($date, function ($query, $date) {
+                return $query->whereDate('created_at', $date);
+            })->orderBy('created_at', 'desc')->get();
+//        Log::debug($quiz_headers);
+        return view('admins.today_grading', compact('date', 'quiz_headers'));
     }
 }

@@ -41,16 +41,14 @@
 
                     @php
                         $dayKey = $day->format('Y-m-d');
-                        $testerCount = $testers[$dayKey] ?? null;
+                        $testerCount = $testers[$dayKey] ?? 0;
                     @endphp
 {{--                    {{$testerCount}}--}}
-                    @if(isset($testerCount))
+                    @if($testerCount > 0)
                         <div class="mt-1 space-y-1">
-                            @foreach($testerCount as $tester)
-                                <div class="bg-blue-500 text-white text-sm font-medium px-1 rounded truncate hover:bg-yellow-600 cursor-pointer" title="{{$tester['section']->name}}:{{ $tester['count'] }}명">
-                                    <a href="{{route('scoreSection',[$tester['section']->id, $dayKey])}}" target="_blank">{{$tester['section']->name}} : {{ $tester['count'] }}명</a>
-                                </div>
-                            @endforeach
+                            <div class="bg-blue-500 text-white text-sm font-medium px-1 rounded truncate hover:bg-yellow-600 cursor-pointer" title="{{$dayKey}}-{{ $testerCount }}">
+                                <a href="{{route('todayGrading', $dayKey)}}">참여자 {{ $testerCount }}명</a>
+                            </div>
                         </div>
                     @endif
                 </div>

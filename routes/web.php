@@ -52,6 +52,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::get('/sections', [SectionsController::class, 'listSection'])
         ->name('listSection');
 
+    // 주어진 날짜의 시험 참여자. date=null => today
+    Route::get('/section/grading/{date?}', [SectionsController::class, 'todayGrading'])
+        ->name('todayGrading');
+
     Route::get('/section/{section}', [SectionsController::class, 'detailSection'])
         ->name('detailSection');
 
