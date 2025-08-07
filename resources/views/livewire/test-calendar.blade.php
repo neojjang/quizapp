@@ -36,22 +36,34 @@
     <div class="grid grid-cols-7 gap-2">
         @foreach($calendarDays as $day)
             @if($day)
-                <div class="relative min-h-24 p-2 border rounded-md {{ $day->isCurrentDay() ? 'bg-blue-100 border-blue-400' : 'bg-gray-50 border-gray-200' }}">
-                    <span class="font-bold text-gray-800">{{ $day->day }}</span>
-
-                    @php
-                        $dayKey = $day->format('Y-m-d');
-                        $testerCount = $testers[$dayKey] ?? 0;
-                    @endphp
-{{--                    {{$testerCount}}--}}
-                    @if($testerCount > 0)
+                @php
+                    $dayKey = $day->format('Y-m-d');
+                    $testerCount = $testers[$dayKey] ?? 0;
+                @endphp
+                @if($testerCount > 0)
+                    <a href="{{route('todayGrading', $dayKey)}}" class="relative min-h-24 p-2 border rounded-md hover:bg-yellow-400  {{ $day->isCurrentDay() ? 'bg-blue-100 border-blue-400' : 'bg-gray-50 border-gray-200' }}">
+                        <span class="font-bold text-gray-800">{{ $day->day }}</span>
                         <div class="mt-1 space-y-1">
-                            <div class="bg-blue-500 text-white text-sm font-medium px-1 rounded truncate hover:bg-yellow-600 cursor-pointer" title="{{$dayKey}}-{{ $testerCount }}">
-                                <a href="{{route('todayGrading', $dayKey)}}">참여자 {{ $testerCount }}명</a>
+                            <div class="bg-blue-500 text-white text-sm font-medium px-1 rounded truncate " title="{{$dayKey}}-{{ $testerCount }}">
+                                참여자 {{ $testerCount }}명
                             </div>
                         </div>
-                    @endif
-                </div>
+                    </a>
+                @else
+                    <div class="relative min-h-24 p-2 border rounded-md {{ $day->isCurrentDay() ? 'bg-blue-100 border-blue-400' : 'bg-gray-50 border-gray-200' }}">
+                        <span class="font-bold text-gray-800">{{ $day->day }}</span>
+                    </div>
+                @endif
+{{--                <div class="relative min-h-24 p-2 border rounded-md {{ $day->isCurrentDay() ? 'bg-blue-100 border-blue-400' : 'bg-gray-50 border-gray-200' }}">--}}
+{{--                    <span class="font-bold text-gray-800">{{ $day->day }}</span>--}}
+{{--                    @if($testerCount > 0)--}}
+{{--                        <div class="mt-1 space-y-1">--}}
+{{--                            <div class="bg-blue-500 text-white text-sm font-medium px-1 rounded truncate hover:bg-yellow-600 cursor-pointer" title="{{$dayKey}}-{{ $testerCount }}">--}}
+{{--                                <a href="{{route('todayGrading', $dayKey)}}">참여자 {{ $testerCount }}명</a>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                    @endif--}}
+{{--                </div>--}}
             @else
                 <div class="min-h-24 p-2 bg-transparent rounded-md"></div>
             @endif
