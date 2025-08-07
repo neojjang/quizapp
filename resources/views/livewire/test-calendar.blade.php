@@ -41,7 +41,7 @@
                     $testerCount = $testers[$dayKey] ?? 0;
                 @endphp
                 @if($testerCount > 0)
-                    <a href="{{route('todayGrading', $dayKey)}}" class="relative min-h-24 p-2 border rounded-md hover:bg-yellow-400  {{ ($day->isCurrentDay())? 'bg-blue-100 border-blue-400' : ($target_day == $day->day) ? 'bg-yellow-400 border-yellow-400' :'bg-gray-50 border-gray-200' }}">
+                    <a href="{{route('todayGrading', $dayKey)}}" class="relative min-h-24 p-2 border rounded-md hover:bg-yellow-400  {{ ($day->isCurrentDay())? 'bg-blue-100 border-blue-400' : (($target_day == $day->day) ? 'bg-yellow-400 border-yellow-400' :'bg-gray-50 border-gray-200') }}">
                         <span class="font-bold text-gray-800">{{ $day->day }}</span>
                         <div class="mt-1 space-y-1">
                             <div class="bg-blue-500 text-white text-sm font-medium px-1 rounded truncate " title="{{$dayKey}}-{{ $testerCount }}">
