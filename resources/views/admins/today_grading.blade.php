@@ -9,7 +9,6 @@
     <div class="max-w-7xl m-4 mx-auto sm:px-6 lg:px-8">
         <section class="text-gray-600 body-font">
             <div class="container px-5 py-5 mx-auto">
-                <h3 class="font-semibold text-xl text-gray-800 leading-tight ">Today Testers</h3>
                 @livewire('test-calendar', ['target_date' =>$date])
             </div>
         </section>
@@ -70,6 +69,12 @@
                                             <a class="font-medium text-blue-500 hover:underline" href="{{ route('detailSection', $student->section->id) }}">
                                                 {{ Str::limit($student->section->name, 50) }}
                                             </a>
+                                            &nbsp;
+                                            @if($student->reviewed == true)
+                                                <span class="inline-flex items-center justify-center rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-semibold text-white">
+                                                    <p>검토 완료</p>
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
 
