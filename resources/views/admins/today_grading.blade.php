@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="md:flex justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('채점 하기') }}
+                [{{$date}}] {{ __('시험 리스트') }}
             </h2>
         </div>
     </x-slot>
@@ -14,14 +14,10 @@
         </section>
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
             <div class="mx-auto">
-{{--                <div class="flex justify-between items-center py-4">--}}
-{{--                    <a href="{{route('detailSection', $quiz_headers->section->id)}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>--}}
-{{--                </div>--}}
                 <!-- --------------------- START NEW TABLE --------------------->
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight py-2 px-2">
-{{--                    [ {{ $quiz_headers->section->name }} ] 시험--}}
-                    [{{$date}} 참여자 리스트]
-                </h2>
+{{--                <h2 class="font-semibold text-xl text-gray-800 leading-tight py-2 px-2">--}}
+{{--                    [{{$date}}]--}}
+{{--                </h2>--}}
 
                 <!-- --------------------- START NEW TABLE --------------------->
 
@@ -69,17 +65,19 @@
                                             <a class="font-medium text-blue-500 hover:underline" href="{{ route('detailSection', $student->section->id) }}">
                                                 {{ Str::limit($student->section->name, 50) }}
                                             </a>
-                                            &nbsp;
                                             @if($student->reviewed == true)
-                                                <span class="inline-flex items-center justify-center rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-semibold text-white">
-                                                    <p>검토 완료</p>
+                                                <span class="inline-flex items-center justify-center rounded-full bg-red-500 px-1 py-0.5 text-xs font-semibold text-white" style="margin-left:0px;">
+{{--                                                    <p>검토 완료</p>--}}
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                                                        <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.144 1.052l-8 10a.75.75 0 01-1.121.082l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.894 7.434-9.293a.75.75 0 011.052-.144z" clip-rule="evenodd" />
+                                                    </svg>
                                                 </span>
                                             @endif
                                         </div>
                                     </div>
 
                                     {{-- Right side content (date and time) --}}
-                                    <div class="flex-shrink-0 text-right">
+                                    <div class="text-right">
                                         <span class="text-gray-500 text-sm font-medium">
                                             @if($student->created_at->diffInHours() <= 2)
                                                 {{ $student->created_at->diffForHumans() }}

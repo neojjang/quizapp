@@ -14,17 +14,21 @@ class TestCalendar extends Component
     public $year;
     public $month;
 
+    public $target_day;
+
     public $testers = [];
 
     public function mount($target_date=null)
     {
         $this->year = Carbon::now()->year;
         $this->month = Carbon::now()->month;
+        $this->target_day = 1;
 
         if (isset($target_date)) {
             $date = Carbon::createFromFormat('Y-m-d', $target_date);
             $this->year = $date->year;
             $this->month = $date->month;
+            $this->target_day = $date->day;
         }
         $this->loadTesters();
     }
