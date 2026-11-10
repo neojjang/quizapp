@@ -48,6 +48,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | D2 | 작업 트리의 미커밋 변경과 미추적 파일 처리 | — | **결정**: `Dockerfile` 수정(gd 확장 추가 등)은 유지·커밋, `package-lock.json` 이름 변경은 되돌림, 나머지 미추적 파일은 삭제(목록은 로그 참고) |
 | D3 | 관리자 계정이 `user` 역할도 갖는지(현재 차트 API 미들웨어가 `role:user`) | 차트 교체 시 라우트 권한으로 대체되므로 확인만 | 미정 |
 | D4 | 운영 DB 종류·버전, 백업 방법 | — | **결정**: MySQL 또는 MariaDB. 정확한 버전·백업 방법은 P0-7에서 확인 |
+| D6 | 8장 버그(B1~B7) 수정 시점: P2 전에 별도 브랜치로 vs 업그레이드 완료 후 | 업그레이드 전 수정 권장 — 회귀 테스트가 이미 있고, Livewire 3 이전 시 같은 코드를 다시 손대야 함 | 미정 |
 | D5 | Livewire 최신 메이저(3 vs 4) 및 Jetstream 호환 버전 | 해당 단계 시작 시 `composer show -a`로 확인 후 결정 | 미정 |
 
 ## 4. 상태 요약
@@ -55,7 +56,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | 단계 | 내용 | 상태 |
 |---|---|---|
 | P0 | 준비: 작업 트리 정리, Docker+SQLite 개발 환경, 운영 정보 수집 | [~] P0-1 삭제 실행, P0-7 운영 정보 남음 |
-| P1 | 회귀 테스트 작성 (업그레이드 전 기준선) | [ ] |
+| P1 | 회귀 테스트 작성 (업그레이드 전 기준선) | [x] |
 | P2 | 차트 라이브러리 제거 → Chart.js 직접 사용 (Laravel 8 유지) | [ ] |
 | P3 | Laravel 8 → 9, Mix → Vite | [ ] |
 | P4 | Laravel 9 → 10 | [ ] |
@@ -98,15 +99,20 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 업그레이드 중 깨진 곳을 잡기 위한 최소한의 Feature 테스트. 팩토리(`database/factories`)를 재사용한다.
 
-- [ ] **P1-0** 테스트 공통 설정에서 `RolesPermissionsSeeder` 실행 → 기존 `RegistrationTest` 실패 해소
-- [ ] **P1-1** 시험 데이터 팩토리 보강: 대분류→중분류→수업→Section→Question→Answer 체인을 만드는 헬퍼
-- [ ] **P1-2** 자동 채점: 객관식·OMR·구문 나열·듣기 유형별로 정답/오답 제출 시 `QuizHeader.score`가 맞는지 (`UserQuizlv` Livewire 테스트)
-- [ ] **P1-3** 중복 제출: 같은 문항을 두 번 제출해도 `Quiz` 레코드가 한 번만 생기는지
-- [ ] **P1-4** 재시도: 재시도 시 기존 기록 처리 규칙대로 동작하는지
-- [ ] **P1-5** 수동 채점: `UserAnswer`에서 정오를 바꾸면 점수가 다시 계산되는지
-- [ ] **P1-6** 권한: 학생이 관리자 라우트 접근 시 403, 비로그인 시 로그인 페이지로 이동
-- [ ] **P1-7** 결과 조회: 다른 학생의 응시 ID 조회 시 동작 기록 (현재는 null 속성 접근 오류 예상 → 테스트로 현상 고정, 수정은 별도 작업)
-- [ ] **P1-8** 서술형(Python) 분기는 `shell_exec`를 테스트에서 대체할 수 없으므로 이번 범위에서 제외하고 수동 점검 목록에 둔다.
+- [x] **P1-0** `tests/TestCase.php`에서 `RolesPermissionsSeeder` 시드 → 기존 `RegistrationTest` 실패 해소
+- [x] **P1-1** 테스트 데이터 헬퍼 `tests/Feature/Quiz/BuildsQuizzes.php` (빈 팩토리 대신 트레이트로 구성: 분류→수업→시험→문제→보기, 응시 기록)
+- [x] **P1-2** 자동 채점
+  - `NormalQuizTest`: 번역(공백 무시 일치), 영작(대소문자·공백), 여러 문제 순서·점수
+  - `AnswerSheetQuizTest`: OMR·듣기평가 일괄 채점(선택형·단답형·영작), 오답 보기 함께 선택 시 오답, 모두 답하기 전 제출 비활성
+  - `SentenceOrderQuizTest`: 정순서 100점, 오순서 0점, 재시도 기록(`retry`, `extra_info`), 선택 취소 후 재선택
+- [x] **P1-3** 중복 제출 → 버그 B3 확인(테스트는 미완료 표시)
+- [x] **P1-4** 재시도 → `SentenceOrderQuizTest`에 포함
+- [x] **P1-5** 수동 채점 `ManualGradingTest`: 정오 변경 시 점수 재계산, 채점 화면 열람 시 `reviewed=true`(현재 동작 기록, B5)
+- [x] **P1-6** 권한 `AccessAndResultsTest`: 비로그인→로그인, 학생→관리자 403, 관리자 홈·학생 홈·응시 시작 화면 렌더링
+- [x] **P1-7** 결과 조회: 본인 결과 200, 남의 응시 ID는 500(현재 동작 기록, B4)
+- [-] **P1-8** 서술형 Python 분기(10자 초과 + 불일치)는 테스트에서 제외, 수동 점검 목록 유지
+
+결과: 44 통과 / 0 실패 / 5 미완료(B1·B2·B3·B6·B7의 올바른 동작 테스트, 버그 수정 시 `markTestIncomplete` 줄을 지우면 됨) / 7 건너뜀
 
 ### P2. 차트 교체 (Laravel 8 유지)
 
@@ -209,12 +215,29 @@ Docker 컨테이너로 서버를 띄우고 SQLite 시드 데이터로 확인한�
 | 자동 채점 회귀 | P1 테스트를 모든 단계에서 실행 |
 | 운영 PHP 업그레이드 후 되돌리기 어려움 | P8-2 병행 설치, P8-6 절차 |
 
-## 8. 작업 로그
+## 8. 발견된 버그
+
+P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정 여부·시점은 결정이 필요하다(D6). 각 항목의 올바른 동작은 테스트에 미완료(`markTestIncomplete`)로 들어 있다.
+
+| ID | 위치 | 증상 | 원인 | 테스트 |
+|---|---|---|---|---|
+| B1 | `UserQuizlv::updatedUserAnswered` | **일반형** 시험에서 선택형 보기를 체크하면 오류 | DB `type_id`(1=선택형)를 상수 `SELECTIVE`(0)와 그대로 비교 → 체크박스 배열에 `trim()` | `NormalQuizTest` selective 2개 |
+| B2 | `UserQuizlv::checkCurrentAnswer` | B1을 고쳐도 선택형 제출 시 오류 | `[$this->userAnswered]`로 배열을 한 번 더 감싸 `explode()`에 배열 전달 | 위와 동일 |
+| B3 | `UserQuizlv::nextQuestion` | 마지막 문제에서 "다음"을 두 번 누르면 기록 중복, 점수 100→50, `quiz_size` 1→2, 이후 오류 | 시험 종료 상태 검사 없음, 트랜잭션 없음 | `SentenceOrderQuizTest::test_submitting_twice…` |
+| B4 | `AppUserController::userQuizDetails` | 남의 응시 ID·없는 ID 조회 시 500 | `first()` 결과 null 검사 없음 → 404가 맞음 | `AccessAndResultsTest` (현재 동작 500으로 고정) |
+| B5 | `QuestionsController::scoreQuestion` | 채점 화면을 열기만 해도 검토 완료 | 화면 조회 시 `reviewed=true` 저장 | `ManualGradingTest` (현재 동작 고정) |
+| B6 | `UserAnswer` + `user-answer.blade.php` | 선택형 문항의 정오(O/X)를 바꾸면 화면 갱신 시 오류. DB 저장은 됨 | `mount()`에서만 `user_answer`를 배열로 바꾸는데 다음 요청에서 모델을 DB에서 다시 읽어 문자열이 됨 → `in_array()` | `ManualGradingTest::test_changing_a_choice…` |
+| B7 | `UserQuizlv::checkCurrentAnswer` | **일반형** 시험의 단답형(type 4) 문제 제출 시 오류 | 단답형 분기가 없어 `null` 반환 | `NormalQuizTest::test_short_answer_is_graded` |
+
+B1·B2·B7로 보아 운영에서는 일반형 시험에 서술형(번역·영작)만, 선택형·단답형은 OMR형으로 쓰고 있을 가능성이 높다(확인 필요).
+
+## 9. 작업 로그
 
 새 항목을 위에 추가한다. 형식: `날짜 | 작업 ID | 결과 | 메모`
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P1 | 완료 | 테스트 44 통과 / 5 미완료 / 7 건너뜀. 버그 B1~B7 발견(8장) |
 | 2026-11-10 | P0-8 | 완료 | 23 통과 / 1 실패(역할 시드 없음, P1-0) / 7 건너뜀. `/login`, `/register`, `/` 200 확인 |
 | 2026-11-10 | 발견 | 수정 | `vendor/laravel/framework/.../Validator.php`에 디버그용 `Log::warning($rule);`이 직접 삽입돼 있었음(`composer status`로 확인) → `composer reinstall laravel/framework`로 원복. 운영 서버 vendor에도 같은 수정이 있는지 P0-7에서 `composer status`로 확인 필요 |
 | 2026-11-10 | 발견 | 수정 | 커밋된 `composer.lock`이 `composer.json`과 불일치(`pamitvn/*` 2개 누락) → `composer update pamitvn/chartisan-php pamitvn/consoletvs-charts`로 해당 패키지만 동기화. 이 과정에서 `consoletvs/charts 6.7`, `balping/json-raw-encoder`가 lock에서 빠짐. 둘 다 P2에서 제거 대상 |
