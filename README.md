@@ -141,6 +141,62 @@ ssh -T git@github.com-quizapp                   # "successfully authenticated" �
 git remote set-url origin git@github.com-quizapp:neojjang/quizapp.git
 git fetch origin                                # 토큰 없이 받아지는지 확인
 ```
+**운영 서버 대안 1: Fine-grained 토큰 + `~/.git-credentials`**
+
+Deploy key를 쓸 수 없을 때 사용한다. `~/.git-credentials`는 **암호화되지 않은 평문 파일**이므로, 유출되더라도 피해가 작도록 토큰의 범위를 좁혀서 발급한다.
+- 원격 주소에 토큰을 넣는 방식과 달리, `git remote -v`·로그에 찍히지 않는다.
+- 새로 받는 폴더의 `.git/config`로도 복사되지 않는다.
+
+1. 토큰 발급: GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token
+   - Repository access: **Only select repositories** → `neojjang/quizapp`
+   - Permissions → Repository permissions → **Contents: Read-only** (나머지는 No access)
+   - Expiration: 기간을 정한다(예: 1년). 만료일을 배포 문서·일정에 기록한다.
+2. 원격 주소에 토큰이 없는지 확인한다(위 3번의 HTTPS 주소).
+   ```shell
+   git remote set-url origin https://github.com/neojjang/quizapp.git
+   ```
+3. `~/.git-credentials`를 직접 작성한다. 토큰이 명령 기록(history)에 남지 않도록 화면에 보이지 않게 입력받는다.
+   ```shell
+   read -rp 'GitHub 사용자명: ' GH_USER
+   read -rsp 'GitHub 토큰(입력 내용은 보이지 않음): ' GH_TOKEN; echo
+   ( umask 077 && printf 'https://%s:%s@github.com\n' "$GH_USER" "$GH_TOKEN" > ~/.git-credentials )
+   unset GH_TOKEN
+   chmod 600 ~/.git-credentials
+   ls -l ~/.git-credentials          # -rw------- 1 ubuntu ubuntu ...
+   ```
+   - 파일은 한 줄에 하나씩 `https://사용자명:토큰@github.com` 형식이다.
+   - 같은 파일에 다른 호스트를 추가할 때는 `>` 대신 `>>`를 쓴다.
+4. git이 이 파일을 쓰도록 설정하고 확인한다.
+   ```shell
+   git config --global credential.helper store
+   git config --show-origin --get credential.helper   # file:/home/ubuntu/.gitconfig  store
+   git fetch origin                                    # 사용자명·토큰을 묻지 않고 받아지면 정상
+   ```
+   - 파일을 직접 쓰지 않고, 4번 설정 후 `git fetch` 때 사용자명과 토큰을 한 번 입력해도 같은 파일이 만들어진다.
+   - 이 경우에도 `chmod 600 ~/.git-credentials`를 확인한다.
+5. 웹서버 계정이 이 파일을 읽을 수 없는지 확인한다.
+   ```shell
+   sudo -u www-data cat ~ubuntu/.git-credentials     # Permission denied 여야 함
+   ```
+6. 토큰 교체(만료 전): 새 토큰을 발급해 3번을 다시 실행하고 `git fetch origin`으로 확인한 뒤, GitHub에서 이전 토큰을 삭제한다.
+
+**운영 서버 대안 2: 메모리에만 잠시 보관 (`cache`)**
+
+배포가 가끔이고 매번 토큰을 입력해도 괜찮다면, 디스크에 아무것도 남기지 않는 방법이다.
+```shell
+git config --global credential.helper 'cache --timeout=3600'   # 입력한 토큰을 1시간 동안만 메모리에 보관
+git fetch origin                                                # 배포할 때마다 사용자명·토큰 입력
+git credential-cache exit                                       # 배포가 끝나면 즉시 지우려면
+```
+토큰은 대안 1과 같은 범위(이 저장소, Contents: Read-only)로 발급한다.
+
+**권장 순서:**
+1. Deploy key: 만료 관리가 필요 없고, 권한이 처음부터 이 저장소 읽기로 제한된다.
+2. 대안 2(`cache`): 디스크에 남지 않는다.
+3. 대안 1(`~/.git-credentials`): 범위를 좁힌 토큰으로만 쓴다.
+
+어느 방법이든 **이미 노출된 토큰은 먼저 폐기**한다.
+
 운영 배포 절차(`docs/upgrade/PLAN.md` P8-3-1)는 기존 운영 폴더의 원격 주소로 새 릴리스를 받는다. 그래서 **배포 전에 운영 폴더의 원격 주소를 먼저 정리**해야 새 폴더에 토큰이 따라가지 않는다.
 
 ### 순서 나열 문제
