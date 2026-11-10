@@ -280,6 +280,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
   grep -E '^(APP_ENV|APP_DEBUG|APP_URL|DB_CONNECTION|SESSION_DRIVER|CACHE_DRIVER|QUEUE_CONNECTION|FILESYSTEM_DRIVER|AWS_BUCKET)=' .env   # 값 확인(비밀번호·키는 출력하지 않음)
   ls -la public/storage storage/app/public 2>/dev/null   # 프로필 사진 등 로컬 저장 파일
   ```
+  - `git remote get-url origin`에 토큰(`ghp_…`)이 들어 있으면 **배포 전에** README의 "Git 원격 주소에서 토큰 제거" 절차로 정리한다(토큰 폐기 → 읽기 전용 Deploy key로 교체). P8-3-1은 이 주소로 새 릴리스를 받으므로, 정리하지 않으면 새 폴더에도 토큰이 따라간다.
 - [ ] **P8-0-3** 변수를 확정해 기록한다(아래는 예시).
 
   | 변수 | 의미 | 예시 |
@@ -596,6 +597,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | 보안 | 문서화 | 원격 주소에 GitHub 토큰이 포함된 것을 발견(개발 PC). README에 토큰 제거·Deploy key 절차 추가, P8-0-2에 운영 서버 확인 항목 추가. 토큰 폐기는 사용자 조치 |
 | 2026-11-10 | 병합 | 완료 | `upgrade/laravel` → `develop` 병합(병합 커밋 `cd76b6a`, `--no-ff`). develop에서 테스트 66 통과. 원격 push는 하지 않음 |
 | 2026-11-10 | P0-1 | 완료 | 미추적 파일 삭제 확인. 테스트 66 통과, 빈 DB 마이그레이션·시드 성공, 브라우저 확인 |
 | 2026-11-10 | P8 | 절차 작성 | D9(Ubuntu 직접 설치) 반영. 서버 정보(8-0) 수집 후 진행 |

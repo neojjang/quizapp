@@ -77,6 +77,72 @@ docker exec quizapp sh -c 'php artisan migrate --force && php artisan config:cac
 - 서술형 채점용 Python(konlpy)은 이미지에 없다. 컨테이너에서 채점하려면 `ANSWER_CHECKER_*` 경로에 맞게 마운트하거나 설치해야 한다.
 
 
+## Git 원격 주소에서 토큰 제거
+
+원격 주소에 GitHub 토큰이 들어 있으면 `.git/config`에 평문으로 저장되고, `git remote -v` 출력이나 로그에도 그대로 노출된다. 개발 PC와 운영 서버 모두 아래 순서로 정리한다.
+
+### 1. 토큰이 들어 있는지 확인
+```shell
+git remote -v
+# https://<사용자>:ghp_xxxx@github.com/neojjang/quizapp 처럼 ':'와 '@' 사이에 값이 있으면 토큰이 포함된 것
+grep -nE 'ghp_|github_pat_' .git/config
+```
+
+### 2. 토큰 폐기 (가장 먼저)
+- 주소에서 지워도 이미 노출된 토큰은 계속 유효하다.
+- GitHub → Settings → Developer settings → Personal access tokens에서 해당 토큰을 **Revoke**한다.
+- 필요하면 권한을 최소로 줄여 새로 발급한다.
+
+### 3. 원격 주소 교체
+```shell
+# HTTPS (개발 PC)
+git remote set-url origin https://github.com/neojjang/quizapp.git
+# SSH (운영 서버 권장, 아래 5번의 Deploy key 사용)
+git remote set-url origin git@github.com-quizapp:neojjang/quizapp.git
+
+git remote -v                                   # 토큰이 없어졌는지 확인
+grep -nE 'ghp_|github_pat_' .git/config || echo "토큰 없음"
+```
+
+### 4. 다른 곳에 남은 토큰 정리
+```shell
+cat ~/.git-credentials 2>/dev/null              # credential.helper store가 토큰을 평문으로 저장한 파일
+git config --global --get-all credential.helper
+grep -nE 'ghp_|github_pat_' ~/.bash_history ~/.zsh_history 2>/dev/null   # 명령 기록에 남은 토큰
+```
+- 위에서 찾은 줄은 삭제한다(`~/.git-credentials`는 파일째 삭제해도 된다).
+- 같은 저장소를 받은 다른 폴더가 있으면 그 폴더도 1~3번을 반복한다. 예: 운영 서버의 이전 릴리스 폴더.
+
+### 5. 앞으로의 인증 방법
+**개발 PC (macOS):** 토큰을 주소에 넣지 않고 키체인이나 GitHub CLI로 인증한다.
+```shell
+gh auth login                                   # 또는
+git config --global credential.helper osxkeychain
+```
+
+**운영 서버 (Ubuntu):** 이 저장소만 **읽을 수 있는** Deploy key(SSH 키)를 쓴다.
+- 서버에 토큰이 남지 않는다.
+- 키가 유출돼도 이 저장소를 읽는 것 외에는 할 수 없다.
+```shell
+ssh-keygen -t ed25519 -C "quizapp-deploy@$(hostname)" -f ~/.ssh/quizapp_deploy -N ""
+cat ~/.ssh/quizapp_deploy.pub
+# → GitHub 저장소 Settings → Deploy keys → Add deploy key 에 붙여넣기 ("Allow write access"는 체크하지 않음)
+
+cat >> ~/.ssh/config <<'EOF'
+Host github.com-quizapp
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/quizapp_deploy
+    IdentitiesOnly yes
+EOF
+chmod 600 ~/.ssh/config ~/.ssh/quizapp_deploy
+
+ssh -T git@github.com-quizapp                   # "successfully authenticated" 확인 (셸 접근은 없다는 안내가 정상)
+git remote set-url origin git@github.com-quizapp:neojjang/quizapp.git
+git fetch origin                                # 토큰 없이 받아지는지 확인
+```
+운영 배포 절차(`docs/upgrade/PLAN.md` P8-3-1)는 기존 운영 폴더의 원격 주소로 새 릴리스를 받는다. 그래서 **배포 전에 운영 폴더의 원격 주소를 먼저 정리**해야 새 폴더에 토큰이 따라가지 않는다.
+
 ### 순서 나열 문제
 - drag & drop 구현 : Livewire Sortable 
 - 1번과 2번 중에서 2번을 사용
