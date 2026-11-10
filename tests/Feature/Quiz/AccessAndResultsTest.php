@@ -51,16 +51,15 @@ class AccessAndResultsTest extends TestCase
             ->assertSee('나는 소녀이다');
     }
 
-    public function test_opening_another_students_result_errors()
+    public function test_another_students_or_missing_result_is_not_found()
     {
-        // 현재 동작 기록: 남의 응시 ID나 없는 ID는 500 (개선 후보 B4 — 404가 맞음)
         $section = $this->makeSection(SectionType::OMR);
         $q = $this->makeQuestion($section, 2, [['나는 소년이다', true]]);
         $header = $this->makeTakenQuiz($this->makeUser(), $section, [[$q, '1', '나는 소년이다']]);
+        $other = $this->makeUser();
 
-        $this->actingAs($this->makeUser())
-            ->get(route('userQuizDetails', $header->id))
-            ->assertStatus(500);
+        $this->actingAs($other)->get(route('userQuizDetails', $header->id))->assertNotFound();
+        $this->actingAs($other)->get(route('userQuizDetails', 9999))->assertNotFound();
     }
 
     public function test_quiz_start_page_renders_for_a_class_room()

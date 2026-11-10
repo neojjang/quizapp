@@ -48,7 +48,8 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | D2 | 작업 트리의 미커밋 변경과 미추적 파일 처리 | — | **결정**: `Dockerfile` 수정(gd 확장 추가 등)은 유지·커밋, `package-lock.json` 이름 변경은 되돌림, 나머지 미추적 파일은 삭제(목록은 로그 참고) |
 | D3 | 관리자 계정이 `user` 역할도 갖는지(현재 차트 API 미들웨어가 `role:user`) | 차트 교체 시 라우트 권한으로 대체되므로 확인만 | 미정 |
 | D4 | 운영 DB 종류·버전, 백업 방법 | — | **결정**: MySQL 또는 MariaDB. 정확한 버전·백업 방법은 P0-7에서 확인 |
-| D6 | 8장 버그(B1~B7) 수정 시점: P2 전에 별도 브랜치로 vs 업그레이드 완료 후 | 업그레이드 전 수정 권장 — 회귀 테스트가 이미 있고, Livewire 3 이전 시 같은 코드를 다시 손대야 함 | 미정 |
+| D6 | 8장 버그(B1~B7) 수정 시점 | — | **결정**: P2 전에 수정 완료(BF 단계). 선택형·단답형 문제는 운영에서 OMR형 시험에서만 사용 |
+| D7 | B8(비활성 문제 출제) 수정 여부 | 수정 권장 — 출제·채점 모두 활성 문제만 대상으로 | 미정 |
 | D5 | Livewire 최신 메이저(3 vs 4) 및 Jetstream 호환 버전 | 해당 단계 시작 시 `composer show -a`로 확인 후 결정 | 미정 |
 
 ## 4. 상태 요약
@@ -57,6 +58,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 |---|---|---|
 | P0 | 준비: 작업 트리 정리, Docker+SQLite 개발 환경, 운영 정보 수집 | [~] P0-1 삭제 실행, P0-7 운영 정보 남음 |
 | P1 | 회귀 테스트 작성 (업그레이드 전 기준선) | [x] |
+| BF | 기존 버그 B1~B7 수정 (D6) | [x] |
 | P2 | 차트 라이브러리 제거 → Chart.js 직접 사용 (Laravel 8 유지) | [ ] |
 | P3 | Laravel 8 → 9, Mix → Vite | [ ] |
 | P4 | Laravel 9 → 10 | [ ] |
@@ -113,6 +115,16 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 - [-] **P1-8** 서술형 Python 분기(10자 초과 + 불일치)는 테스트에서 제외, 수동 점검 목록 유지
 
 결과: 44 통과 / 0 실패 / 5 미완료(B1·B2·B3·B6·B7의 올바른 동작 테스트, 버그 수정 시 `markTestIncomplete` 줄을 지우면 됨) / 7 건너뜀
+
+### BF. 기존 버그 수정 (P2 전, D6)
+
+- [x] **BF-1** B1·B2·B7 `UserQuizlv`: 선택형 판정을 `type_id - 1` 기준으로, 선택 배열을 그대로 전달, 단답형 분기 추가
+- [x] **BF-2** B3 `UserQuizlv::nextQuestion`·`checkAllAnswers`: 시험이 끝난 뒤(`quizInProgress=false`) 들어온 제출은 무시
+- [x] **BF-3** B4 `AppUserController::userQuizDetails`: `firstOrFail()` → 404
+- [x] **BF-4** B5 채점 화면 열람 시 자동 검토 처리 제거, 채점 화면에 **"검토 완료" 버튼** 추가(`POST .../reviewed`, 라우트 `markReviewed`). 검토 후에는 "검토 완료됨" 표시
+- [x] **BF-5** B6 `UserAnswer`: `user_answer` 분리를 `mount()`에서 `render()`로 옮김(뷰 변수 `$selectedAnswerIds`)
+- [x] **BF-6** 테스트 갱신: 미완료 표시 제거, B4는 404, B5는 버튼 동작·학생 권한(403), OMR 중복 제출 테스트 추가 → **51 통과 / 0 실패 / 0 미완료 / 7 건너뜀**
+- [x] **BF-7** Orca 브라우저로 채점 화면 확인: "검토 완료" 클릭 → "검토 완료됨"·성공 메시지 표시, DB `reviewed=1`
 
 ### P2. 차트 교체 (Laravel 8 유지)
 
@@ -229,7 +241,13 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 | B6 | `UserAnswer` + `user-answer.blade.php` | 선택형 문항의 정오(O/X)를 바꾸면 화면 갱신 시 오류. DB 저장은 됨 | `mount()`에서만 `user_answer`를 배열로 바꾸는데 다음 요청에서 모델을 DB에서 다시 읽어 문자열이 됨 → `in_array()` | `ManualGradingTest::test_changing_a_choice…` |
 | B7 | `UserQuizlv::checkCurrentAnswer` | **일반형** 시험의 단답형(type 4) 문제 제출 시 오류 | 단답형 분기가 없어 `null` 반환 | `NormalQuizTest::test_short_answer_is_graded` |
 
-B1·B2·B7로 보아 운영에서는 일반형 시험에 서술형(번역·영작)만, 선택형·단답형은 OMR형으로 쓰고 있을 가능성이 높다(확인 필요).
+**상태: B1~B7 모두 수정 완료(BF 단계).** 운영에서는 선택형·단답형 문제를 OMR형 시험에서만 쓰므로 B1·B2·B7은 실사용 영향이 없었다. B6은 선택형 문항에 정오 변경 UI가 없어 화면에서는 발생하지 않는 경로였다.
+
+| ID | 위치 | 증상 | 원인 | 상태 |
+|---|---|---|---|---|
+| B8 | `UserQuizlv::getNextQuestion`, `getAllQuestions` | 사용 안 함(`is_active=0`) 문제도 출제됨. 문제 수(`quizSize`)는 사용 중인 문제만 세므로, 일반형은 비활성 문제가 섞이면 활성 문제가 출제되지 않을 수 있고, OMR형은 화면에 비활성 문제까지 나와 제출 조건이 어긋남 | 출제 쿼리에 `is_active` 조건 없음 | 미수정 (D7) |
+
+**B5 운영 영향:** 이제 관리자가 채점 화면에서 "검토 완료"를 눌러야 오늘의 채점 목록(`ShowTodayTesters`, `reviewed=0`만 표시)에서 빠진다. 배포 시 관리자에게 안내 필요.
 
 ## 9. 작업 로그
 
@@ -237,6 +255,7 @@ B1·B2·B7로 보아 운영에서는 일반형 시험에 서술형(번역·영�
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | BF | 완료 | B1~B7 수정, 테스트 51 통과. B5는 "검토 완료" 버튼 방식으로 변경. B8 신규 발견(D7) |
 | 2026-11-10 | P1 | 완료 | 테스트 44 통과 / 5 미완료 / 7 건너뜀. 버그 B1~B7 발견(8장) |
 | 2026-11-10 | P0-8 | 완료 | 23 통과 / 1 실패(역할 시드 없음, P1-0) / 7 건너뜀. `/login`, `/register`, `/` 200 확인 |
 | 2026-11-10 | 발견 | 수정 | `vendor/laravel/framework/.../Validator.php`에 디버그용 `Log::warning($rule);`이 직접 삽입돼 있었음(`composer status`로 확인) → `composer reinstall laravel/framework`로 원복. 운영 서버 vendor에도 같은 수정이 있는지 P0-7에서 `composer status`로 확인 필요 |

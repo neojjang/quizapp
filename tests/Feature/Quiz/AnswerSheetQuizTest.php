@@ -85,4 +85,18 @@ class AnswerSheetQuizTest extends TestCase
             ->set('omrAnswered', [0 => [0 => $this->choiceValue($choice, 0)]])
             ->assertSet('isDisabled', true);
     }
+
+    public function test_submitting_twice_does_not_duplicate_records()
+    {
+        $section = $this->makeSection(SectionType::OMR);
+        $choice = $this->makeQuestion($section, 1, [['1번', true], ['2번', false]]);
+
+        $this->start($section)
+            ->set('omrAnswered', [0 => [0 => $this->choiceValue($choice, 0)]])
+            ->call('checkAllAnswers')
+            ->call('checkAllAnswers');
+
+        $this->assertSame(1, Quiz::count());
+        $this->assertEquals(100, QuizHeader::first()->score);
+    }
 }

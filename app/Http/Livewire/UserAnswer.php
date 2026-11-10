@@ -30,14 +30,14 @@ class UserAnswer extends Component
         // $this->isCorrect = (bool)($this->userAnswer->is_correct === '1');
         // $this->isWrong = (bool)($this->userAnswer->is_correct === '0');
         // $this->isHold = (bool)($this->userAnswer->is_correct === '2');
-        if (($this->question->type_id -1)== \App\Constants\Question::SELECTIVE && isset($this->userAnswer)) {
-            $this->userAnswer->user_answer = explode(',', $this->userAnswer->user_answer);
-        }
     }
 
     public function render()
     {
-        return view('livewire.user-answer');
+        // 선택형의 user_answer는 "answerId,answerId" 문자열. 모델은 요청마다 DB에서 다시 읽히므로 매번 분리한다
+        $selectedAnswerIds = isset($this->userAnswer) ? explode(',', (string) $this->userAnswer->user_answer) : [];
+
+        return view('livewire.user-answer', compact('selectedAnswerIds'));
     }
 
     public function updaing($field, $value)

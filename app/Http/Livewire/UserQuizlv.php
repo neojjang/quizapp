@@ -115,7 +115,8 @@ class UserQuizlv extends Component
     {
         Log::debug(__METHOD__);
         Log::debug($this->userAnswered);
-        if ($this->currentQuestion->type_id != \App\Constants\Question::SELECTIVE) {
+        // DB type_id는 1부터 시작, 상수는 0부터 시작
+        if (($this->currentQuestion->type_id - 1) != \App\Constants\Question::SELECTIVE) {
             # 주관식인 경우
             if (empty(trim($this->userAnswered))) {
                 $this->isDisabled = true;
@@ -345,7 +346,8 @@ class UserQuizlv extends Component
             // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
             $this->quizid->questions_taken = serialize($this->answeredQuestions);
 
-            return $this->checkChoiceAnswer($this->currentQuestion, [$this->userAnswered]);
+            // userAnswered는 체크박스 값("answerId,is_checked") 배열
+            return $this->checkChoiceAnswer($this->currentQuestion, $this->userAnswered);
 //            // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
 //            list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
 //            $userAnswered = $answerId;
@@ -364,6 +366,8 @@ class UserQuizlv extends Component
         } else if ($currentQuestionTypeId == \App\Constants\Question::TRANSLATION) {
             // 주관식(번역)에 대한 처리를 해야만 함
             return $this->checkTranslatedAnswer($this->currentQuestion, $this->userAnswered);
+        } else if ($currentQuestionTypeId == \App\Constants\Question::SHORT_ANSWER) {
+            return $this->checkShortAnswer($this->currentQuestion, $this->userAnswered);
 //            $answerId = $this->currentQuestion->answers[0]->id;
 //
 //            // 주관식 정답 체크
@@ -394,6 +398,10 @@ class UserQuizlv extends Component
     public function nextQuestion()
     {
         Log::debug("nextQuestion : 정답 여부 체크");
+        // 종료된 시험에 대한 중복 제출(더블 클릭 등) 무시
+        if (!$this->quizInProgress) {
+            return;
+        }
         // OMR 타입은 이 함수를 처리 하지 않기 때문에 비교가 필요없음
 //        if ($this->sectionTypeId != \App\Constants\Section::OMR) {
 //
@@ -581,6 +589,10 @@ class UserQuizlv extends Component
     public function checkAllAnswers()
     {
         Log::debug(__METHOD__);
+        // 종료된 시험에 대한 중복 제출(더블 클릭 등) 무시
+        if (!$this->quizInProgress) {
+            return;
+        }
 
         foreach ($this->questions as $idx => $question) {
             $userAnswered = $this->omrAnswered[$idx];

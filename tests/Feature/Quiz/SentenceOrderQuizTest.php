@@ -107,7 +107,6 @@ class SentenceOrderQuizTest extends TestCase
     public function test_submitting_twice_does_not_duplicate_the_record()
     {
         // 마지막 문제에서 "다음" 버튼이 두 번 눌린 경우(더블 클릭)
-        $this->markTestIncomplete('B3: 중복 기록 생성, 점수 100→50, quiz_size 1→2 후 오류 (docs/upgrade/PLAN.md 8장)');
         $component = $this->start(1);
         $this->choose($component, ['I', 'am', 'a boy'])
             ->call('nextQuestion')

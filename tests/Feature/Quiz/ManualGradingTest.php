@@ -42,7 +42,6 @@ class ManualGradingTest extends TestCase
 
     public function test_changing_a_choice_question_result_keeps_the_stored_answer()
     {
-        $this->markTestIncomplete('B6: 선택형 문항의 정오 변경 후 다시 그릴 때 TypeError (docs/upgrade/PLAN.md 8장)');
         $section = $this->makeSection(SectionType::OMR);
         $q = $this->makeQuestion($section, 1, [['정답', true], ['오답', false]]);
         $answerIds = $q->answers[0]->id . ',' . $q->answers[1]->id;
@@ -57,9 +56,8 @@ class ManualGradingTest extends TestCase
         $this->assertEquals(100, $header->fresh()->score);
     }
 
-    public function test_opening_the_grading_screen_marks_the_quiz_reviewed()
+    public function test_quiz_is_reviewed_only_when_admin_marks_it()
     {
-        // 현재 동작 기록: 화면을 열기만 해도 reviewed=true (개선 후보 B5)
         $section = $this->makeSection(SectionType::OMR);
         $q = $this->makeQuestion($section, 2, [['나는 소년이다', true]]);
         $header = $this->makeTakenQuiz($this->makeUser(), $section, [[$q, '2', '나는 소녀이다']]);
@@ -67,8 +65,28 @@ class ManualGradingTest extends TestCase
         $this->actingAs($this->owner)
             ->get(route('scoreQuestion', [$section, $header]))
             ->assertOk()
-            ->assertSee('나는 소녀이다');
+            ->assertSee('나는 소녀이다')
+            ->assertSee('검토 완료');
+        $this->assertEquals(0, $header->fresh()->reviewed);
 
+        $this->actingAs($this->owner)
+            ->post(route('markReviewed', [$section, $header]))
+            ->assertRedirect(route('scoreQuestion', [$section, $header]));
         $this->assertEquals(1, $header->fresh()->reviewed);
+
+        $this->actingAs($this->owner)
+            ->get(route('scoreQuestion', [$section, $header]))
+            ->assertSee('검토 완료됨');
+    }
+
+    public function test_student_cannot_mark_reviewed()
+    {
+        $section = $this->makeSection(SectionType::OMR);
+        $q = $this->makeQuestion($section, 2, [['나는 소년이다', true]]);
+        $student = $this->makeUser();
+        $header = $this->makeTakenQuiz($student, $section, [[$q, '2', '나는 소녀이다']]);
+
+        $this->actingAs($student)->post(route('markReviewed', [$section, $header]))->assertForbidden();
+        $this->assertEquals(0, $header->fresh()->reviewed);
     }
 }

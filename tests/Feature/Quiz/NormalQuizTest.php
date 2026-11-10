@@ -25,7 +25,6 @@ class NormalQuizTest extends TestCase
 
     public function test_selective_correct_answer_scores_100()
     {
-        $this->markTestIncomplete('B1/B2: 일반형 시험의 선택형 문제 제출 시 TypeError (docs/upgrade/PLAN.md 8장)');
         $section = $this->makeSection();
         $q = $this->makeQuestion($section, 1, [['정답', true], ['오답', false]]);
 
@@ -43,7 +42,6 @@ class NormalQuizTest extends TestCase
 
     public function test_selective_wrong_answer_scores_0()
     {
-        $this->markTestIncomplete('B1/B2: 일반형 시험의 선택형 문제 제출 시 TypeError (docs/upgrade/PLAN.md 8장)');
         $section = $this->makeSection();
         $q = $this->makeQuestion($section, 1, [['정답', true], ['오답', false]]);
 
@@ -104,7 +102,6 @@ class NormalQuizTest extends TestCase
 
     public function test_short_answer_is_graded()
     {
-        $this->markTestIncomplete('B7: 일반형 시험의 단답형 문제는 채점 분기가 없어 제출 시 오류 (docs/upgrade/PLAN.md 8장)');
         $section = $this->makeSection();
         $this->makeQuestion($section, 4, [['Apple', true]]);
 

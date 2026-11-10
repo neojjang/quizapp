@@ -144,11 +144,18 @@ class QuestionsController extends Controller
         // $questions = collect($questions)->transform(function($item) {
         //     return $item;
         // });
+        return view('admins.score_questions', compact('section', 'user', 'questions', 'userQuiz', 'quizHeader', 'choice', 'resultMark')); // , ["userQuiz" => $userQuiz]
+    }
+
+    // 채점 화면을 여는 것만으로는 검토 완료로 보지 않는다. 관리자가 "검토 완료"를 눌러야 함
+    public function markReviewed(Section $section, QuizHeader $quizHeader)
+    {
         $quizHeader->reviewed = true;
         $quizHeader->save();
         Log::debug("update quiz_header.id={$quizHeader->id} reviewed=true ");
 
-        return view('admins.score_questions', compact('section', 'user', 'questions', 'userQuiz', 'quizHeader', 'choice', 'resultMark')); // , ["userQuiz" => $userQuiz]
+        return redirect()->route('scoreQuestion', [$section, $quizHeader])
+            ->withSuccess('검토 완료로 표시했습니다.');
     }
 
     public function createOMRSheet(Section $section)
