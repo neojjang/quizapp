@@ -24,7 +24,7 @@ class AnswerSheetQuizTest extends TestCase
             ->call('startQuiz');
     }
 
-    public function sectionTypes(): array
+    public static function sectionTypes(): array
     {
         return [
             'OMR' => [SectionType::OMR],

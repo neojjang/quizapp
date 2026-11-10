@@ -4,8 +4,8 @@ services:
     build:
       context: docker/dev
       args:
-        PHP_VERSION: ${PHP_VERSION:-8.1}
-    image: quizapp-dev:php${PHP_VERSION:-8.1}
+        PHP_VERSION: ${PHP_VERSION:-8.2}
+    image: quizapp-dev:php${PHP_VERSION:-8.2}
     working_dir: /app
     volumes:
       - .:/app

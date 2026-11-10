@@ -61,7 +61,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | BF | 기존 버그 B1~B7 수정 (D6) | [x] |
 | P2 | 차트 라이브러리 제거 → Chart.js 직접 사용 (Laravel 8 유지) | [x] |
 | P3 | Laravel 8 → 9, Mix → Vite | [x] |
-| P4 | Laravel 9 → 10 | [ ] |
+| P4 | Laravel 9 → 10 | [x] |
 | P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [ ] |
 | P6 | Laravel 11 → 12 (→ 13, D1) | [ ] |
 | P7 | 정리: 레거시 패키지 제거, 하드코딩 경로 설정화 | [ ] |
@@ -162,11 +162,13 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 ### P4. Laravel 9 → 10
 
-- [ ] **P4-1** 컨테이너 `PHP_VERSION=8.2`
-- [ ] **P4-2** composer: `laravel/framework ^10`, `phpunit ^10`, `collision ^7`, `laravel/sanctum ^3.2`, `spatie/laravel-permission ^6`
-- [ ] **P4-3** 가이드 10.x 적용: `$dates` 속성 → `$casts`, `Bus::dispatchNow` 등 제거된 API 검색
-- [ ] **P4-4** `phpunit.xml` PHPUnit 10 형식으로 마이그레이션
-- [ ] **P4-5** 테스트·수동 점검 → 로그 → 커밋
+- [x] **P4-1** 개발 컨테이너 PHP 8.2(`compose.dev.yml` 기본값 변경, 8.2.35)
+- [x] **P4-2** composer(`--no-blocking`): `laravel/framework 10.50.4`, `spatie/laravel-permission 6.25.0`, `phpunit 10.5.66`, `collision ^7`, `spatie/laravel-ignition ^2`, `sanctum ^3.3`
+  - `laravel/jetstream`은 2.16.2 유지(Laravel 10 지원). Jetstream 3·4는 Laravel 10 전용이라 건너뛰고 P5에서 5로 올림
+  - Spatie 6: 미들웨어 네임스페이스 `Middlewares` → `Middleware`(`app/Http/Kernel.php`)
+- [x] **P4-3** 제거된 API 검색(`$dates`, `dispatchNow`, `Redirect::home` 등): 사용처 없음
+- [x] **P4-4** `phpunit.xml`을 PHPUnit 10 형식으로 변환(`<coverage>` → `<source>`), 데이터 제공 메서드를 `static`으로, `.phpunit.cache` 무시. 경고(deprecation) 없음
+- [x] **P4-5** 테스트 55 통과. Orca 브라우저: 관리자 홈·학생 홈(차트), 채점 화면, 오늘의 채점, 본인 결과(다른 학생 기록은 404), 달력 다음 달 이동(Livewire) 확인, 콘솔 오류 없음
 
 ### P5. Laravel 10 → 11, Livewire 3, Jetstream 5
 
@@ -266,6 +268,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P4 | 완료 | Laravel 10.50, PHP 8.2, PHPUnit 10, Permission 6. 테스트 55 통과 |
 | 2026-11-10 | P3 | 완료 | Laravel 9.52, Vite 7, Tailwind 3.4. 테스트 55 통과, 브라우저 응시 흐름 확인. 중간 단계는 `--no-blocking` 필요(배포 금지) |
 | 2026-11-10 | BF-8 | 완료 | B8 수정, 테스트 55 통과 |
 | 2026-11-10 | P2 | 완료 | 차트 라이브러리 제거, Chart.js 4. 테스트 53 통과. `composer audit` 결과 17개 패키지에 보안 권고 60건 — P3~P6 업그레이드로 해소 예정, P7-1에서 재확인 |
