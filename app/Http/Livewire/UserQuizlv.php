@@ -11,6 +11,8 @@ use Illuminate\Support\Arr;
 use Livewire\Component;
 use App\Models\Question;
 use App\Models\QuizHeader;
+use Illuminate\Process\Exceptions\ProcessTimedOutException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 
@@ -250,12 +252,17 @@ class UserQuizlv extends Component
         $checker = config('services.answer_checker');
         // 셸을 거치지 않고 인자 배열로 실행해 학생 답안이 명령으로 해석되지 않게 한다.
         // 기존과 같은 입력(작은따옴표로 감싼 문자열)을 받도록 escapeshellarg 결과를 그대로 넘긴다.
-        $process = Process::timeout($checker['timeout'])->run([
-            $checker['python'],
-            $checker['script'],
-            escapeshellarg($questionAnswer),
-            escapeshellarg($userAnswered),
-        ]);
+        try {
+            $process = Process::timeout($checker['timeout'])->run([
+                $checker['python'],
+                $checker['script'],
+                escapeshellarg($questionAnswer),
+                escapeshellarg($userAnswered),
+            ]);
+        } catch (ProcessTimedOutException $e) {
+            Log::error('answer checker timed out', ['timeout' => $checker['timeout']]);
+            return 0.0;
+        }
 
         if ($process->failed()) {
             Log::error('answer checker failed', ['exit' => $process->exitCode(), 'error' => trim($process->errorOutput())]);
@@ -322,28 +329,15 @@ class UserQuizlv extends Component
      */
     public function checkChoiceAnswer($question, $userAnswered)
     {
-        // 정답 갯수
-        $correctCount = $question->answers()->where('is_checked', '=', '1')->count();
-        Log::debug("{$question->id}, correctCount={$correctCount}");
-
-        $answerIds = [];
-        $userFirstAnswerId = 0;
-        $userCorrectCount = 0;
-        foreach ($userAnswered as $index => $value) {
-            list($answerId, $isChoiceCorrect) = explode(',', $value);
-            if ($isChoiceCorrect == '1') $userCorrectCount += 1;
-            else $userCorrectCount -= 1;
-            if ($userFirstAnswerId == 0) $userFirstAnswerId = $answerId;
-            array_push($answerIds, $answerId);
-        }
-        // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
-        // list($answerId, $isChoiceCorrect) = explode(',', $userAnswered[0]);
-        // $userAnswered = $answerId;
+        // 브라우저에서는 보기 ID만 받고 정답 여부는 DB로 판정한다. 이 문제의 보기가 아닌 ID와 중복은 버린다
+        $answerIds = collect($userAnswered)->map(fn ($value) => (int) $value)
+            ->intersect($question->answers->pluck('id'))->unique()->values();
+        $correctIds = $question->answers->where('is_checked', '1')->pluck('id');
 
         return [
-            'answerId' => $userFirstAnswerId,
-            'userAnswered' => implode(",",$answerIds),
-            'isChoiceCorrect' => ($correctCount == $userCorrectCount) ? '1':'0'
+            'answerId' => $answerIds->first() ?? 0,
+            'userAnswered' => $answerIds->implode(','),
+            'isChoiceCorrect' => ($answerIds->sort()->values()->all() == $correctIds->sort()->values()->all()) ? '1':'0'
         ];
     }
 
@@ -356,7 +350,7 @@ class UserQuizlv extends Component
             // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
             $this->quizid->questions_taken = serialize($this->answeredQuestions);
 
-            // userAnswered는 체크박스 값("answerId,is_checked") 배열
+            // userAnswered는 체크박스 값(보기 ID) 배열
             return $this->checkChoiceAnswer($this->currentQuestion, $this->userAnswered);
 //            // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
 //            list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
@@ -420,21 +414,31 @@ class UserQuizlv extends Component
 //        }
         $result = $this->checkCurrentAnswer();
 
-        // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
-        Quiz::create([
-            'user_id' => auth()->id(),
-            'quiz_header_id' => $this->quizid->id,
-            'section_id' => $this->currentQuestion->section_id,
-            'question_id' => $this->currentQuestion->id,
-            'answer_id' => $result['answerId'],
-            'user_answer' => $result['userAnswered'],
-            'is_correct' => $result['isChoiceCorrect'],
-            'retry' => ($this->retryCount+1),
-            'extra_info' => (isset($this->extraInfo)) ? json_encode($this->extraInfo) : $this->extraInfo
-        ]);
+        $saved = DB::transaction(function () use ($result) {
+            // 컴포넌트 상태(quizInProgress)는 브라우저가 들고 있어 동시·재전송 요청을 막지 못하므로 DB 기록으로 확인한다
+            if ($this->lockQuizHeader()->where('question_id', $this->currentQuestion->id)->exists()) {
+                return false;
+            }
+            // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
+            Quiz::create([
+                'user_id' => auth()->id(),
+                'quiz_header_id' => $this->quizid->id,
+                'section_id' => $this->currentQuestion->section_id,
+                'question_id' => $this->currentQuestion->id,
+                'answer_id' => $result['answerId'],
+                'user_answer' => $result['userAnswered'],
+                'is_correct' => $result['isChoiceCorrect'],
+                'retry' => ($this->retryCount+1),
+                'extra_info' => (isset($this->extraInfo)) ? json_encode($this->extraInfo) : $this->extraInfo
+            ]);
 
-        // Save the record
-        $this->quizid->save();
+            // Save the record
+            $this->quizid->save();
+            return true;
+        });
+        if (!$saved) {
+            return;
+        }
 
         // Increment the quiz counter so we terminate the quiz on the number of question user has selected during quiz creation.
         $this->count++;
@@ -561,6 +565,15 @@ class UserQuizlv extends Component
         $this->startTimer();
     }
 
+    /**
+     * 응시 기록 행을 잠그고(트랜잭션 안에서 호출) 이 응시의 답안 쿼리를 돌려준다.
+     */
+    private function lockQuizHeader()
+    {
+        QuizHeader::whereKey($this->quizid->id)->lockForUpdate()->first();
+        return Quiz::where('quiz_header_id', $this->quizid->id);
+    }
+
     private function getAllQuestions()
     {
         Log::debug(__METHOD__);
@@ -607,14 +620,16 @@ class UserQuizlv extends Component
             return;
         }
 
+        // 채점(Python 포함)을 먼저 끝내고 저장은 한 번에 해서, 중간 실패 시 일부 문항만 저장되지 않게 한다
+        $rows = [];
         foreach ($this->questions as $idx => $question) {
             $userAnswered = $this->omrAnswered[$idx];
 
             if ($question->type_id == 1) {
                 // 객관식에 대한 처리
-                // Livewire 3는 단일 체크박스(omrAnswered.문항.보기순번)에 value 대신 true를 넣으므로 보기 순번으로 값을 만든다
-                $userAnswered = collect($userAnswered)->filter()
-                    ->map(fn ($checked, $i) => is_string($checked) ? $checked : $question->answers[$i]->id.','.$question->answers[$i]->is_checked)
+                // Livewire 3는 단일 체크박스(omrAnswered.문항.보기순번)에 value 대신 true를 넣으므로 보기 순번으로 보기 ID를 찾는다
+                $userAnswered = collect($userAnswered)->filter()->keys()
+                    ->map(fn ($i) => $question->answers[$i]->id ?? null)
                     ->all();
                 $result = $this->checkChoiceAnswer($question, $userAnswered);
             } elseif ($question->type_id == 4) {
@@ -629,10 +644,8 @@ class UserQuizlv extends Component
             }
 
             Log::debug($result);
-            array_push($this->answeredQuestions, $question->id);
 
-            // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
-            Quiz::create([
+            $rows[] = [
                 'user_id' => auth()->id(),
                 'quiz_header_id' => $this->quizid->id,
                 'section_id' => $question->section_id,
@@ -640,12 +653,27 @@ class UserQuizlv extends Component
                 'answer_id' => $result['answerId'],
                 'user_answer' => $result['userAnswered'],
                 'is_correct' => $result['isChoiceCorrect']
-            ]);
+            ];
         }
 
-        $this->quizid->questions_taken = serialize($this->answeredQuestions);
-        // Save the record
-        $this->quizid->save();
+        $saved = DB::transaction(function () use ($rows) {
+            // 컴포넌트 상태(quizInProgress)는 브라우저가 들고 있어 동시·재전송 요청을 막지 못하므로 DB 기록으로 확인한다
+            if ($this->lockQuizHeader()->exists()) {
+                return false;
+            }
+            foreach ($rows as $row) {
+                // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
+                Quiz::create($row);
+            }
+            $this->quizid->questions_taken = serialize(array_column($rows, 'question_id'));
+            // Save the record
+            $this->quizid->save();
+            return true;
+        });
+        if (!$saved) {
+            return;
+        }
+        $this->answeredQuestions = array_column($rows, 'question_id');
 
         // 다중 선택 처리를 위해 아래는 일단 주석
         // 사용자 입력 답안지 리셋

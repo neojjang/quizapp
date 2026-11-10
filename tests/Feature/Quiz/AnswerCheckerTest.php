@@ -72,6 +72,17 @@ class AnswerCheckerTest extends TestCase
         $this->assertEquals('0', $this->submit('나는 학교에 걸어가는 소년입니다')->is_correct);
     }
 
+    public function test_checker_timeout_is_graded_wrong()
+    {
+        // 실제 프로세스를 제한 시간 1초로 실행해 시간 초과 예외를 낸다
+        $script = tempnam(sys_get_temp_dir(), 'checker');
+        file_put_contents($script, '<?php sleep(5);');
+        config(['services.answer_checker' => ['python' => PHP_BINARY, 'script' => $script, 'timeout' => 1]]);
+
+        $this->assertEquals('0', $this->submit('나는 학교에 걸어가는 소년입니다')->is_correct);
+        unlink($script);
+    }
+
     public function test_exact_match_skips_the_checker()
     {
         Process::fake();

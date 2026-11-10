@@ -80,12 +80,10 @@ trait BuildsQuizzes
         return $question->load('answers');
     }
 
-    /** 체크박스 값 형식: "answerId,is_checked" */
+    /** 체크박스 값 형식: 보기 ID(정답 여부는 브라우저에 보내지 않는다) */
     protected function choiceValue(Question $question, int $answerIndex): string
     {
-        $answer = $question->answers[$answerIndex];
-
-        return $answer->id . ',' . $answer->is_checked;
+        return (string) $question->answers[$answerIndex]->id;
     }
 
     protected function mountParams(Section $section): array

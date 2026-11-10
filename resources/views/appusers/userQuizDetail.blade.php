@@ -77,7 +77,7 @@
         @php
         $userAnswer = $userQuiz[$key];
         if (in_array($question->type_id, [(\App\Constants\Question::SELECTIVE+1)])) {
-            $userAnswer->user_answer = explode(",/", $userAnswer->user_answer);
+            $userAnswer->user_answer = explode(",", $userAnswer->user_answer);
         }
         @endphp
         <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">

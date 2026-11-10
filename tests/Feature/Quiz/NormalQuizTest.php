@@ -53,6 +53,49 @@ class NormalQuizTest extends TestCase
         $this->assertEquals('0', Quiz::first()->is_correct);
     }
 
+    public function test_choice_values_do_not_reveal_the_answer()
+    {
+        $section = $this->makeSection();
+        $q = $this->makeQuestion($section, 1, [['정답', true], ['오답', false]]);
+
+        $this->start($section)
+            ->assertSeeHtml('value="' . $q->answers[0]->id . '"')
+            ->assertDontSeeHtml($q->answers[0]->id . ',1');
+    }
+
+    public function test_tampered_choice_values_are_graded_by_the_database()
+    {
+        $section = $this->makeSection();
+        $q = $this->makeQuestion($section, 1, [['정답', true], ['오답', false]]);
+        $other = $this->makeQuestion($section, 1, [['다른 문제 정답', true]]);
+        $wrongId = $q->answers[1]->id;
+
+        // 예전 형식으로 오답에 정답 표시를 붙이거나, 다른 문제의 정답 ID·중복 ID를 섞어 보내도 정답이 되지 않는다
+        $this->start($section)
+            ->set('userAnswered', ["{$wrongId},1", (string) $other->answers[0]->id, "{$wrongId},1"])
+            ->call('nextQuestion');
+
+        $quiz = Quiz::where('question_id', $q->id)->first();
+        $this->assertEquals('0', $quiz->is_correct);
+        $this->assertEquals((string) $wrongId, $quiz->user_answer);
+    }
+
+    public function test_replayed_submission_is_not_saved_again()
+    {
+        $section = $this->makeSection();
+        $q = $this->makeQuestion($section, 1, [['정답', true], ['오답', false]]);
+
+        // 제출 전 상태(quizInProgress=true)를 그대로 다시 보낸 경우: 컴포넌트 가드는 통과하지만 DB 확인에서 막힌다
+        $component = $this->start($section)->set('userAnswered', [$this->choiceValue($q, 1)]);
+        $component->instance()->nextQuestion();
+        $component->instance()->quizInProgress = true;
+        $component->instance()->userAnswered = [$this->choiceValue($q, 0)];
+        $component->instance()->nextQuestion();
+
+        $this->assertSame(1, Quiz::count());
+        $this->assertEquals('0', Quiz::first()->is_correct);
+    }
+
     public function test_translation_exact_match_is_correct()
     {
         $section = $this->makeSection();

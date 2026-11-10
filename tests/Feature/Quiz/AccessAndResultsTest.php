@@ -51,6 +51,18 @@ class AccessAndResultsTest extends TestCase
             ->assertSee('나는 소녀이다');
     }
 
+    public function test_result_marks_every_chosen_option_of_a_multi_answer_question()
+    {
+        $student = $this->makeUser();
+        $section = $this->makeSection(SectionType::OMR);
+        $q = $this->makeQuestion($section, 1, [['1번', false], ['2번', true], ['3번', true]]);
+        $header = $this->makeTakenQuiz($student, $section, [[$q, '1', $q->answers[1]->id . ',' . $q->answers[2]->id]]);
+
+        $html = $this->actingAs($student)->get(route('userQuizDetails', $header->id))->assertOk()->getContent();
+
+        $this->assertSame(2, substr_count($html, '&check;'));
+    }
+
     public function test_another_students_or_missing_result_is_not_found()
     {
         $section = $this->makeSection(SectionType::OMR);

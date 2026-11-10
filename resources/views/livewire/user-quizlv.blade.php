@@ -52,7 +52,7 @@
                                     <span class="px-5">
                                     @foreach($question->answers as $index => $answer)
                                         @if(($question->type_id-1) == \App\Constants\Question::SELECTIVE)
-                                            <input type="checkbox" value="{{$answer->id .','.$answer->is_checked}}" wire:model.live="omrAnswered.{{$key}}.{{$index}}"
+                                            <input type="checkbox" value="{{$answer->id}}" wire:model.live="omrAnswered.{{$key}}.{{$index}}"
                                                    id="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}"
                                                    name="question.{{$key}}.{{$index}}.answer" class="checked:bg-blue-500">
                                             <label for="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}" class="mr-2">{{$answer->answer}}</label>
@@ -118,7 +118,7 @@
                                         <textarea id="question-{{$answer->id}}" type="text" wire:model.live="userAnswered"
                                                   class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('userAnswered') }}</textarea>
                                     @else
-                                        <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model.live="userAnswered" type="checkbox"> </span> {{$answer->answer}}
+                                        <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id}}" wire:model.live="userAnswered" type="checkbox"> </span> {{$answer->answer}}
                                     @endif
                                 </div>
                             </label>

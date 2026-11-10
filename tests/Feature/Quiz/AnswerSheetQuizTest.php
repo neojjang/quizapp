@@ -7,6 +7,7 @@ use App\Http\Livewire\UserQuizlv;
 use App\Models\Quiz;
 use App\Models\QuizHeader;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Process;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -99,6 +100,52 @@ class AnswerSheetQuizTest extends TestCase
 
         $this->assertSame(1, Quiz::count());
         $this->assertEquals(100, QuizHeader::first()->score);
+    }
+
+    public function test_replayed_submission_is_not_saved_again()
+    {
+        $section = $this->makeSection(SectionType::OMR);
+        $this->makeQuestion($section, 1, [['1번', true], ['2번', false]]);
+
+        $component = $this->start($section)->set('omrAnswered.0.1', true);
+        $component->instance()->checkAllAnswers();
+        // 제출 전 상태를 다시 보낸 경우
+        $component->instance()->quizInProgress = true;
+        $component->instance()->omrAnswered = [0 => [0 => true]];
+        $component->instance()->checkAllAnswers();
+
+        $this->assertSame(1, Quiz::count());
+        $this->assertEquals(0, QuizHeader::first()->score);
+    }
+
+    public function test_failure_while_grading_saves_nothing()
+    {
+        $section = $this->makeSection(SectionType::OMR);
+        $this->makeQuestion($section, 4, [['Apple', true]]);
+        $this->makeQuestion($section, 2, [['나는 학교에 가는 소년이다', true]]);
+        Process::fake(['*' => fn () => throw new \RuntimeException('checker crashed')]);
+
+        $component = $this->start($section)->set('omrAnswered', [0 => [0 => 'apple'], 1 => [0 => '나는 학교에 걸어가는 소년입니다']]);
+        try {
+            $component->instance()->checkAllAnswers();
+            $this->fail('예외가 발생해야 한다');
+        } catch (\RuntimeException) {
+        }
+
+        $this->assertSame(0, Quiz::count());
+    }
+
+    public function test_out_of_range_checkbox_index_is_ignored()
+    {
+        $section = $this->makeSection(SectionType::OMR);
+        $this->makeQuestion($section, 1, [['1번', true], ['2번', false]]);
+
+        $this->start($section)
+            ->set('omrAnswered', [0 => [0 => true, 9 => true]])
+            ->call('checkAllAnswers')
+            ->assertSet('showResult', true);
+
+        $this->assertEquals('1', Quiz::first()->is_correct);
     }
 
     public function test_inactive_questions_are_not_shown_or_graded()
