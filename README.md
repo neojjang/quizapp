@@ -157,8 +157,9 @@ Deploy key를 쓸 수 없을 때 사용한다. `~/.git-credentials`는 **암호�
    ```
 3. `~/.git-credentials`를 직접 작성한다. 토큰이 명령 기록(history)에 남지 않도록 화면에 보이지 않게 입력받는다.
    ```shell
-   read -rp 'GitHub 사용자명: ' GH_USER
-   read -rsp 'GitHub 토큰(입력 내용은 보이지 않음): ' GH_TOKEN; echo
+   # bash(Ubuntu)·zsh(macOS) 공통. zsh에서는 read -p 가 다른 의미라 printf + stty 로 입력받는다
+   printf 'GitHub 사용자명: '; read -r GH_USER
+   printf 'GitHub 토큰(입력 내용은 보이지 않음): '; stty -echo; read -r GH_TOKEN; stty echo; echo
    ( umask 077 && printf 'https://%s:%s@github.com\n' "$GH_USER" "$GH_TOKEN" > ~/.git-credentials )
    unset GH_TOKEN
    chmod 600 ~/.git-credentials
