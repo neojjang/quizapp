@@ -6,10 +6,10 @@
                 <h2 class="text-2xl font-bold card bg-green-600 p-4 text-gray-100 rounded-t-lg mx-auto">영작문제지 생성</h2>
                 <div class="max-w-auto mx-auto card p-4 bg-white rounded-b-lg shadow-md">
                     <div class="grid grid-cols-1" x-data={showUploadFile:false} >
-{{--                        <form wire:submit.prevent>--}}
+{{--                        <form x-on:submit.prevent>--}}
                         <div class="inline-flex items-center" x-show="!showUploadFile">
                             <span class="text-gray-700 font-bold">전체 문제 수</span>
-                            <input name="total_questions" id="total_questions" type="text" wire:model.defer="total_questions" class="mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
+                            <input name="total_questions" id="total_questions" type="text" wire:model="total_questions" class="mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                             <button wire:click="changeSheets" id="changeSheets"
                                     class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-500 focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > 문제지 생성 </button>
                             @if(!$is_modify)
@@ -22,7 +22,7 @@
                         <div style="display:none;" x-show="showUploadFile" >
                             <form wire:submit.prevent="parseFile"  method="POST" action="" enctype="multipart/form-data">
                                 <spam class="font-bold text-blue-500 text-xm">CSV 파일을 선택하고, [문제지 생성] 버튼을 눌러 주세요.</spam>
-                                <input name="csv_file" id="csv_file" wire:model.lazy="csv_file" type="file"
+                                <input name="csv_file" id="csv_file" wire:model="csv_file" type="file"
                                        class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 hover:bg-gray-100 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                                        required>
                                 @error('csv_file')<div class="text-red-400 text-sm font-extrabold">csv 파일만 업로드 가능합니다.</div>@enderror
@@ -44,11 +44,11 @@
                         @endif
                         <div class="inline-flex items-center">
                             <span class="text-gray-700 font-bold">문제당 반복 테스트</span>
-                            <input name="retry_answer" type="text" size="3" wire:model="retry_answer" class="mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
+                            <input name="retry_answer" type="text" size="3" wire:model.live="retry_answer" class="mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                             <span class="text-gray-700">회</span>
                             <span class="mx-4"></span>
                             <span class="text-gray-700 font-bold">문제 시작 번호</span>
-                            <input name="question_start_no" type="text" size="5" wire:model.defer="question_start_no" class="inline-flex items-center mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
+                            <input name="question_start_no" type="text" size="5" wire:model="question_start_no" class="inline-flex items-center mt-1 ml-2 text-xs block bg-gray-200 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" />
                             <button wire:click="updateQuestionStartNo" id="updatedQuestionStartNo"
                                     class="m-4 inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring focus:ring-violet-300 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest" > {{' 변경 '}} </button>
                         </div>
@@ -85,17 +85,17 @@
                                 @foreach($questions as $index => $question)
                                 <tr>
                                     <td rowspan="3" class="border border-slate-400 text-center bg-green-100">
-                                        <input type="text" wire:model="questions.{{$index}}.question_no" name="questions.{{$index}}.question_no"
+                                        <input type="text" wire:model.live="questions.{{$index}}.question_no" name="questions.{{$index}}.question_no"
                                            value="{{$question['question_no']}}" class="w-11/12 mx-2"/>
                                         <br />
-                                        시간 : <select class="mt-1" id="timer-{{$index}}-select" wire:model="questions.{{$index}}.timer">
+                                        시간 : <select class="mt-1" id="timer-{{$index}}-select" wire:model.live="questions.{{$index}}.timer">
                                             @for($i=0;$i<9;$i++)
                                                 <option value="{{$i*15}}" @if($i*15 == $question['timer']) selected @endif >{{$i*15}}</option>
                                             @endfor
                                         </select> 초
                                     </td>
                                     <td class="flex align-middle border border-slate-400 justify-items-start">
-                                        해석 :<textarea rows="2" type="text" wire:model="questions.{{$index}}.title"
+                                        해석 :<textarea rows="2" type="text" wire:model.live="questions.{{$index}}.title"
                                                   name="questions.{{$index}}.title" class="w-11/12 mx-3">{{old($question["title"])}}</textarea>
                                     </td>
                                     <td rowspan="3" class="justify-items-start border border-slate-400">
@@ -116,7 +116,7 @@
                                 </tr>
                                 <tr>
                                     <td class="flex align-middle border border-slate-100 justify-items-start text-center">
-                                        문제 :<textarea rows="2" type="text" wire:model.defer="questions.{{$index}}.answer.0.answer" answer_id="{{$question["answer"][0]['answer_id']}}"
+                                        문제 :<textarea rows="2" type="text" wire:model="questions.{{$index}}.answer.0.answer" answer_id="{{$question["answer"][0]['answer_id']}}"
                                               placeholder="I / am / a boy."
                                               name="questions.{{$index}}.answer.0" id="questions.{{$index}}.answer"  class="w-11/12 mx-3">{{old($question["answer"][0]['answer'])}}</textarea>
                                     </td>
@@ -127,9 +127,9 @@
 
                             <div class="flex items-center justify-start mt-4">
                                 <a href="{{route('detailSection', $section->id)}}" class="inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent text-xs rounded-md font-semibold text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">Back</a>
-                                <x-jet-button type="submit" class="text-center ml-4 bg-blue-500">
+                                <x-button type="submit" class="text-center ml-4 bg-blue-500">
                                     {{ __('  저  장  ') }}
-                                </x-jet-button>
+                                </x-button>
                             </div>
                         </form>
                         @endif
@@ -190,7 +190,7 @@
                 // 결과를 출력
                 document.getElementById(`questions.${questionIndex}.answer`).value = output;
                 @this.set(`questions.${questionIndex}.answer.0.answer`, output);
-                // Livewire.find('{{ $this->id }}').set(`questions.${questionIndex}.answer`, output);
+                // Livewire.find('{{ $this->getId() }}').set(`questions.${questionIndex}.answer`, output);
             } catch (e) {
                 console.log(e);
             }

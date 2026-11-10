@@ -8,7 +8,7 @@ use App\Models\Quiz;
 use App\Models\QuizHeader;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Livewire\Testing\TestableLivewire;
+use Livewire\Features\SupportTesting\Testable;
 use Tests\TestCase;
 
 /** 영작나열형: 섞인 구문을 순서대로 선택, 재시도 허용 횟수(retry) 적용 */
@@ -17,7 +17,7 @@ class SentenceOrderQuizTest extends TestCase
     use RefreshDatabase;
     use BuildsQuizzes;
 
-    private function start(int $retry): TestableLivewire
+    private function start(int $retry): Testable
     {
         $section = $this->makeSection(SectionType::ENGLISH_COMPOSITION_CLICK);
         $this->makeQuestion($section, 5, [['I / am / a boy', true]], ['retry' => $retry]);
@@ -29,7 +29,7 @@ class SentenceOrderQuizTest extends TestCase
     }
 
     /** 화면에서 구문을 클릭하는 것과 같다: 섞인 목록에서 위치를 찾아 checkSentenceOrder 호출 */
-    private function choose(TestableLivewire $component, array $phrases): TestableLivewire
+    private function choose(Testable $component, array $phrases): Testable
     {
         foreach ($phrases as $phrase) {
             $index = collect($component->get('currentExample'))

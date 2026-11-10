@@ -461,7 +461,7 @@ class UserQuizlv extends Component
             $this->isTimeout = false;
             if ($this->currentQuestion->timer > 0) {
                 Log::debug("call timerRestart event");
-                $this->emit('timerRestart');
+                $this->dispatch('timerRestart');
             }
 
             $this->isDisabled = ($this->count <= $this->quizSize);
@@ -743,7 +743,7 @@ class UserQuizlv extends Component
         Log::debug($this->showRetry);
         if ($userAnsweredCount == $currentExampleCount) {
             Log::debug('call timerStop event');
-            $this->emit('timerStop');
+            $this->dispatch('timerStop');
         }
     }
 
@@ -831,7 +831,7 @@ class UserQuizlv extends Component
 
         if ($this->currentQuestion->timer > 0) {
             Log::debug("call timerRestart event");
-            $this->emit('timerRestart');
+            $this->dispatch('timerRestart');
         }
     }
 }

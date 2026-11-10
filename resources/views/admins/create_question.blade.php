@@ -103,9 +103,9 @@
                             </div>
                             <div class="flex items-center justify-end mt-4">
                                 <a href="{{route('adminhome')}}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent text-xs  font-semibold text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition">Back</a>
-                                <x-jet-button type="submit" class="ml-4">
+                                <x-button type="submit" class="ml-4">
                                     {{ __('Create') }}
-                                </x-jet-button>
+                                </x-button>
                             </div>
                         </form>
                     </div>

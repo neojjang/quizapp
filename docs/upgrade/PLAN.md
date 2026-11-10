@@ -50,7 +50,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | D4 | 운영 DB 종류·버전, 백업 방법 | — | **결정**: MySQL 또는 MariaDB. 정확한 버전·백업 방법은 P0-7에서 확인 |
 | D6 | 8장 버그(B1~B7) 수정 시점 | — | **결정**: P2 전에 수정 완료(BF 단계). 선택형·단답형 문제는 운영에서 OMR형 시험에서만 사용 |
 | D7 | B8(비활성 문제 출제) 수정 여부 | — | **결정**: 수정. 출제·채점 모두 사용 중인 문제만 |
-| D5 | Livewire 최신 메이저(3 vs 4) 및 Jetstream 호환 버전 | 해당 단계 시작 시 `composer show -a`로 확인 후 결정 | 미정 |
+| D5 | Livewire 최신 메이저(3 vs 4) 및 Jetstream 호환 버전 | — | **결정**: Livewire 3.8. Jetstream 5가 `^3.6.4`를 설치하고 4 지원을 선언하지 않음 |
 
 ## 4. 상태 요약
 
@@ -62,7 +62,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | P2 | 차트 라이브러리 제거 → Chart.js 직접 사용 (Laravel 8 유지) | [x] |
 | P3 | Laravel 8 → 9, Mix → Vite | [x] |
 | P4 | Laravel 9 → 10 | [x] |
-| P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [ ] |
+| P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [x] |
 | P6 | Laravel 11 → 12 (→ 13, D1) | [ ] |
 | P7 | 정리: 레거시 패키지 제거, 하드코딩 경로 설정화 | [ ] |
 | P8 | 운영 배포 | [ ] |
@@ -77,11 +77,12 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 - [~] **P0-1** D2 처리: 확인 완료(로그 참고). 미추적 파일 삭제는 권한 설정상 사용자가 직접 실행해야 함 — 아래 명령
   ```sh
+  # public/vendor/livewire, resources/views/vendor/livewire는 P5에서 이미 옮김
   rm -rf .DS_Store docker/.DS_Store docker/8.0 docker/8.1 docker/8.2 sail composer.lock.bak \
     config/flare.php config/ignition.php config/livewire.office.php config/tinker.php config/trustedproxy.php \
     database/migrations/2020_05_21_*_create_team*.php resources/js/Jetstream resources/js/Pages \
-    resources/views/errors routes/jetstream.php public/vendor/livewire \
-    resources/views/vendor/livewire resources/views/vendor/mail resources/views/vendor/notifications resources/views/vendor/pagination
+    resources/views/errors routes/jetstream.php \
+    resources/views/vendor/mail resources/views/vendor/notifications resources/views/vendor/pagination
   ```
 - [x] **P0-2** `upgrade/laravel` 브랜치를 만든다.
 - [x] **P0-3** 개발용 Docker 구성 `compose.dev.yml` + `docker/dev/Dockerfile`
@@ -174,22 +175,37 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 이 단계가 가장 크다. 하위 작업 단위로 커밋한다.
 
-- [ ] **P5-1** D5 결정(Livewire·Jetstream 호환 버전 확인)
-- [ ] **P5-2** composer: `laravel/framework ^11`, `livewire/livewire`(D5), `laravel/jetstream ^5`, `laravel/sanctum ^4`, `doctrine/dbal` 제거(Laravel 11은 네이티브 컬럼 변경 지원 — P0-5 결과로 재확인)
-- [ ] **P5-3** 애플리케이션 구조: 기존 구조(`Kernel` 등)는 유지 가능 — 슬림 스켈레톤으로 옮기지 않는다(변경 최소화)
-- [ ] **P5-4** Livewire 컴포넌트 8개 이전 (컴포넌트 하나 = 커밋 하나)
-  - [ ] `UserQuizlv` (가장 큼: 유형 분기·채점·저장·타이머)
-  - [ ] `UserAnswer`
-  - [ ] `TestCalendar`
-  - [ ] `ShowTodayTesters`
-  - [ ] `UserDatatable`
-  - [ ] `MakeAnswerSheetForm`
-  - [ ] `MakeListeningTestForm`
-  - [ ] `MakeTestAnswerForm`
-  - 각 컴포넌트 공통: 네임스페이스 `App\Livewire`, `emit`/`dispatchBrowserEvent` → `dispatch`, `$listeners` → `#[On]`, `wire:model`(수식어 없는 35곳) 실시간 반영 필요 여부 판단해 `.live` 지정, `@livewireScripts`/Alpine 중복 로딩 제거(Livewire 3이 Alpine 포함)
-- [ ] **P5-5** Jetstream 5: 인증·프로필·API 토큰 뷰 재게시 후 기존 커스터마이즈 반영, Fortify 액션 비교
-- [ ] **P5-6** `realrashid/sweet-alert` 호환 버전 확인 및 갱신
-- [ ] **P5-7** 테스트·수동 점검 → 로그 → 커밋
+- [x] **P5-1** D5 결정: **Livewire 3**(3.8.11). Jetstream 5.5.3 설치 명령이 `livewire/livewire:^3.6.4`를 요구하고 Livewire 4 지원은 선언되지 않음. Livewire 4는 Jetstream 지원 후 재검토
+- [x] **P5-2** composer(`--no-blocking`): `laravel/framework 11.57.1`, `livewire 3.8.11`, `jetstream 5.5.3`, `fortify 1.41`, `sanctum 4.3.3`, `collision ^8`, `doctrine/dbal` 제거(Laravel 11은 컬럼 변경을 자체 지원). 세 패키지가 서로를 요구해 한 번에 올림
+- [x] **P5-3** 기존 구조(`app/Http/Kernel.php` 등) 유지. Livewire 클래스 네임스페이스도 `App\Http\Livewire` 유지(`config/livewire.php`의 `class_namespace`)
+- [x] **P5-4** Livewire 3 이전(컴포넌트 8개, 화면 확인 포함)
+  - 설정: `config/livewire.php`를 v3 형식으로 교체하고 기존 값(네임스페이스, 레이아웃, mp3 100MB 업로드 규칙) 유지. `config/sanctum.php`는 v4 기본값(수정 없던 파일)
+  - `wire:model` 의미 보존: 수식어 없음 → `.live`, `.defer` → 없음, `.lazy`(CSV 파일) → 없음, `.debounce` → `.live.debounce`
+  - `emit` → `dispatch`(타이머 이벤트 3곳)
+  - 값 없는 `<form wire:submit.prevent>` 4곳 → `x-on:submit.prevent`(Livewire 3에서는 빈 `$wire.` 호출 오류)
+  - `{{ $this->id }}` → `{{ $this->getId() }}`(Livewire 3에서 제거된 속성. JS 주석 안이어도 Blade가 평가함)
+  - 영작나열형 타이머 스크립트(가장 큰 변경):
+    - Livewire 3는 갱신으로 나타난 `<script>`를 실행하지 않으므로 Livewire의 script 블록 디렉티브로 감쌈
+    - `@this.x = v`(Livewire 3에서는 다음 요청까지 지연) → `$wire.set('x', v)`
+    - 이 블록은 새 HTML이 DOM에 반영되기 전에 실행되므로 요소를 사용할 때마다 조회하도록 변경
+    - 시험 시작 응답의 `timerRestart` 이벤트가 리스너 등록 전에 처리되므로, 첫 문제 타이머는 블록 안에서 `setTimeout(startTimer)`로 시작
+    - 주의: JS 주석 안에 script 디렉티브 이름을 쓰면 Blade가 디렉티브로 컴파일해 출력 버퍼가 어긋나고 응답 JSON이 깨짐
+  - Alpine: Livewire 3에 포함되므로 `app.js`에서 제거, 게스트 레이아웃에 `@livewireStyles`/`@livewireScripts` 추가
+  - sortable 플러그인 `@nextapps-be/livewire-sortablejs` 0.2.0 → 0.4.1(Livewire 3용)
+  - 테스트의 `TestableLivewire` → `Livewire\Features\SupportTesting\Testable`
+- [x] **P5-5** Jetstream 5
+  - `x-jet-*` 접두사 폐지: 컴포넌트를 Jetstream 5 스텁(`resources/views/components`)으로 교체하고 학원 로고 3종(`application-logo`, `application-mark`, `authentication-card-logo`) 유지. `resources/views/vendor/jetstream` 삭제. 앱 화면 32개의 `<x-jet-` → `<x-`
+  - git 이력으로 실제 수정된 화면만 골라 보존: 로그인 화면의 회원가입 링크, 비밀번호 찾기 화면의 로그인 링크를 Jetstream 5 화면에 다시 적용. 수정 없던 인증·프로필·API 화면은 Jetstream 5 스텁으로 교체. 레이아웃·내비게이션 메뉴는 앱 것 유지
+  - `config/jetstream.php`에 `auth_session`, `guard` 추가, `DeleteUser` 시그니처 갱신
+  - Jetstream 기능 테스트를 Jetstream 5 스텁으로 교체(로그인 후 이동 경로는 앱의 `RouteServiceProvider::HOME`)
+- [x] **P5-6** `realrashid/sweet-alert 7.3.2` 그대로 호환
+- [x] **P5-7** 테스트 **56 통과** / 0 실패 / 7 건너뜀, deprecation 없음. Orca 브라우저 확인(모두 정상):
+  - 일반형 응시(선택형·번역) → 100%
+  - 영작나열형: 타이머 카운트다운·10초 미만 빨간색·시간 초과 시 재시도 버튼, 재시도 후 타이머 재시작, 순서 선택 완료 시 타이머 정지, 제출 → `retry=2`·`extra_info` 2회 기록
+  - 구문 드래그 정렬(sortable) → 서버 순서 반영
+  - 관리자: 사용자 검색, 수동 채점 정오 변경 → 점수 100→50, OMR 답지 출제·저장, 영작나열 문제 출제(단어 분할 → 저장), 듣기평가 출제 화면 렌더링·답지 생성
+  - 프로필 이름 수정(Jetstream 5)
+  - 미확인: 듣기평가 mp3 업로드(S3), 게스트 화면(로그인 등)의 Alpine 동작은 테스트로만 확인
 
 ### P6. Laravel 11 → 12 (→ 13)
 
@@ -260,6 +276,8 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 |---|---|---|---|---|
 | B8 | `UserQuizlv::getNextQuestion`, `getAllQuestions` | 사용 안 함(`is_active=0`) 문제도 출제됨. 문제 수(`quizSize`)는 사용 중인 문제만 세므로, 일반형은 비활성 문제가 섞이면 활성 문제가 출제되지 않을 수 있고, OMR형은 화면에 비활성 문제까지 나와 제출 조건이 어긋남 | 출제 쿼리에 `is_active` 조건 없음 | 수정 (BF-8) |
 
+| B9 | `make-test-answer-form`, `make-listening-test-form` 뷰 | 선택형 보기 번호 "1"을 클릭하면 2번 보기가 체크됨 | 첫 `<label for>`가 `answer.1`을 가리킴 | 수정 (P5) |
+
 **B5 운영 영향:** 이제 관리자가 채점 화면에서 "검토 완료"를 눌러야 오늘의 채점 목록(`ShowTodayTesters`, `reviewed=0`만 표시)에서 빠진다. 배포 시 관리자에게 안내 필요.
 
 ## 9. 작업 로그
@@ -268,6 +286,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P5 | 완료 | Laravel 11.57, Livewire 3.8, Jetstream 5.5. 테스트 56 통과, 주요 화면 브라우저 확인. 미추적 `public/vendor/livewire`(Livewire 2 자산)가 Livewire 3 스크립트 대신 로드되는 문제 → 스크래치패드로 이동(P0-1 삭제 대상). 같은 이유로 `resources/views/vendor/livewire`도 이동 |
 | 2026-11-10 | P4 | 완료 | Laravel 10.50, PHP 8.2, PHPUnit 10, Permission 6. 테스트 55 통과 |
 | 2026-11-10 | P3 | 완료 | Laravel 9.52, Vite 7, Tailwind 3.4. 테스트 55 통과, 브라우저 응시 흐름 확인. 중간 단계는 `--no-blocking` 필요(배포 금지) |
 | 2026-11-10 | BF-8 | 완료 | B8 수정, 테스트 55 통과 |
