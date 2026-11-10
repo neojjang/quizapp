@@ -58,7 +58,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 | 단계 | 내용 | 상태 |
 |---|---|---|
-| P0 | 준비: 작업 트리 정리, Docker+SQLite 개발 환경, 운영 정보 수집 | [~] P0-1 삭제 실행, P0-7 운영 정보 남음 |
+| P0 | 준비: 작업 트리 정리, Docker+SQLite 개발 환경, 운영 정보 수집 | [~] P0-7 운영 정보 남음(P8-0과 같은 작업) |
 | P1 | 회귀 테스트 작성 (업그레이드 전 기준선) | [x] |
 | BF | 기존 버그 B1~B7 수정 (D6) | [x] |
 | P2 | 차트 라이브러리 제거 → Chart.js 직접 사용 (Laravel 8 유지) | [x] |
@@ -77,15 +77,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 ### P0. 준비
 
-- [~] **P0-1** D2 처리: 확인 완료(로그 참고). 미추적 파일 삭제는 권한 설정상 사용자가 직접 실행해야 함 — 아래 명령
-  ```sh
-  # public/vendor/livewire, resources/views/vendor/livewire는 P5에서 이미 옮김
-  rm -rf .DS_Store docker/.DS_Store docker/8.0 docker/8.1 docker/8.2 sail composer.lock.bak \
-    config/flare.php config/ignition.php config/livewire.office.php config/tinker.php config/trustedproxy.php \
-    database/migrations/2020_05_21_*_create_team*.php resources/js/Jetstream resources/js/Pages \
-    resources/views/errors routes/jetstream.php \
-    resources/views/vendor/mail resources/views/vendor/notifications resources/views/vendor/pagination
-  ```
+- [x] **P0-1** D2 처리: 미추적 파일 삭제 완료(사용자 실행, 2026-11-10). 작업 트리 깨끗함(`git status` 비어 있음), 삭제 후 테스트 66 통과·빈 DB 마이그레이션 성공·주요 화면과 404 페이지 정상
 - [x] **P0-2** `upgrade/laravel` 브랜치를 만든다.
 - [x] **P0-3** 개발용 Docker 구성 `compose.dev.yml` + `docker/dev/Dockerfile`
   - 빌드 인자 `PHP_VERSION`(P0~P2: 8.1, P3~: 단계별로 올림), 확장: pdo_mysql, zip, gd, bcmath, intl, exif (+ 기본 pdo_sqlite, mbstring)
@@ -604,6 +596,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P0-1 | 완료 | 미추적 파일 삭제 확인. 테스트 66 통과, 빈 DB 마이그레이션·시드 성공, 브라우저 확인 |
 | 2026-11-10 | P8 | 절차 작성 | D9(Ubuntu 직접 설치) 반영. 서버 정보(8-0) 수집 후 진행 |
 | 2026-11-10 | P7-4 | 완료 | 운영 Dockerfile PHP 8.5 FPM 재작성, `.dockerignore`로 `.env` 유출 차단. php-fpm+nginx로 실제 실행·로그인 확인 |
 | 2026-11-10 | P7 | 완료(P7-4 제외) | 남은 패키지 최신화, 보안 버그 B10 수정, 최종 테스트 중 R1(OMR 제출 실패)·B11 발견·수정. 테스트 66 통과 |
