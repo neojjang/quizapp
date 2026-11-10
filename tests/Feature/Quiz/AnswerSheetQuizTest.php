@@ -99,4 +99,20 @@ class AnswerSheetQuizTest extends TestCase
         $this->assertSame(1, Quiz::count());
         $this->assertEquals(100, QuizHeader::first()->score);
     }
+
+    public function test_inactive_questions_are_not_shown_or_graded()
+    {
+        $section = $this->makeSection(SectionType::OMR);
+        $this->makeQuestion($section, 1, [['1번', true], ['2번', false]], ['is_active' => '0']);
+        $active = $this->makeQuestion($section, 4, [['Apple', true]]);
+
+        $this->start($section)
+            ->assertCount('questions', 1)
+            ->set('omrAnswered', [0 => [0 => 'apple']])
+            ->assertSet('isDisabled', false)
+            ->call('checkAllAnswers');
+
+        $this->assertEquals([$active->id], Quiz::pluck('question_id')->all());
+        $this->assertEquals(100, QuizHeader::first()->score);
+    }
 }

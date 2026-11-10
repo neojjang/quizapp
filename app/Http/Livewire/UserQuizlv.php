@@ -165,7 +165,9 @@ class UserQuizlv extends Component
         //     ->inRandomOrder()
         //     ->first();
 
+        // 문제 수(quizSize)와 같은 기준: 사용 중인 문제만 출제
         $question = Question::where('section_id', $this->sectionId)
+            ->where('is_active', '1')
             ->whereNotIn('id', $this->answeredQuestions)
             ->with('answers')
             ->orderBy('id', 'asc') // isRandomOrder()
@@ -553,6 +555,7 @@ class UserQuizlv extends Component
     {
         Log::debug(__METHOD__);
         $questions = Question::where('section_id', $this->sectionId)
+            ->where('is_active', '1')
             ->with('answers')
             ->orderBy('id', 'asc')
             ->get();

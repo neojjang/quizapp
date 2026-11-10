@@ -111,4 +111,21 @@ class NormalQuizTest extends TestCase
 
         $this->assertEquals('1', Quiz::first()->is_correct);
     }
+
+    public function test_inactive_questions_are_not_asked()
+    {
+        $section = $this->makeSection();
+        $this->makeQuestion($section, 2, [['숨김', true]], ['is_active' => '0']);
+        $active = $this->makeQuestion($section, 2, [['나는 소년이다', true]]);
+
+        $this->start($section)
+            ->assertSet('quizSize', 1)
+            ->assertSet('currentQuestion.id', $active->id)
+            ->set('userAnswered', '나는 소년이다')
+            ->call('nextQuestion')
+            ->assertSet('showResult', true);
+
+        $this->assertEquals([$active->id], Quiz::pluck('question_id')->all());
+        $this->assertEquals(100, QuizHeader::first()->score);
+    }
 }
