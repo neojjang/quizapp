@@ -49,7 +49,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | D3 | 관리자 계정이 `user` 역할도 갖는지(차트 API 미들웨어가 `role:user`) | — | **해소**: P2에서 차트 API 자체를 없앰. 차트는 각 홈 화면 권한을 따름 |
 | D4 | 운영 DB 종류·버전, 백업 방법 | — | **결정**: MySQL 또는 MariaDB. 정확한 버전·백업 방법은 P0-7에서 확인 |
 | D6 | 8장 버그(B1~B7) 수정 시점 | — | **결정**: P2 전에 수정 완료(BF 단계). 선택형·단답형 문제는 운영에서 OMR형 시험에서만 사용 |
-| D8 | 운영용 `Dockerfile` 처리: 삭제 vs PHP 8.5·Laravel 13 기준으로 갱신 | 운영이 Ubuntu 직접 실행이면 삭제(쓰지 않는 파일이 잘못된 안내가 됨) | 미정 |
+| D8 | 운영용 `Dockerfile` 처리 | — | **결정**: PHP 8.5·Laravel 13 기준으로 갱신 |
 | D7 | B8(비활성 문제 출제) 수정 여부 | — | **결정**: 수정. 출제·채점 모두 사용 중인 문제만 |
 | D5 | Livewire 최신 메이저(3 vs 4) 및 Jetstream 호환 버전 | — | **결정**: Livewire 3.8. Jetstream 5가 `^3.6.4`를 설치하고 4 지원을 선언하지 않음 |
 
@@ -65,7 +65,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | P4 | Laravel 9 → 10 | [x] |
 | P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [x] |
 | P6 | Laravel 11 → 12 → 13, PHP 8.5 | [x] |
-| P7 | 정리: 남은 패키지 갱신, 채점 실행 보안 수정, 최종 테스트 | [x] (P7-4 Dockerfile은 D8 대기) |
+| P7 | 정리: 남은 패키지 갱신, 채점 실행 보안 수정, 운영 Dockerfile, 최종 테스트 | [x] |
 | P8 | 운영 배포 | [ ] |
 
 각 단계의 공통 완료 조건: **컨테이너에서 `php artisan test` 전부 통과 + 6장 수동 점검 목록 통과 + 로그 기록 + 커밋.**
@@ -232,7 +232,11 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
   - `Process::run([...])`(셸 없이 인자 배열)로 교체. 스크립트가 받는 인자는 기존과 같은 형태(작은따옴표로 감싼 문자열)를 유지해 채점 결과가 바뀌지 않게 함 — 가짜 채점 스크립트로 기존/새 방식의 인자가 같음을 확인
   - 경로를 `config/services.php`의 `answer_checker`로(기본값은 기존 운영 경로라 운영 `.env` 수정 불필요), 제한 시간 30초, 실패 시 오류 기록 후 오답(0점) 처리
   - `AnswerCheckerTest`: 점수 구간별 정답/보류/오답, 셸 없이 인자 전달, 실패 시 오답, 완전 일치 시 스크립트 미실행
-- [ ] **P7-4** 운영용 `Dockerfile`(PHP 8.0 기준이라 현재 코드로는 빌드 불가) 처리 — D8 결정 필요
+- [x] **P7-4** 운영용 `Dockerfile`을 PHP 8.5 FPM + Laravel 13 기준으로 재작성(D8)
+  - 기존 문제: `COPY . /app`이 `.env`(비밀 값)까지 이미지에 넣음, `--ignore-platform-reqs`로 PHP 버전 검사 생략, 쓰지 않는 확장·패키지(imagick, memcached, pgsql 라이브러리, openssh-server 등), `storage` 777 권한, dev 패키지 포함
+  - 변경: `.dockerignore` 추가(`.env`, `vendor`, `node_modules`, 로그·캐시, SQLite 파일, 테스트 등 제외), 실행할 PHP 8.5에서 `composer install --no-dev`(의존성 레이어 캐시), 필요한 확장만(pdo_mysql, mysqli, zip, bcmath, gd, intl, exif + 기본 내장), 운영 `php.ini`·OPcache, 업로드 128M, Asia/Seoul, `storage`·`bootstrap/cache`는 `www-data` 소유, `public/build`는 커밋된 결과 사용(Node 불필요). `config:cache`는 빌드 시점 환경을 고정하므로 컨테이너 시작 후 실행
+  - 검증: 이미지 빌드 → PHP 8.5.12·확장·ini 확인, `.env`·`vendor/phpunit` 미포함 확인 → php-fpm 컨테이너 + nginx 컨테이너로 실행, SQLite로 `migrate --seed`·`config/route/view:cache` 성공 → `/login` 200, 참조하는 CSS·JS·`livewire.min.js` 모두 200, 로그인 POST 302 → 관리자 홈 200(차트 2개). 운영 모드에서는 Livewire가 `livewire.min.js`를 사용
+  - README의 Docker 안내를 운영 이미지 기준으로 교체
 - [x] **P7-5** `README.md`에 개발 환경(Docker + SQLite)·채점 스크립트 설정 추가, sortable 버전 갱신
 - [x] **P7-6** 최종 테스트
   - 자동: 테스트 **66 통과** / 0 실패 / 7 건너뜀, deprecation·경고 없음, `composer audit`·`validate` 통과, 빈 DB에서 `migrate:fresh --seed` 성공
@@ -308,6 +312,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P7-4 | 완료 | 운영 Dockerfile PHP 8.5 FPM 재작성, `.dockerignore`로 `.env` 유출 차단. php-fpm+nginx로 실제 실행·로그인 확인 |
 | 2026-11-10 | P7 | 완료(P7-4 제외) | 남은 패키지 최신화, 보안 버그 B10 수정, 최종 테스트 중 R1(OMR 제출 실패)·B11 발견·수정. 테스트 66 통과 |
 | 2026-11-10 | P6 | 완료 | Laravel 13.40, PHP 8.5.12. 보안 권고 없이 설치. 테스트 56 통과, 브라우저 확인. **이 커밋부터 배포 후보**(P7·P8 남음) |
 | 2026-11-10 | P5 | 완료 | Laravel 11.57, Livewire 3.8, Jetstream 5.5. 테스트 56 통과, 주요 화면 브라우저 확인. 미추적 `public/vendor/livewire`(Livewire 2 자산)가 Livewire 3 스크립트 대신 로드되는 문제 → 스크래치패드로 이동(P0-1 삭제 대상). 같은 이유로 `resources/views/vendor/livewire`도 이동 |

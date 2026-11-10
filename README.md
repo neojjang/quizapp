@@ -63,18 +63,18 @@ Register a new user and login -> Take a Quiz
 The QuizApp is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 
-## docker container 생성
-$ docker build -t quizapp:latest . --no-cache
+## 운영용 Docker 이미지 (PHP 8.5 FPM)
+개발에는 위의 `compose.dev.yml`을 쓰고, `Dockerfile`은 운영 배포용이다.
 
-## docker container 실행
-$ docker run -d -p 8800:8000 -v $(pwd):/app --name quizapp-dev quizapp:latest  php artisan serve --host=0.0.0.0
-$ docker exec -it quizapp-dev /bin/bash
-
-## docker-compose 실행
-$ docker-compose up
-$ docker-compose down
-$ docker-compose stop
-
+```shell
+docker build -t quizapp:latest .
+# php-fpm(9000)이므로 nginx 등이 앞에 필요. .env는 이미지에 포함되지 않으므로(.dockerignore) 실행 시 넣는다
+docker run -d --name quizapp --env-file .env quizapp:latest
+docker exec quizapp sh -c 'php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache'
+```
+- nginx는 `root`를 `/app/public`으로 하고 `.php` 요청을 `컨테이너:9000`으로 넘긴다(정적 파일은 이미지의 `/app/public`을 공유하거나 복사).
+- 업로드 한도(128M), OPcache, 시간대(Asia/Seoul)는 이미지에 설정되어 있다. nginx의 `client_max_body_size 128M`은 별도로 설정한다.
+- 서술형 채점용 Python(konlpy)은 이미지에 없다. 컨테이너에서 채점하려면 `ANSWER_CHECKER_*` 경로에 맞게 마운트하거나 설치해야 한다.
 
 
 ### 순서 나열 문제
