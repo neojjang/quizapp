@@ -63,6 +63,20 @@ class AccessAndResultsTest extends TestCase
         $this->assertSame(2, substr_count($html, '&check;'));
     }
 
+    public function test_result_shows_quiz_duration_in_whole_minutes()
+    {
+        $student = $this->makeUser();
+        $section = $this->makeSection(SectionType::OMR);
+        $q = $this->makeQuestion($section, 2, [['나는 소년이다', true]]);
+        $header = $this->makeTakenQuiz($student, $section, [[$q, '1', '나는 소년이다']]);
+        $header->timestamps = false;
+        $header->forceFill(['created_at' => '2026-11-10 10:00:00', 'updated_at' => '2026-11-10 10:02:30'])->save();
+
+        $html = $this->actingAs($student)->get(route('userQuizDetails', $header->id))->getContent();
+
+        $this->assertMatchesRegularExpression('/\s2 Minutes/', $html);
+    }
+
     public function test_another_students_or_missing_result_is_not_found()
     {
         $section = $this->makeSection(SectionType::OMR);

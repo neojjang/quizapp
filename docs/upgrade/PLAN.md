@@ -241,6 +241,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
   - B14: `ProcessTimedOutException`을 잡아 오류 기록 후 0점
   - 테스트: 정답 미노출, 조작 값(옛 형식·다른 문제 ID·중복 ID), 재전송 무시(일반형·OMR), 채점 중 예외 시 저장 없음, 범위 밖 보기 순번, 실제 프로세스 시간 초과, 결과 화면 복수 선택 ✓. 새 테스트는 수정 전 코드에서 실패 확인. **74 통과** / 7 건너뜀
   - Orca 브라우저: OMR 신규 응시(복수 정답 포함) 66.67%·체크박스 값이 보기 ID만, 결과 상세 화면 ✓ 표시, 일반형 응시 100%·HTML에 정답 표시 없음·"결과 보기" 더블클릭 시 기록 2건(중복 없음)
+- [x] **P7-8** R2 수정(결과 화면 응시 시간 음수 표시, Carbon 3 회귀). 테스트 추가(수정 전 실패 확인), **75 통과**. Orca 브라우저로 결과 화면 "0 Minutes"(16초 응시) 확인
 
 ### P8. 운영 배포 (Ubuntu 직접 설치)
 
@@ -597,6 +598,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 | B13 | `UserQuizlv::nextQuestion`, `checkAllAnswers` | 동시·재전송 요청은 B3 가드(`quizInProgress`)를 통과해 중복 저장. OMR은 중간 문항 예외 시 앞 문항만 저장 | 가드가 브라우저가 들고 있는 컴포넌트 상태, 트랜잭션 없음 | 수정 (P7-7) |
 | B14 | `UserQuizlv::similarityScore` | Python 채점 시간 초과 시 0점 처리 대신 제출 실패(P7-3 의도와 다름) | `Process::run()`은 시간 초과 시 예외를 던져 `failed()` 검사에 도달하지 않음 | 수정 (P7-7) |
 | B15 | `appusers/userQuizDetail.blade.php` | 학생 결과 화면에서 복수 선택한 보기에 ✓ 표시가 없음 | `explode(",/", …)`는 ",/"를 하나의 구분자로 취급 | 수정 (P7-7, 브라우저 확인 중 발견) |
+| R2 | `appusers/userQuizDetail.blade.php` | **Carbon 3 회귀**: 학생 결과 화면의 "Quiz Duration"이 음수 소수(예: -0.27 Minutes)로 표시 | Carbon 2의 `diffInMinutes`는 절댓값 정수, Carbon 3(Laravel 11~)은 부호 있는 소수를 돌려줌. 코드는 `종료->diffInMinutes(시작)` 순서 | 수정 (P7-8): `시작->diffInMinutes(종료)`를 정수로 버려 이전 표시와 같게. 다른 `diffIn*` 사용처(`diffInHours()`, 현재 시각 비교)는 양수라 영향 없음 |
 | R1 | `UserQuizlv::checkAllAnswers` | **Livewire 3 회귀**: OMR·듣기평가에서 선택형 문항이 있으면 제출이 실패 | Livewire 2는 단일 체크박스에 `value`("보기id,정답여부")를 넣었지만 Livewire 3는 `true`를 넣음. P5 테스트는 옛 형식 값을 직접 넣어서 놓침 | 수정 (P7-6): `true`면 보기 순번으로 값 생성. Livewire 3 형식 테스트 추가 |
 
 **B5 운영 영향:** 이제 관리자가 채점 화면에서 "검토 완료"를 눌러야 오늘의 채점 목록(`ShowTodayTesters`, `reviewed=0`만 표시)에서 빠진다. 배포 시 관리자에게 안내 필요.
@@ -607,6 +609,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P7-8 | 완료 | R2(응시 시간 음수 표시, Carbon 3 회귀) 수정. 테스트 75 통과, 브라우저 확인 |
 | 2026-11-10 | P7-7 | 완료 | Codex 리뷰 3건 반영(B12 정답 노출·조작, B13 재전송·부분 저장, B14 채점 시간 초과) + 브라우저 확인 중 B15 발견·수정. 새 마이그레이션 없음. 테스트 74 통과, Orca 브라우저로 OMR·일반형 응시 확인 |
 | 2026-11-10 | 보안 | 문서화 | 원격 주소에 GitHub 토큰이 포함된 것을 발견(개발 PC). README에 토큰 제거·Deploy key 절차 추가, P8-0-2에 운영 서버 확인 항목 추가. 토큰 폐기는 사용자 조치 |
 | 2026-11-10 | 병합 | 완료 | `upgrade/laravel` → `develop` 병합(병합 커밋 `cd76b6a`, `--no-ff`). develop에서 테스트 66 통과. 원격 push는 하지 않음 |

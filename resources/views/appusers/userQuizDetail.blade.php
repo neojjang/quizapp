@@ -65,7 +65,8 @@
                             Quiz Duration
                         </dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            {{$userQuizDetails->updated_at->diffInMinutes($userQuizDetails->created_at) .' Minutes'}}
+                            {{-- Carbon 3의 diffInMinutes는 부호 있는 소수를 돌려주므로 시작→종료 순서로 계산하고 분 단위로 버린다 --}}
+                            {{(int) $userQuizDetails->created_at->diffInMinutes($userQuizDetails->updated_at) .' Minutes'}}
                         </dd>
                     </div>
                 </dl>
