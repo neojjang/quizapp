@@ -63,7 +63,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | P3 | Laravel 8 → 9, Mix → Vite | [x] |
 | P4 | Laravel 9 → 10 | [x] |
 | P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [x] |
-| P6 | Laravel 11 → 12 (→ 13, D1) | [ ] |
+| P6 | Laravel 11 → 12 → 13, PHP 8.5 | [x] |
 | P7 | 정리: 레거시 패키지 제거, 하드코딩 경로 설정화 | [ ] |
 | P8 | 운영 배포 | [ ] |
 
@@ -209,9 +209,14 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 ### P6. Laravel 11 → 12 (→ 13)
 
-- [ ] **P6-1** composer: `laravel/framework ^12`, 관련 패키지 호환 버전
-- [ ] **P6-2** 가이드 12.x 적용, 테스트·수동 점검 → 커밋
-- [ ] **P6-3** 컨테이너 `PHP_VERSION=8.5`, `laravel/framework ^13` 적용, 가이드 13.x, 테스트·수동 점검 → 커밋
+- [x] **P6-1** Laravel 12.71(PHP 8.2): collision 8.6+가 PHPUnit 11을 요구해 `phpunit ^11.5`로 함께 올림. 데이터 제공자를 `#[DataProvider]` 속성으로 변경. **이 단계부터 보안 권고 없음**(`--no-blocking` 불필요). 커밋 `7b7dcfa`
+- [x] **P6-2** 테스트 56 통과, deprecation 없음
+- [x] **P6-3** **Laravel 13.40.0 + PHP 8.5.12**(컨테이너 기본값 8.5), `laravel/tinker 3.0.2`, `php ^8.3`
+  - `--no-blocking` 없이 설치·`composer install` 성공, `composer audit` 보안 권고 없음, `composer validate` 통과
+  - PHP 8.5: `PDO::MYSQL_ATTR_*` 상수 deprecated → `config/database.php`에서 8.5 이상은 `Pdo\Mysql::ATTR_*` 사용. `pdo_mysql`이 없을 때 MySQL 상수를 참조하던 `else` 분기도 `[]`로 정리
+  - 테스트 56 통과, deprecation 없음
+  - Orca 브라우저: 관리자 홈(차트 2), 학생 홈(차트 1), 사용자 목록, 프로필, 오늘의 채점, 채점 화면, OMR 출제 화면 렌더링·Livewire 로드, 영작나열형 응시(타이머·순서 선택·제출 → 100점)
+  - 최신 메이저가 아닌 패키지(P7-1에서 처리): `guzzlehttp/guzzle 7→8`, `phpunit 11→13`, `realrashid/sweet-alert 7→8`, `spatie/laravel-permission 6→8`, `livewire 3→4`(D5로 보류)
 
 ### P7. 정리
 
@@ -286,6 +291,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P6 | 완료 | Laravel 13.40, PHP 8.5.12. 보안 권고 없이 설치. 테스트 56 통과, 브라우저 확인. **이 커밋부터 배포 후보**(P7·P8 남음) |
 | 2026-11-10 | P5 | 완료 | Laravel 11.57, Livewire 3.8, Jetstream 5.5. 테스트 56 통과, 주요 화면 브라우저 확인. 미추적 `public/vendor/livewire`(Livewire 2 자산)가 Livewire 3 스크립트 대신 로드되는 문제 → 스크래치패드로 이동(P0-1 삭제 대상). 같은 이유로 `resources/views/vendor/livewire`도 이동 |
 | 2026-11-10 | P4 | 완료 | Laravel 10.50, PHP 8.2, PHPUnit 10, Permission 6. 테스트 55 통과 |
 | 2026-11-10 | P3 | 완료 | Laravel 9.52, Vite 7, Tailwind 3.4. 테스트 55 통과, 브라우저 응시 흐름 확인. 중간 단계는 `--no-blocking` 필요(배포 금지) |

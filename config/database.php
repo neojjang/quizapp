@@ -59,12 +59,11 @@ return [
             'strict' => true,
             'engine' => null,
             // 'timezone'  => 'Asia/Seoul',
+            // PHP 8.5부터 PDO::MYSQL_ATTR_* 상수는 deprecated → Pdo\Mysql::ATTR_*
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = 'Asia/Seoul'"
-            ]) : [
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = 'Asia/Seoul'"
-            ],
+                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_INIT_COMMAND : \PDO::MYSQL_ATTR_INIT_COMMAND) => "SET time_zone = 'Asia/Seoul'",
+            ]) : [],
         ],
 
         'pgsql' => [
