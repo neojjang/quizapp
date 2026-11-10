@@ -36,6 +36,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 - 서버는 `php -S`로 직접 띄운다. `artisan serve`는 모든 SQL을 `error_log` 채널로 기록하는 설정(`AppServiceProvider`) 때문에 응답이 멈춘다.
 
 ### 운영 환경
+- **Mac mini + Docker로 옮긴다(D10, 2026-11-10).** 외부 접근은 Cloudflare Tunnel, DB는 Docker의 MySQL 또는 MariaDB(기존 운영과 같은 종류). 기존 Ubuntu 서버의 데이터를 이전한다. 절차는 `docs/deploy/MACMINI.md`(P9). 아래 Ubuntu 내용은 P8(보류)의 기준이다.
 - **Ubuntu 서버에 직접 설치해 실행한다(D9).** Docker 이미지(`Dockerfile`)는 운영에 쓰지 않는다. 웹서버는 nginx + php-fpm으로 보이며(README의 nginx 설정 안내) P8-0에서 확인한다. 배포 절차는 5장 P8.
 - 목표: **PHP 8.5.x 최신 보안 패치**(2026-11-10 기준 8.5.12), **Laravel 최신(13)**, DB는 MySQL 또는 MariaDB.
 - Python 서술형 채점: `/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py` (`config/services.php`의 `answer_checker` 기본값. 다르면 `.env`의 `ANSWER_CHECKER_*`)
@@ -52,6 +53,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | D9 | 운영 배포 방식 | — | **결정**: Ubuntu에 직접 설치(PHP 8.5 패키지 + nginx + php-fpm). 절차는 P8 |
 | D8 | 운영용 `Dockerfile` 처리 | — | **결정**: PHP 8.5·Laravel 13 기준으로 갱신 |
 | D7 | B8(비활성 문제 출제) 수정 여부 | — | **결정**: 수정. 출제·채점 모두 사용 중인 문제만 |
+| D10 | 운영 서버 이전 | — | **결정(2026-11-10)**: 기존 Ubuntu 서버를 Mac mini + Docker로 대체하고 데이터를 이전. 외부 접근은 Cloudflare Tunnel, DB는 기존 운영과 같은 종류의 컨테이너(MySQL 8.4 또는 MariaDB 11.4), Python 채점(konlpy)은 앱 이미지에 포함. D9·P8은 보류. 절차는 `docs/deploy/MACMINI.md` |
 | D5 | Livewire 최신 메이저(3 vs 4) 및 Jetstream 호환 버전 | — | **결정**: Livewire 3.8. Jetstream 5가 `^3.6.4`를 설치하고 4 지원을 선언하지 않음 |
 
 ## 4. 상태 요약
@@ -67,7 +69,8 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [x] |
 | P6 | Laravel 11 → 12 → 13, PHP 8.5 | [x] |
 | P7 | 정리: 남은 패키지 갱신, 채점 실행 보안 수정, 운영 Dockerfile, 최종 테스트 | [x] |
-| P8 | 운영 배포 (Ubuntu 직접 설치, 절차는 5장 P8) | [ ] |
+| P8 | 운영 배포 (Ubuntu 직접 설치, 절차는 5장 P8) | 보류 (D10으로 대체) |
+| P9 | Mac mini 운영 배포 (Docker + Cloudflare Tunnel, 절차는 `docs/deploy/MACMINI.md`) | [~] 구성 작성·로컬 검증 완료, M0~ 진행 전 |
 
 각 단계의 공통 완료 조건: **컨테이너에서 `php artisan test` 전부 통과 + 6장 수동 점검 목록 통과 + 로그 기록 + 커밋.**
 
@@ -245,7 +248,24 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 - [x] **P7-9** 코드 리뷰 반영: B16 수정. 재전송 테스트를 "제출 전 상태 복제 → 정상 제출 → 복제본으로 재제출"로 바꿔 중복 없음과 함께 다음 문항 이동·완료 복구(결과 처리 실패 상태 포함)를 확인. 새 테스트는 수정 전 코드에서 실패 확인. **76 통과**. Orca 브라우저: 일반형 "다음 문제"·"결과 보기" 더블클릭 → 2건 저장·100%, OMR 더블클릭 → 3건·66.67%
   - 응답 유실 후 학생이 답을 바꿔 다시 내도 처음 저장된 답이 남는다(서버는 이미 첫 제출을 받았음)
 
-### P8. 운영 배포 (Ubuntu 직접 설치)
+### P9. Mac mini 운영 배포 (Docker + Cloudflare Tunnel)
+
+절차와 체크리스트는 `docs/deploy/MACMINI.md`(M0~M8). 이 절에는 준비 작업과 결과만 기록한다.
+
+- [x] **P9-1** 운영 구성 작성: `compose.prod.yml`(app·web·db·cloudflared, 로그 순환), `Dockerfile`에 `web` 단계(nginx)와 Python 3 + Java + konlpy 추가, `docker/prod/`(nginx 설정, 시작 시 캐시 생성, 채점 패키지 목록, 백업 스크립트)
+- [x] **P9-2** 설정 검토로 찾아 수정한 것
+  - `TrustProxies`: 사설망 프록시 신뢰. 이전에는 모든 접속자 IP가 컨테이너 IP로 보였다
+  - **B17** 빈 MySQL/MariaDB에 새로 설치하면 마이그레이션 실패(아래 8장)
+  - **B18** production에서 Slack 웹훅이 없으면 요청마다 비상 로그(아래 8장)
+  - 컨테이너 시작 시 캐시 생성을 www-data로 실행(root 소유 로그 파일 방지)
+- [x] **P9-3** 로컬 검증(개발 PC arm64, Mac mini와 같은 구조)
+  - 이미지 빌드(약 4분 30초), MySQL 8.4.13·MariaDB 11.4.13 각각: 빈 DB `migrate --seed` 성공(B17 수정 후), 시간대 Asia/Seoul, `backup.sh` → DB 재생성 → 복원 성공
+  - Orca 브라우저(`127.0.0.1:8080`, 확인용으로 `APP_ENV=local`): 로그인 → 번역 문항 응시 → php-fpm(www-data)에서 Python konlpy 채점 실행(임시 스크립트, 0.56 → 보류) → 결과 화면
+  - 사설망 프록시가 보낸 `X-Forwarded-Proto: https`로 secure 쿠키 발급 확인
+  - 미검증: 실제 Cloudflare 터널(토큰 필요, M2·M4-5), 운영 채점 스크립트(`check_answer.py`, M4-4), 운영 DB 덤프 가져오기(M4)
+- [ ] **P9-4** `docs/deploy/MACMINI.md` M0~M8 진행
+
+### P8. 운영 배포 (Ubuntu 직접 설치) — 보류(D10)
 
 **방식 요약**
 - 기존 운영 폴더와 기존 PHP는 **그대로 두고**, PHP 8.5와 새 릴리스 폴더를 **옆에 따로 준비**한다.
@@ -601,6 +621,8 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 | B16 | `UserQuizlv::nextQuestion`, `checkAllAnswers` | **B13 수정의 부작용**: 저장 후 응답이 유실되면 재제출이 "이미 저장됨"으로 그냥 반환돼 다음 문항·결과 화면으로 넘어가지 못함. 마지막 답 저장 후 결과 처리가 실패하면 `completed=0`으로 남고 재제출로도 완료 불가 | 중복 확인 시 진행·완료 처리까지 건너뜀 | 수정 (P7-9): 저장만 건너뛰고 진행·`showResults()`(DB 기록으로 점수·완료를 다시 계산)는 그대로 실행 |
 | B14 | `UserQuizlv::similarityScore` | Python 채점 시간 초과 시 0점 처리 대신 제출 실패(P7-3 의도와 다름) | `Process::run()`은 시간 초과 시 예외를 던져 `failed()` 검사에 도달하지 않음 | 수정 (P7-7) |
 | B15 | `appusers/userQuizDetail.blade.php` | 학생 결과 화면에서 복수 선택한 보기에 ✓ 표시가 없음 | `explode(",/", …)`는 ",/"를 하나의 구분자로 취급 | 수정 (P7-7, 브라우저 확인 중 발견) |
+| B17 | `2022_03_09_134316_add_question_type` 마이그레이션 | 빈 MySQL/MariaDB에 새로 설치하면 이 마이그레이션에서 중단(`Expression could not be converted to string`). 이미 실행된 운영 DB는 영향 없음 | Laravel 10부터 `Blueprint::index()`가 `DB::raw`를 받지 않음. P0-5는 SQLite로만 확인 | 수정 (P9-2): 같은 이름(`questions_question(64)_index`)의 인덱스를 SQL로 생성 |
+| B18 | `config/logging.php` | production에서 `LOG_SLACK_WEBHOOK_URL`이 없으면 요청마다 "Unable to create configured logger" 비상 로그 | production 로그 스택에 slack 고정 | 수정 (P9-2): 웹훅이 있을 때만 slack 포함 |
 | R2 | `appusers/userQuizDetail.blade.php` | **Carbon 3 회귀**: 학생 결과 화면의 "Quiz Duration"이 음수 소수(예: -0.27 Minutes)로 표시 | Carbon 2의 `diffInMinutes`는 절댓값 정수, Carbon 3(Laravel 11~)은 부호 있는 소수를 돌려줌. 코드는 `종료->diffInMinutes(시작)` 순서 | 수정 (P7-8): `시작->diffInMinutes(종료)`를 정수로 버려 이전 표시와 같게. 다른 `diffIn*` 사용처(`diffInHours()`, 현재 시각 비교)는 양수라 영향 없음 |
 | R1 | `UserQuizlv::checkAllAnswers` | **Livewire 3 회귀**: OMR·듣기평가에서 선택형 문항이 있으면 제출이 실패 | Livewire 2는 단일 체크박스에 `value`("보기id,정답여부")를 넣었지만 Livewire 3는 `true`를 넣음. P5 테스트는 옛 형식 값을 직접 넣어서 놓침 | 수정 (P7-6): `true`면 보기 순번으로 값 생성. Livewire 3 형식 테스트 추가 |
 
@@ -612,6 +634,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P9 | 구성·로컬 검증 | D10 결정(Mac mini + Docker + Cloudflare Tunnel, 데이터 이전). `compose.prod.yml`·`docker/prod/`·배포 문서 작성. 검토 중 B17·B18 발견·수정, TrustProxies 설정. MySQL 8.4·MariaDB 11.4로 빈 DB 설치·백업·복원, 브라우저 응시·Python 채점 확인. 테스트 76 통과. 운영 compose 프로젝트 이름을 개발과 같게 두었다가 개발 컨테이너가 교체된 일이 있어 `quizapp-prod`로 분리 |
 | 2026-11-10 | P7-9 | 완료 | 리뷰 반영 B16(재전송 시 화면 진행·완료 복구) 수정. 테스트 76 통과, 브라우저 확인 |
 | 2026-11-10 | P7-8 | 완료 | R2(응시 시간 음수 표시, Carbon 3 회귀) 수정. 테스트 75 통과, 브라우저 확인 |
 | 2026-11-10 | P7-7 | 완료 | Codex 리뷰 3건 반영(B12 정답 노출·조작, B13 재전송·부분 저장, B14 채점 시간 초과) + 브라우저 확인 중 B15 발견·수정. 새 마이그레이션 없음. 테스트 74 통과, Orca 브라우저로 OMR·일반형 응시 확인 |

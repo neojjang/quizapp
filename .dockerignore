@@ -16,9 +16,13 @@
 /tests
 /docs
 /docker
+!/docker/prod
 /.phpunit.cache
 /.bkit
 /.idea
 /.vscode
 .DS_Store
 compose.dev.yml
+/konlpy
+/backups
+compose.prod.yml

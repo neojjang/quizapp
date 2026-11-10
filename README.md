@@ -63,18 +63,15 @@ Register a new user and login -> Take a Quiz
 The QuizApp is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 
-## 운영용 Docker 이미지 (PHP 8.5 FPM)
-개발에는 위의 `compose.dev.yml`을 쓰고, `Dockerfile`은 운영 배포용이다.
+## 운영 (Mac mini + Docker + Cloudflare Tunnel)
+개발에는 위의 `compose.dev.yml`을 쓰고, 운영은 `compose.prod.yml`을 쓴다. 설정 항목과 배포·백업·업데이트 절차는 [`docs/deploy/MACMINI.md`](docs/deploy/MACMINI.md)에 있다.
 
 ```shell
-docker build -t quizapp:latest .
-# php-fpm(9000)이므로 nginx 등이 앞에 필요. .env는 이미지에 포함되지 않으므로(.dockerignore) 실행 시 넣는다
-docker run -d --name quizapp --env-file .env quizapp:latest
-docker exec quizapp sh -c 'php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache'
+docker compose -f compose.prod.yml up -d --build    # app(php-fpm) + web(nginx) + db(MySQL/MariaDB) + cloudflared
 ```
-- nginx는 `root`를 `/app/public`으로 하고 `.php` 요청을 `컨테이너:9000`으로 넘긴다(정적 파일은 이미지의 `/app/public`을 공유하거나 복사).
-- 업로드 한도(128M), OPcache, 시간대(Asia/Seoul)는 이미지에 설정되어 있다. nginx의 `client_max_body_size 128M`은 별도로 설정한다.
-- 서술형 채점용 Python(konlpy)은 이미지에 없다. 컨테이너에서 채점하려면 `ANSWER_CHECKER_*` 경로에 맞게 마운트하거나 설치해야 한다.
+- `Dockerfile`은 `web` 단계(nginx + `public`)와 `app` 단계(PHP 8.5 FPM, Python 채점용 konlpy 포함)로 되어 있다. 단독으로 `docker build -t quizapp .`를 실행하면 `app` 단계가 만들어진다.
+- `app` 컨테이너는 시작할 때 `config/route/view:cache`를 만든다. 업로드 한도(128M), OPcache, 시간대(Asia/Seoul)는 이미지에 설정되어 있다.
+- 서술형 채점 스크립트는 저장소에 없다. 운영 서버의 `konlpy` 폴더를 `./konlpy`에 복사하면 컨테이너의 `/opt/konlpy`로 마운트된다.
 
 
 ## Git 원격 주소에서 토큰 제거

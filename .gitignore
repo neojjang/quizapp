@@ -16,3 +16,7 @@ yarn-error.log
 .DS_Store
 /.bkit
 /.phpunit.cache
+
+# Mac mini 운영(compose.prod.yml): 채점 스크립트 복사본, DB 백업
+/konlpy
+/backups

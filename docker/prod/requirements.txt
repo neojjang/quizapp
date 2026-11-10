@@ -1,0 +1,2 @@
+# 서술형 채점 스크립트(check_answer.py)용 Python 패키지. 운영 서버 venv의 `pip freeze` 결과에 맞춰 추가한다
+konlpy==0.6.0

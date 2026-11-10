@@ -7,7 +7,8 @@ use Monolog\Handler\SyslogUdpHandler;
 if(env("APP_ENV") !== "production")
     $stack = ["daily", "single", "error_log"];
 else
-    $stack = ["daily", "slack", "error_log"];
+    // 웹훅 주소가 없으면 slack 채널 생성이 실패해 매 요청 비상 로거로 떨어지므로 뺀다
+    $stack = env("LOG_SLACK_WEBHOOK_URL") ? ["daily", "slack", "error_log"] : ["daily", "error_log"];
 
 return [
 

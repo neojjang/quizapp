@@ -1,0 +1,85 @@
+# 운영(Mac mini) 배포용. 절차는 docs/deploy/MACMINI.md
+#   docker compose -f compose.prod.yml up -d --build
+# ${...} 값은 같은 폴더의 .env(Laravel 설정 파일)에서 읽는다
+name: quizapp-prod
+
+# 컨테이너 로그가 디스크를 채우지 않게 순환
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  app:
+    build:
+      context: .
+      target: app
+    image: quizapp-app:latest
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      # .env의 같은 항목보다 우선한다(Laravel은 이미 있는 환경 변수를 .env로 덮어쓰지 않음)
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: "3306"
+      ANSWER_CHECKER_PYTHON: /opt/venv/bin/python
+      ANSWER_CHECKER_SCRIPT: /opt/konlpy/check_answer.py
+    volumes:
+      - ${APP_ENV_FILE:-./.env}:/app/.env:ro
+      - storage:/app/storage
+      # 기존 운영 서버의 /home/ubuntu/dongwon/konlpy 폴더를 복사해 둔다
+      - ./konlpy:/opt/konlpy:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      target: web
+    image: quizapp-web:latest
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      - app
+    # Mac mini 자신에서만 확인용(http://127.0.0.1:8080). 외부 접근은 cloudflared 터널로만 한다
+    ports:
+      - "127.0.0.1:8080:80"
+
+  db:
+    # 기존 운영 DB와 같은 종류로 맞춘다. MariaDB면 .env에 DB_IMAGE=mariadb:11.4
+    image: ${DB_IMAGE:-mysql:8.4}
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: Asia/Seoul
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./backups:/backups
+    healthcheck:
+      # mysql 이미지는 mysqladmin, mariadb 11 이미지는 mariadb-admin
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent || mariadb-admin ping -h 127.0.0.1 --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.7
+    restart: unless-stopped
+    logging: *logging
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - web
+
+volumes:
+  storage:
+  db-data:
