@@ -33,13 +33,13 @@ RUN apt-get install -y --no-install-recommends \
        unzip \
        zlib1g-dev  \
        libonig-dev
-RUN docker-php-ext-install mysqli pdo pdo_mysql mbstring zip xml bcmath
+RUN docker-php-ext-install mysqli pdo pdo_mysql mbstring zip xml bcmath gd
 
 COPY --from=builder /app/vendor /app/vendor
 COPY --from=builder /usr/bin/composer /usr/bin/composer
 ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
 RUN chmod 777 -R /app/storage/
-RUN php artisan config:cache
+# RUN php artisan config:cache
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0"]
+# CMD ["php", "artisan", "serve", "--host=0.0.0.0"]

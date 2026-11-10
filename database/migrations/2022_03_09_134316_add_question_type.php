@@ -17,7 +17,10 @@ class AddQuestionType extends Migration
             // "선택형", "번역:서술형(첫번째 답만 사용)", "영작:서술형(첫번째 답만 사용)", "영작:구문나열형(선택)", "영작:구문나열형"
             $table->unsignedTinyInteger('type_id')->default(1)->after('explanation')->comment('문제유형. 1:선택형,2:주관식,3:주관식,4:구문나열형(선택),5:구문나열형');
             // $table->index('question')
-            $table->index([DB::raw('question(64)')]);
+            // 접두사 인덱스는 MySQL/MariaDB 전용 (개발·테스트 SQLite에서는 생략)
+            if (in_array(DB::getDriverName(), ['mysql', 'mariadb'])) {
+                $table->index([DB::raw('question(64)')]);
+            }
         });
     }
 
