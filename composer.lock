@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b14cae845a027d5e1eed15075343d009",
+    "content-hash": "8a756b42aec9ee25017da252c3af4bca",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -267,59 +267,6 @@
                 "source": "https://github.com/Bacon/BaconQrCode/tree/2.0.8"
             },
             "time": "2022-12-07T17:46:57+00:00"
-        },
-        {
-            "name": "bahadorbzd/consoletvs-charts",
-            "version": "dev-main",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/bahadorbzd/consoletvs-charts.git",
-                "reference": "874af83f1ae29a03e8813258c02228ef73ab8519"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/bahadorbzd/consoletvs-charts/zipball/874af83f1ae29a03e8813258c02228ef73ab8519",
-                "reference": "874af83f1ae29a03e8813258c02228ef73ab8519",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/console": "^7.14.1|^8.0|^9.0",
-                "illuminate/contracts": "^7.14.1|^8.0|^9.0",
-                "illuminate/http": "^7.14.1|^8.0|^9.0",
-                "illuminate/support": "^7.14.1|^8.0|^9.0",
-                "php": ">=7.4"
-            },
-            "default-branch": true,
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "ConsoleTVs\\Charts\\ChartsServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Chartisan\\PHP\\": "src/chartisan/",
-                    "ConsoleTVs\\Charts\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "bahadorbzd",
-                    "email": "email.bahador@gmail.com"
-                }
-            ],
-            "description": "The missing charting library on laravel, powered by Chartisan",
-            "support": {
-                "issues": "https://github.com/bahadorbzd/consoletvs-charts/issues",
-                "source": "https://github.com/bahadorbzd/consoletvs-charts/tree/main"
-            },
-            "time": "2022-08-04T20:47:29+00:00"
         },
         {
             "name": "brick/math",
@@ -3449,26 +3396,6 @@
                 "source": "https://github.com/opis/closure/tree/3.6.3"
             },
             "time": "2022-01-27T09:35:39+00:00"
-        },
-        {
-            "name": "pamitvn/chartisan-php",
-            "version": "1.2.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pamitvn/chartisan-php.git",
-                "reference": "master"
-            },
-            "type": "library"
-        },
-        {
-            "name": "pamitvn/consoletvs-charts",
-            "version": "7.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pamitvn/consoletvs-charts.git",
-                "reference": "master"
-            },
-            "type": "library"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -9412,9 +9339,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "bahadorbzd/consoletvs-charts": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

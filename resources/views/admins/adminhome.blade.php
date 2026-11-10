@@ -88,60 +88,20 @@
             <div class="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-2">
                 <div class="flex items-center p-1 bg-white rounded-lg shadow-xs dark:bg-gray-800">
                     <div class="p-4 w-full">
-                        <div class="container px-5 mx-auto" id="chart">
+                        <div class="container px-5 mx-auto">
+                            <x-line-chart title="응시 점수 (최근 100건)" :labels="$scoreChart['labels']" :data="$scoreChart['data']" :max="100" />
                         </div>
                     </div>
                 </div>
                 <!-- Card -->
                 <div class="flex items-center p-1 bg-white rounded-lg shadow-xs dark:bg-gray-800">
                     <div class="p-4 w-full">
-                        <div class="container px-5 mx-auto" id="chart2">
+                        <div class="container px-5 mx-auto">
+                            <x-line-chart title="일별 가입자 (최근 30일)" :labels="$userChart['labels']" :data="$userChart['data']" />
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    @push('js')
-    <script>
-        const GlobalQuizChart = new Chartisan({
-            el: '#chart',
-            url: "@chart('global_quizzes')",
-            loader: {
-                color: '#ff00ff',
-                size: [60, 60],
-                type: 'bar',
-                textColor: '#ffff00',
-                text: 'Loading chart data...',
-            },
-            hooks: new ChartisanHooks()
-                .colors()
-                .beginAtZero()
-                .title('Quiz Scores')
-                .datasets(['line'])
-                .stepSize(25)
-                .responsive()
-        });
-    </script>
-    <script>
-        const MonthlyUserChart = new Chartisan({
-            el: '#chart2',
-            url: "@chart('monthly_users')",
-            loader: {
-                color: '#ff00ff',
-                size: [60, 60],
-                type: 'bar',
-                textColor: '#ffff00',
-                text: 'Loading chart data...',
-            },
-            hooks: new ChartisanHooks()
-                .colors()
-                .beginAtZero()
-                .title('Monthly Users')
-                .datasets(['line'])
-                .stepSize(25)
-                .responsive()
-        });
-    </script>
-    @endpush
 </x-app-layout>

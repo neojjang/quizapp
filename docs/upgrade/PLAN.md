@@ -46,7 +46,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 |---|---|---|---|
 | D1 | 최종 목표 버전 | — | **결정**: Ubuntu 최신, PHP 최신 보안 패치(8.5.x), Laravel 최신(13). P6에서 Laravel 13의 PHP 8.5 지원 여부를 composer로 확인 |
 | D2 | 작업 트리의 미커밋 변경과 미추적 파일 처리 | — | **결정**: `Dockerfile` 수정(gd 확장 추가 등)은 유지·커밋, `package-lock.json` 이름 변경은 되돌림, 나머지 미추적 파일은 삭제(목록은 로그 참고) |
-| D3 | 관리자 계정이 `user` 역할도 갖는지(현재 차트 API 미들웨어가 `role:user`) | 차트 교체 시 라우트 권한으로 대체되므로 확인만 | 미정 |
+| D3 | 관리자 계정이 `user` 역할도 갖는지(차트 API 미들웨어가 `role:user`) | — | **해소**: P2에서 차트 API 자체를 없앰. 차트는 각 홈 화면 권한을 따름 |
 | D4 | 운영 DB 종류·버전, 백업 방법 | — | **결정**: MySQL 또는 MariaDB. 정확한 버전·백업 방법은 P0-7에서 확인 |
 | D6 | 8장 버그(B1~B7) 수정 시점 | — | **결정**: P2 전에 수정 완료(BF 단계). 선택형·단답형 문제는 운영에서 OMR형 시험에서만 사용 |
 | D7 | B8(비활성 문제 출제) 수정 여부 | 수정 권장 — 출제·채점 모두 활성 문제만 대상으로 | 미정 |
@@ -59,7 +59,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | P0 | 준비: 작업 트리 정리, Docker+SQLite 개발 환경, 운영 정보 수집 | [~] P0-1 삭제 실행, P0-7 운영 정보 남음 |
 | P1 | 회귀 테스트 작성 (업그레이드 전 기준선) | [x] |
 | BF | 기존 버그 B1~B7 수정 (D6) | [x] |
-| P2 | 차트 라이브러리 제거 → Chart.js 직접 사용 (Laravel 8 유지) | [ ] |
+| P2 | 차트 라이브러리 제거 → Chart.js 직접 사용 (Laravel 8 유지) | [x] |
 | P3 | Laravel 8 → 9, Mix → Vite | [ ] |
 | P4 | Laravel 9 → 10 | [ ] |
 | P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [ ] |
@@ -128,17 +128,19 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 ### P2. 차트 교체 (Laravel 8 유지)
 
-- [ ] **P2-1** 차트 데이터 계산을 컨트롤러로 옮긴다.
-  - 학생 홈(`AppUserController` → `appusers/userQuizHome`): 최근 30건 점수, 라벨은 응시일
-  - 관리자 홈(`AdminController` → `admins/adminhome`): 최근 100건 점수, 최근 N일 일별 가입자 수(빈 날짜는 0으로 채움)
-- [ ] **P2-2** 기존 버그 수정
-  - `orderBy('created_at','asc')->take(n)` → 최근 n건을 시간순으로 표시
-  - "Monthly Users" 제목과 실제 기간(1주) 불일치 → 제목·기간 중 하나로 맞춘다
-- [ ] **P2-3** 뷰 수정: `<canvas>` + `new Chart(el, { type: 'line', data: { labels: @json($labels), ... } })`
-- [ ] **P2-4** `layouts/app.blade.php`의 unpkg `chart.js@2.9.3`, `@chartisan/chartjs` 스크립트 제거 → Chart.js 4를 npm 의존성으로 추가해 `app.js`에서 `window.Chart`로 노출(Mix 빌드)
-- [ ] **P2-5** 제거: `app/Charts/*`, `config/charts.php`, `AppServiceProvider::boot`의 차트 등록, `config/app.php`의 `ChartsServiceProvider`, composer의 `bahadorbzd/consoletvs-charts`·`pamitvn/consoletvs-charts`·`pamitvn/chartisan-php`와 `repositories` 항목
-- [ ] **P2-6** 차트 데이터 테스트: 컨트롤러가 뷰에 넘기는 `$labels`/`$data` 검증
-- [ ] **P2-7** 브라우저에서 학생·관리자 홈 차트 확인(스크린샷을 로그에 첨부)
+- [x] **P2-1** 차트 데이터를 컨트롤러에서 계산
+  - 학생 홈(`AppUserController::userQuizHome`): 본인 완료 응시 최근 30건 점수, 라벨은 응시일(`m-d`)
+  - 관리자 홈(`AdminController::adminhome`): 완료 응시 최근 100건 점수, 최근 30일 일별 가입자 수(빈 날짜 0). 날짜 그룹핑은 PHP에서 처리해 SQLite·MySQL 차이 없음
+- [x] **P2-2** 기존 버그 수정: 가장 오래된 N건 → 최근 N건(시간순 표시), 미완료 응시(점수 없음) 제외, "Monthly Users"(실제 1주) → "일별 가입자 (최근 30일)"
+- [x] **P2-3** 공용 컴포넌트 `<x-line-chart>`(`resources/views/components/line-chart.blade.php`). `app.js`가 `defer` 로드라 `DOMContentLoaded`에서 그림
+- [x] **P2-4** unpkg의 Chart.js 2.9.3·Chartisan 스크립트 제거 → `chart.js ^4.6.1` npm 의존성, `app.js`에서 `window.Chart`로 노출. 자산은 `npm run prod`로 재빌드(버전 해시 포함)
+  - 이전에 커밋된 CSS(약 8MB)는 Tailwind 클래스를 걸러내지 않은 빌드였음. 설정(`mode: 'jit'`)대로 다시 빌드하면 사용 중인 클래스만 남음(42KB). Blade·PHP에 동적으로 만든 클래스명이 없는 것을 확인
+  - Mix의 구버전 webpack이 Node 22에서 실패해 `compose.dev.yml`의 node 서비스에 `NODE_OPTIONS=--openssl-legacy-provider` 추가(P3에서 제거)
+- [x] **P2-5** 제거: `app/Charts/*`, `config/charts.php`, `AppServiceProvider::boot` 차트 등록, `config/app.php`의 미사용 import, composer 패키지 3개와 `repositories` → `api/chart/*` 라우트도 사라짐
+- [x] **P2-6** `ChartDataTest`: 학생 차트(본인·완료·최근 30건·순서), 관리자 차트(최근 100건, 30일 가입자·빈 날짜 0)
+- [x] **P2-7** Orca 브라우저 확인: 관리자 홈 차트 2개·학생 홈 차트 1개 렌더링, 콘솔 오류 없음
+
+결과: 테스트 **53 통과** / 0 실패 / 7 건너뜀
 
 ### P3. Laravel 8 → 9, Mix → Vite
 
@@ -255,6 +257,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P2 | 완료 | 차트 라이브러리 제거, Chart.js 4. 테스트 53 통과. `composer audit` 결과 17개 패키지에 보안 권고 60건 — P3~P6 업그레이드로 해소 예정, P7-1에서 재확인 |
 | 2026-11-10 | BF | 완료 | B1~B7 수정, 테스트 51 통과. B5는 "검토 완료" 버튼 방식으로 변경. B8 신규 발견(D7) |
 | 2026-11-10 | P1 | 완료 | 테스트 44 통과 / 5 미완료 / 7 건너뜀. 버그 B1~B7 발견(8장) |
 | 2026-11-10 | P0-8 | 완료 | 23 통과 / 1 실패(역할 시드 없음, P1-0) / 7 건너뜀. `/login`, `/register`, `/` 200 확인 |

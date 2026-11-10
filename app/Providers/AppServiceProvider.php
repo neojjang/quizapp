@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\App;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
-use ConsoleTVs\Charts\Registrar as Charts;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,12 +36,8 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot(Charts $charts)
+    public function boot()
     {
-        $charts->register([
-            \App\Charts\UserQuiz::class,
-            \App\Charts\GlobalQuizzes::class,
-            \App\Charts\MonthlyUsers::class,
-        ]);
+        //
     }
 }

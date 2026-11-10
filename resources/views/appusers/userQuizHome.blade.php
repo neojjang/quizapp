@@ -63,7 +63,8 @@
 
                 <section class="text-gray-600 body-font">
                     <div class="p-4 w-full">
-                        <div class="container px-5 py-5 mx-auto" id="chart">
+                        <div class="container px-5 py-5 mx-auto">
+                            <x-line-chart title="내 점수 (최근 30건)" :labels="$scoreChart['labels']" :data="$scoreChart['data']" :max="100" />
                         </div>
                     </div>
                 </section>
@@ -158,26 +159,4 @@
             </div>
         </div>
     </div>
-    @push('js')
-    <script>
-        const chart = new Chartisan({
-            el: '#chart',
-            url: "@chart('user_quiz')",
-            loader: {
-                color: '#ff00ff',
-                size: [60, 60],
-                type: 'bar',
-                textColor: '#ffff00',
-                text: 'Loading some chart data...',
-            },
-            hooks: new ChartisanHooks()
-                .colors()
-                .beginAtZero()
-                .title('Quiz Scores')
-                .datasets(['line'])
-                .stepSize(25)
-                .responsive()
-        });
-    </script>
-    @endpush
 </x-app-layout>

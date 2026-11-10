@@ -2,36 +2,13 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
-    "license": "MIT",
-    "repositories": [{
-        "type": "package",
-        "package": {
-            "name": "pamitvn/consoletvs-charts",
-            "version": "7.3",
-            "source": {
-                "url": "https://github.com/pamitvn/consoletvs-charts.git",
-                "type": "git",
-                "reference": "master"
-            }
-        }
-    },
-        {
-            "type": "package",
-            "package": {
-                "name": "pamitvn/chartisan-php",
-                "version": "1.2.1",
-                "source": {
-                    "url": "https://github.com/pamitvn/chartisan-php.git",
-                    "type": "git",
-                    "reference": "master"
-                }
-            }
-        }
+    "keywords": [
+        "framework",
+        "laravel"
     ],
+    "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
-        "bahadorbzd/consoletvs-charts": "dev-main",
         "doctrine/dbal": "^3.3",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
@@ -42,8 +19,6 @@
         "laravel/tinker": "^2.5",
         "league/flysystem-aws-s3-v3": "*",
         "livewire/livewire": "^2.5",
-        "pamitvn/chartisan-php": "1.2.1",
-        "pamitvn/consoletvs-charts": "7.3",
         "realrashid/sweet-alert": "^4.0",
         "spatie/laravel-permission": "^4.2"
     },

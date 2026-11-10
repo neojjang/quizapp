@@ -21,6 +21,9 @@ services:
   node:
     image: node:22
     working_dir: /app
+    environment:
+      # shortcut: Mix의 구버전 webpack(md4 해시)이 Node 17+에서 실패. P3에서 Vite로 바꾸면 제거
+      NODE_OPTIONS: --openssl-legacy-provider
     volumes:
       - .:/app
     profiles: ["tools"]
