@@ -22,7 +22,7 @@ class TestCalendar extends Component
     {
         $this->year = Carbon::now()->year;
         $this->month = Carbon::now()->month;
-        $this->target_day = 1;
+        $this->target_day = Carbon::now()->day;
 
         if (isset($target_date)) {
             $date = Carbon::createFromFormat('Y-m-d', $target_date);
