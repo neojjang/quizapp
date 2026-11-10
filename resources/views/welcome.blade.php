@@ -392,7 +392,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-1">
                     <div class="p-6">
                         <div class="flex items-center">
-                            <div class="ml-4 text-lg leading-7 font-semibold">한동원영어전문학원</div>
+                            {{-- 로그인 전이면 로그인 화면을 거쳐 홈으로 이동 --}}
+                            <a href="{{ route('userQuizHome') }}" class="ml-4 text-lg leading-7 font-semibold text-gray-900 hover:underline">한동원영어전문학원</a>
                         </div>
                     </div>
 
