@@ -30,4 +30,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // 서술형(번역) 유사도 채점 Python 스크립트. 기본값은 기존 운영 서버 경로
+    'answer_checker' => [
+        'python' => env('ANSWER_CHECKER_PYTHON', '/home/ubuntu/venv/bin/python3'),
+        'script' => env('ANSWER_CHECKER_SCRIPT', '/home/ubuntu/dongwon/konlpy/check_answer.py'),
+        'timeout' => (int) env('ANSWER_CHECKER_TIMEOUT', 30), // 초. konlpy는 JVM 기동으로 첫 실행이 느림
+    ],
+
 ];

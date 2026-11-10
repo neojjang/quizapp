@@ -1,45 +1,42 @@
-FROM composer:latest as builder
-WORKDIR /app
-COPY . /app
-RUN composer install \
-     --ignore-platform-reqs \
-     --no-interaction \
-     --no-plugins \
-     --no-scripts \
-     --prefer-dist
-# RUN composer install
+# 운영 배포용 이미지 (PHP 8.5 FPM + Laravel 13). 개발은 compose.dev.yml 사용
+# 빌드: docker build -t quizapp:latest .
+# 실행: php-fpm(9000 포트)이므로 nginx 등 웹서버가 앞에 필요하다. 환경 설정은 실행 시 .env 마운트 또는 환경 변수로 넣는다.
+FROM php:8.5-fpm
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        unzip \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libzip-dev \
+        libicu-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql mysqli zip bcmath gd intl exif \
+    && rm -rf /var/lib/apt/lists/*
 
-FROM php:8.0-fpm
-WORKDIR /app
-COPY . /app
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
-       git \
-       cron \
-       libfreetype6-dev \
-       libgmp-dev \
-       libjpeg-dev \
-       libmagickwand-dev \
-       libmemcached-dev \
-       libpng-dev \
-       libpq-dev \
-       libssl-dev \
-       libxml2-dev \
-       libz-dev \
-       libzip-dev \
-       nano \
-       openssh-server \
-       unzip \
-       zlib1g-dev  \
-       libonig-dev
-RUN docker-php-ext-install mysqli pdo pdo_mysql mbstring zip xml bcmath
+# 운영 설정: OPcache 사용, 듣기평가 mp3 업로드(최대 100MB)를 위한 업로드 한도 (README의 php.ini 설정과 동일)
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && { \
+        echo 'upload_max_filesize = 128M'; \
+        echo 'post_max_size = 128M'; \
+    } > "$PHP_INI_DIR/conf.d/quizapp.ini"
 
-COPY --from=builder /app/vendor /app/vendor
-COPY --from=builder /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 ENV TZ=Asia/Seoul
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
-RUN chmod 777 -R /app/storage/
-RUN php artisan config:cache
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo "date.timezone = $TZ" > "$PHP_INI_DIR/conf.d/timezone.ini"
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0"]
+WORKDIR /app
+
+# 의존성 먼저 설치해 소스만 바뀐 빌드는 캐시를 재사용
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --no-scripts --no-autoloader --prefer-dist
+
+# 프론트엔드 빌드 결과(public/build)는 저장소에 커밋되어 있어 Node가 필요 없다
+COPY . .
+RUN composer dump-autoload --no-dev --optimize \
+    && php artisan package:discover --ansi \
+    && chown -R www-data:www-data storage bootstrap/cache
+
+# config:cache는 빌드 시점의 환경 값을 고정하므로 컨테이너 시작 후 실행한다
+# 서술형 채점용 Python(konlpy)은 이미지에 포함하지 않는다(services.answer_checker 경로 참고)

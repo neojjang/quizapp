@@ -11,6 +11,14 @@
             <div class="mx-auto">
                 <div class="flex justify-between items-center py-4">
                     <a href="{{route('scoreSection', $section->id)}}" class="tracking-wide font-bold rounded border-2 border-blue-500 hover:border-blue-500 bg-blue-500 text-white hover:bg-blue-600 transition shadow-md py-2 px-6 items-center">Back</a>
+                    @if($quizHeader->reviewed)
+                        <span class="tracking-wide font-bold rounded border-2 border-gray-300 text-gray-500 py-2 px-6">검토 완료됨</span>
+                    @else
+                        <form method="POST" action="{{route('markReviewed', [$section, $quizHeader])}}">
+                            @csrf
+                            <button type="submit" class="tracking-wide font-bold rounded border-2 border-green-500 bg-green-500 text-white hover:bg-green-600 transition shadow-md py-2 px-6">검토 완료</button>
+                        </form>
+                    @endif
                 </div>
                 <!-- --------------------- START NEW TABLE --------------------->
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">

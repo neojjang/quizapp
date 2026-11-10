@@ -92,6 +92,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
 
     Route::get('/section/{section}/question/{quiz_header}/score', [QuestionsController::class, 'scoreQuestion'])
         ->name('scoreQuestion');
+    Route::post('/section/{section}/question/{quiz_header}/reviewed', [QuestionsController::class, 'markReviewed'])
+        ->name('markReviewed');
 
     // ClassRoom 관리
     Route::get('/mediumgroup/{medium_group}/classroom/new', [ClassRoomsController::class, 'createClassRoom'])

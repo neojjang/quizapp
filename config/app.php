@@ -1,7 +1,5 @@
 <?php
 
-use ConsoleTVs\Charts\ChartsServiceProvider;
-
 return [
 
     /*

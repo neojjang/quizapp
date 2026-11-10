@@ -26,7 +26,7 @@
                     각 문항의 답을 입력해 주세요.
                     @endif
                 </h4>
-                <form wire:submit.prevent>
+                <form x-on:submit.prevent>
                     <table class="table-fixed border border-slate-400 w-full">
                         @if($sectionTypeId == \App\Constants\Section::LISTENING_TEST)
                         <tr>
@@ -52,12 +52,12 @@
                                     <span class="px-5">
                                     @foreach($question->answers as $index => $answer)
                                         @if(($question->type_id-1) == \App\Constants\Question::SELECTIVE)
-                                            <input type="checkbox" value="{{$answer->id .','.$answer->is_checked}}" wire:model="omrAnswered.{{$key}}.{{$index}}"
+                                            <input type="checkbox" value="{{$answer->id .','.$answer->is_checked}}" wire:model.live="omrAnswered.{{$key}}.{{$index}}"
                                                    id="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}"
                                                    name="question.{{$key}}.{{$index}}.answer" class="checked:bg-blue-500">
                                             <label for="question.{{$key}}.{{$index}}.answer.{{$answer->answer}}" class="mr-2">{{$answer->answer}}</label>
                                         @else
-                                            <input type="text" wire:model="omrAnswered.{{$key}}.{{$index}}"
+                                            <input type="text" wire:model.live="omrAnswered.{{$key}}.{{$index}}"
                                                    name="question.{{$key}}.{{$index}}.answer" value="{{ old('omrAnswered.'.$key) }}" class="w-11/12" style="padding-top:0px;padding-bottom:0px;"/>
                                         @endif
                                     @endforeach
@@ -91,7 +91,7 @@
                 </div>
             </div>
             <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
-                <form wire:submit.prevent>
+                <form x-on:submit.prevent>
                     <div class="px-4 py-5 sm:px-6">
                         <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
                             <span class="mr-2 font-extrabold"> {{$count}}</span> {!! nl2br($currentQuestion->question) !!}
@@ -115,10 +115,10 @@
                                         <div x-show="show" class="block p-2 bg-green-100 text-xs">
                                             정확한 의미(번역/영작)를 입력하세요.
                                         </div>
-                                        <textarea id="question-{{$answer->id}}" type="text" wire:model="userAnswered"
+                                        <textarea id="question-{{$answer->id}}" type="text" wire:model.live="userAnswered"
                                                   class="mt-1 bg-gray-200 block w-full text-xs  bg-graygray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0" rows="2">{{ old('userAnswered') }}</textarea>
                                     @else
-                                        <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model="userAnswered" type="checkbox"> </span> {{$answer->answer}}
+                                        <span class="mr-2 font-extrabold"><input id="question-{{$answer->id}}" value="{{$answer->id .','.$answer->is_checked}}" wire:model.live="userAnswered" type="checkbox"> </span> {{$answer->answer}}
                                     @endif
                                 </div>
                             </label>
@@ -158,7 +158,7 @@
                 </div>
             </div>
             <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
-                <form wire:submit.prevent>
+                <form x-on:submit.prevent>
                     <div class="px-4 py-4 sm:px-6">
                         <h3 class="text-lg leading-6 mb-2 font-medium text-gray-900">
                             <span class="mr-2 font-extrabold"> {{(isset($currentQuestion->question_no) && $currentQuestion->question_no !='') ? $currentQuestion->question_no : $count}}.</span> {!! nl2br($currentQuestion->question) !!}
@@ -243,6 +243,8 @@
                     </div>
                 </form>
             </div>
+            {{-- Livewire 3는 갱신으로 나타난 script 태그를 실행하지 않으므로 script 디렉티브로 감싼다 --}}
+            @script
             <script>
                 // document.addEventListener('alpine:init', () => {
                 //    Alpine.data('timer', () => ());
@@ -259,12 +261,12 @@
                     console.log('timerCall ~~~~~');
                     //startTimer();
 
-                    @this.on('timerRestart', () => {
+                    $wire.on('timerRestart', () => {
                         console.log('event timerRestart')
                         startTimer();
                     });
 
-                    @this.on('timerStop', () => {
+                    $wire.on('timerStop', () => {
                         console.log('event timerStop : call handleTimerEnd');
                         countDownTime();
                         handleTimerEnd();
@@ -274,7 +276,8 @@
                 let timeLeft = 0;
                 let isTimerRunning = true;
                 let formattedTime = '00:00';
-                const timerContainer = document.getElementById('timerContainer');
+                // 이 스크립트는 새 HTML이 DOM에 반영되기 전에 실행되므로 요소는 사용할 때마다 찾는다
+                const timerContainer = () => document.getElementById('timerContainer');
                 let currentRetryCount = 0;
                 let totalRetryCount = 0;
 
@@ -307,20 +310,20 @@
                 function countDownTime() {
                     timeLeft --;
                     if (timeLeft < 10) {
-                        timerContainer.classList.replace('bg-blue-500', 'bg-red-500');
+                        timerContainer().classList.replace('bg-blue-500', 'bg-red-500');
                     } else {
-                        timerContainer.classList.replace('bg-red-500', 'bg-blue-500');
+                        timerContainer().classList.replace('bg-red-500', 'bg-blue-500');
                     }
                     document.getElementById('current-timer').value = timeLeft;
                     updateFormattedTime();
                     if (timeLeft == 0) {
-                        @this.isTimeout = true;
+                        $wire.set('isTimeout', true);
                         if (currentRetryCount+1 < totalRetryCount) {
-                            @this.showRetry = true;
-                            @this.isDisabled = true;
+                            $wire.set('showRetry', true);
+                            $wire.set('isDisabled', true);
                         } else {
-                            @this.showRetry = false;
-                            @this.isDisabled = false;
+                            $wire.set('showRetry', false);
+                            $wire.set('isDisabled', false);
                         }
                         console.log('countDownTime : call handleTimerEnd');
                         handleTimerEnd();
@@ -343,14 +346,17 @@
                     isTimerRunning = false;
                 }
                 async function handleRestart() {
-                    @this.call('retryQuestion');
+                    $wire.call('retryQuestion');
                     // await $wire.retryQuestion();
                     console.log('handleRestart after call to retryQuestion')
                     startTimer();
                 }
 
                 window.timerCall();
+                // 시험 시작 응답의 timerRestart 이벤트는 위 리스너 등록 전에 처리되므로 첫 문제는 DOM 반영 후 여기서 시작
+                setTimeout(startTimer);
             </script>
+            @endscript
         @endif
     @endif
     <!-- end of quiz box -->
@@ -436,7 +442,7 @@
                         <h2 class="text-gray-900 text-lg font-medium title-font mb-5">시험 선택</h2>
                         <div class="relative mx-full mb-4 ">
                             @if($classRoomId === 0)
-                            <select name="classRoom" id="classRoom_id" wire:model="classRoomId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
+                            <select name="classRoom" id="classRoom_id" wire:model.live="classRoomId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
                                 @if($classRooms->isEmpty())
                                 <option value="">선택 가능한 수업이 없습니다.</option>
                                 @else
@@ -452,7 +458,7 @@
                             @error('sectionId') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                         </div>
                         <div class="relative mx-full mb-4">
-                            <select name="section" id="section_id" wire:model="sectionId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
+                            <select name="section" id="section_id" wire:model.live="sectionId" class="block w-full mt-1 rounded-md bg-gray-100 border-2 border-gray-500 focus:bg-white focus:ring-0">
                                 @if($sections->isEmpty())
                                 <option value="">등록 된 시험이 없습니다.</option>
                                 @else
@@ -466,7 +472,7 @@
                         </div>
                         <div class="flex items-start py-10">
 {{--                            <div class="flex items-center h-5">--}}
-{{--                                <input wire:model="learningMode" id="learningMode" name="learningMode" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">--}}
+{{--                                <input wire:model.live="learningMode" id="learningMode" name="learningMode" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">--}}
 {{--                            </div>--}}
 {{--                            <div class="ml-3 text-sm">--}}
 {{--                                <label for="learningMode" class="font-medium text-gray-700">Learning Mode?</label>--}}

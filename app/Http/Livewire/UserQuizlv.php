@@ -12,6 +12,7 @@ use Livewire\Component;
 use App\Models\Question;
 use App\Models\QuizHeader;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 
 class UserQuizlv extends Component
 {
@@ -115,7 +116,8 @@ class UserQuizlv extends Component
     {
         Log::debug(__METHOD__);
         Log::debug($this->userAnswered);
-        if ($this->currentQuestion->type_id != \App\Constants\Question::SELECTIVE) {
+        // DB type_id는 1부터 시작, 상수는 0부터 시작
+        if (($this->currentQuestion->type_id - 1) != \App\Constants\Question::SELECTIVE) {
             # 주관식인 경우
             if (empty(trim($this->userAnswered))) {
                 $this->isDisabled = true;
@@ -164,7 +166,9 @@ class UserQuizlv extends Component
         //     ->inRandomOrder()
         //     ->first();
 
+        // 문제 수(quizSize)와 같은 기준: 사용 중인 문제만 출제
         $question = Question::where('section_id', $this->sectionId)
+            ->where('is_active', '1')
             ->whereNotIn('id', $this->answeredQuestions)
             ->with('answers')
             ->orderBy('id', 'asc') // isRandomOrder()
@@ -232,27 +236,34 @@ class UserQuizlv extends Component
 
         // 정답안의 길이가 5자 이상의 경우만 분석기 비교 실행
         if ($result === 0.0 && mb_strlen($trim_userAnswered) > 10) {
-            $cmd = sprintf('/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "%s" "%s"',
-                            escapeshellarg($questionAnswer),
-                            escapeshellarg($userAnswered));
-            Log::debug("cmd=".$cmd);
-            $similar_score = shell_exec($cmd);
-            Log::debug(trim($similar_score));
-            $result = floatval($similar_score);
-            // use Symfony\Component\Process\Process;
-            // use Symfony\Component\Process\Exception\ProcessFailedException;
-
-            // $process = new Process('sh /folder_name/file_name.sh');
-            // $process->run();
-
-            // // executes after the command finishes
-            // if (!$process->isSuccessful()) {
-            //     throw new ProcessFailedException($process);
-            // }
-
-            // echo $process->getOutput();
+            $result = $this->similarityScore($questionAnswer, $userAnswered);
         }
         return $result;
+    }
+
+    /**
+     * Python(konlpy) 유사도 채점. 실패하면 0점(오답)으로 처리한다.
+     * @return float 0.0 ~ 1.0
+     */
+    private function similarityScore($questionAnswer, $userAnswered): float
+    {
+        $checker = config('services.answer_checker');
+        // 셸을 거치지 않고 인자 배열로 실행해 학생 답안이 명령으로 해석되지 않게 한다.
+        // 기존과 같은 입력(작은따옴표로 감싼 문자열)을 받도록 escapeshellarg 결과를 그대로 넘긴다.
+        $process = Process::timeout($checker['timeout'])->run([
+            $checker['python'],
+            $checker['script'],
+            escapeshellarg($questionAnswer),
+            escapeshellarg($userAnswered),
+        ]);
+
+        if ($process->failed()) {
+            Log::error('answer checker failed', ['exit' => $process->exitCode(), 'error' => trim($process->errorOutput())]);
+            return 0.0;
+        }
+        Log::debug(trim($process->output()));
+
+        return floatval($process->output());
     }
 
     /**
@@ -345,7 +356,8 @@ class UserQuizlv extends Component
             // Push all the question ids to quiz_header table to retreve them while displaying the quiz details
             $this->quizid->questions_taken = serialize($this->answeredQuestions);
 
-            return $this->checkChoiceAnswer($this->currentQuestion, [$this->userAnswered]);
+            // userAnswered는 체크박스 값("answerId,is_checked") 배열
+            return $this->checkChoiceAnswer($this->currentQuestion, $this->userAnswered);
 //            // Retrive the answer_id and value of answers clicked by the user and push them to Quiz table.
 //            list($answerId, $isChoiceCorrect) = explode(',', $this->userAnswered[0]);
 //            $userAnswered = $answerId;
@@ -364,6 +376,8 @@ class UserQuizlv extends Component
         } else if ($currentQuestionTypeId == \App\Constants\Question::TRANSLATION) {
             // 주관식(번역)에 대한 처리를 해야만 함
             return $this->checkTranslatedAnswer($this->currentQuestion, $this->userAnswered);
+        } else if ($currentQuestionTypeId == \App\Constants\Question::SHORT_ANSWER) {
+            return $this->checkShortAnswer($this->currentQuestion, $this->userAnswered);
 //            $answerId = $this->currentQuestion->answers[0]->id;
 //
 //            // 주관식 정답 체크
@@ -372,8 +386,10 @@ class UserQuizlv extends Component
 //            $isChoiceCorrect = ($resultScore >= 0.75) ? '1': (($resultScore >= 0.40) ? '2': '0');
 //            $userAnswered = $this->userAnswered;
         } else if ($currentQuestionTypeId == \App\Constants\Question::ENGLISH_COMPOSITION_CLICK) {
-            // 유저가 입력한 값이 있으면 true에서 시작
-            $isChoiceCorrect = (count($this->userAnswered)>0);
+            // 모든 구문을 선택한 경우에만 정답 가능. 구문별 정오([1])는 전부 선택했을 때만 판정되므로
+            // 시간 초과로 일부만 선택한 답이 정답 처리되지 않게 개수부터 확인한다
+            $phraseCount = count(explode('/', $this->currentQuestion->answers[0]->answer));
+            $isChoiceCorrect = count($this->userAnswered) == $phraseCount;
             $userAnswered = "";
             foreach ($this->userAnswered as $index => $item) {
                 $isChoiceCorrect = $isChoiceCorrect & $item[1];
@@ -394,6 +410,10 @@ class UserQuizlv extends Component
     public function nextQuestion()
     {
         Log::debug("nextQuestion : 정답 여부 체크");
+        // 종료된 시험에 대한 중복 제출(더블 클릭 등) 무시
+        if (!$this->quizInProgress) {
+            return;
+        }
         // OMR 타입은 이 함수를 처리 하지 않기 때문에 비교가 필요없음
 //        if ($this->sectionTypeId != \App\Constants\Section::OMR) {
 //
@@ -451,7 +471,7 @@ class UserQuizlv extends Component
             $this->isTimeout = false;
             if ($this->currentQuestion->timer > 0) {
                 Log::debug("call timerRestart event");
-                $this->emit('timerRestart');
+                $this->dispatch('timerRestart');
             }
 
             $this->isDisabled = ($this->count <= $this->quizSize);
@@ -545,6 +565,7 @@ class UserQuizlv extends Component
     {
         Log::debug(__METHOD__);
         $questions = Question::where('section_id', $this->sectionId)
+            ->where('is_active', '1')
             ->with('answers')
             ->orderBy('id', 'asc')
             ->get();
@@ -581,12 +602,20 @@ class UserQuizlv extends Component
     public function checkAllAnswers()
     {
         Log::debug(__METHOD__);
+        // 종료된 시험에 대한 중복 제출(더블 클릭 등) 무시
+        if (!$this->quizInProgress) {
+            return;
+        }
 
         foreach ($this->questions as $idx => $question) {
             $userAnswered = $this->omrAnswered[$idx];
 
             if ($question->type_id == 1) {
                 // 객관식에 대한 처리
+                // Livewire 3는 단일 체크박스(omrAnswered.문항.보기순번)에 value 대신 true를 넣으므로 보기 순번으로 값을 만든다
+                $userAnswered = collect($userAnswered)->filter()
+                    ->map(fn ($checked, $i) => is_string($checked) ? $checked : $question->answers[$i]->id.','.$question->answers[$i]->is_checked)
+                    ->all();
                 $result = $this->checkChoiceAnswer($question, $userAnswered);
             } elseif ($question->type_id == 4) {
                 // 단답형 처리
@@ -728,7 +757,7 @@ class UserQuizlv extends Component
         Log::debug($this->showRetry);
         if ($userAnsweredCount == $currentExampleCount) {
             Log::debug('call timerStop event');
-            $this->emit('timerStop');
+            $this->dispatch('timerStop');
         }
     }
 
@@ -816,7 +845,7 @@ class UserQuizlv extends Component
 
         if ($this->currentQuestion->timer > 0) {
             Log::debug("call timerRestart event");
-            $this->emit('timerRestart');
+            $this->dispatch('timerRestart');
         }
     }
 }

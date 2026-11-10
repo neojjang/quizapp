@@ -1,0 +1,26 @@
+# 개발 전용: docker compose -f compose.dev.yml up  (사용법은 docs/upgrade/PLAN.md 2장)
+services:
+  app:
+    build:
+      context: docker/dev
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.5}
+    image: quizapp-dev:php${PHP_VERSION:-8.5}
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /app/database/database.sqlite
+      FILESYSTEM_DRIVER: local
+    # artisan serve 래퍼는 error_log 채널 출력이 쌓이면 응답이 멈춰서 php -S를 직접 사용
+    command: php -S 0.0.0.0:8000 -t public server.php
+
+  node:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - .:/app
+    profiles: ["tools"]

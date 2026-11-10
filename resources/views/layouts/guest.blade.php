@@ -10,15 +10,17 @@
         <!-- Fonts -->
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
 
-        <!-- Styles -->
-        <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+        <!-- Styles & Scripts -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-        <!-- Scripts -->
-        <script src="{{ mix('js/app.js') }}" defer></script>
+        <!-- Livewire 3에 포함된 Alpine 제공 -->
+        @livewireStyles
     </head>
     <body>
         <div class="font-sans text-gray-900 antialiased">
             {{ $slot }}
         </div>
+
+        @livewireScripts
     </body>
 </html>

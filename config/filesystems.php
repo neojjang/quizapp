@@ -55,6 +55,8 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'visibility' => 'public',
+            // Flysystem 3은 기본적으로 실패를 false로 반환. Laravel 8처럼 예외를 던져 실패한 업로드가 DB에 기록되지 않게 함
+            'throw' => true,
         ],
 
     ],

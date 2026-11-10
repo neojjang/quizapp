@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="{{ mix('css/app.css') }}">
     <style type="text/css">
 
     </style>
@@ -20,12 +19,12 @@
     @livewireStyles
 
     <!-- Scripts -->
-    <script src="{{ mix('js/app.js') }}" defer></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
 
 <body class="font-sans antialiased">
-    <x-jet-banner />
+    <x-banner />
 
     <div class="min-h-screen bg-gray-100">
         @livewire('navigation-menu')
@@ -48,13 +47,8 @@
     @stack('modals')
     @livewireScripts
 
-    <!-- livewire-sortable. Livewire v3 : version=v1.x.x, Livewire v2 : version=0.2.2 -->
-    <script src="https://unpkg.com/@nextapps-be/livewire-sortablejs@0.2.0/dist/livewire-sortable.js"></script>
-
-    <!-- Charting library -->
-    <script src="https://unpkg.com/chart.js@2.9.3/dist/Chart.min.js"></script>
-    <!-- Chartisan -->
-    <script src="https://unpkg.com/@chartisan/chartjs@^2.1.0/dist/chartisan_chartjs.umd.js"></script>
+    <!-- livewire-sortable: Livewire 3용은 0.3+ (Livewire 2는 0.2.x) -->
+    <script src="https://unpkg.com/@nextapps-be/livewire-sortablejs@0.4.1/dist/livewire-sortable.js"></script>
 
     @include('sweetalert::alert')
     @stack('js')

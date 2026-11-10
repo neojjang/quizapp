@@ -67,6 +67,14 @@ class AppUserController extends Controller
 
         $quizAverage = auth()->user()->quizHeaders()->avg('score');
 
+        // 본인의 최근 30건 응시 점수(시간순)
+        $recentQuizzes = auth()->user()->quizHeaders()->where('completed', true)
+            ->latest('id')->take(30)->get(['score', 'created_at'])->reverse();
+        $scoreChart = [
+            'labels' => $recentQuizzes->map(fn ($quiz) => $quiz->created_at->format('m-d'))->values(),
+            'data' => $recentQuizzes->pluck('score')->values(),
+        ];
+
         return view(
             'appusers.userQuizHome',
             compact(
@@ -75,7 +83,8 @@ class AppUserController extends Controller
                 'questionsCount',
                 'quizesTaken',
                 'userQuizzes',
-                'quizAverage'
+                'quizAverage',
+                'scoreChart'
             )
         );
     }
@@ -99,7 +108,7 @@ class AppUserController extends Controller
 
         //Get quiz summary record for the given quiz
         $userQuizDetails = QuizHeader::where('id', $id)->where('user_id', auth()->id())
-            ->with('section')->first();
+            ->with('section')->firstOrFail();
 
         //Extract question taken by the users stored as a serialized string while takeing the quiz
         $quizQuestionsList = collect(unserialize($userQuizDetails->questions_taken));

@@ -357,38 +357,7 @@
                 padding-right: 2rem
             }
         }
-
-        @media (prefers-color-scheme:dark) {
-            .dark\:bg-gray-800 {
-                --bg-opacity: 1;
-                background-color: #2d3748;
-                background-color: rgba(45, 55, 72, var(--bg-opacity))
-            }
-
-            .dark\:bg-gray-900 {
-                --bg-opacity: 1;
-                background-color: #1a202c;
-                background-color: rgba(26, 32, 44, var(--bg-opacity))
-            }
-
-            .dark\:border-gray-700 {
-                --border-opacity: 1;
-                border-color: #4a5568;
-                border-color: rgba(74, 85, 104, var(--border-opacity))
-            }
-
-            .dark\:text-white {
-                --text-opacity: 1;
-                color: #fff;
-                color: rgba(255, 255, 255, var(--text-opacity))
-            }
-
-            .dark\:text-gray-400 {
-                --text-opacity: 1;
-                color: #cbd5e0;
-                color: rgba(203, 213, 224, var(--text-opacity))
-            }
-        }
+        /* 시작 화면은 OS 다크 모드와 관계없이 항상 밝게 표시 (다크 모드 스타일 제거) */
     </style>
 
     <style>
@@ -423,7 +392,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-1">
                     <div class="p-6">
                         <div class="flex items-center">
-                            <div class="ml-4 text-lg leading-7 font-semibold">한동원영어전문학원</div>
+                            {{-- 로그인 전이면 로그인 화면을 거쳐 홈으로 이동 --}}
+                            <a href="{{ route('userQuizHome') }}" class="ml-4 text-lg leading-7 font-semibold text-gray-900 hover:underline">한동원영어전문학원</a>
                         </div>
                     </div>
 
