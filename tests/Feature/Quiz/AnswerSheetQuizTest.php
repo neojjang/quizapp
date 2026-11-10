@@ -8,6 +8,7 @@ use App\Models\Quiz;
 use App\Models\QuizHeader;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /** OMR 답안지형·듣기평가형: 모든 답을 한 번에 제출(checkAllAnswers)하며 자동 채점 */
@@ -32,7 +33,7 @@ class AnswerSheetQuizTest extends TestCase
         ];
     }
 
-    /** @dataProvider sectionTypes */
+    #[DataProvider('sectionTypes')]
     public function test_all_answers_are_graded_together($sectionType)
     {
         $section = $this->makeSection($sectionType);
