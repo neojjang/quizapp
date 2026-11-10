@@ -36,9 +36,9 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 - 서버는 `php -S`로 직접 띄운다. `artisan serve`는 모든 SQL을 `error_log` 채널로 기록하는 설정(`AppServiceProvider`) 때문에 응답이 멈춘다.
 
 ### 운영 환경
-- Ubuntu 최신 버전 서버에서 직접 실행한다. 실행 방식(php-fpm/nginx 등)은 P0-7에서 확인한다.
+- **Ubuntu 서버에 직접 설치해 실행한다(D9).** Docker 이미지(`Dockerfile`)는 운영에 쓰지 않는다. 웹서버는 nginx + php-fpm으로 보이며(README의 nginx 설정 안내) P8-0에서 확인한다. 배포 절차는 5장 P8.
 - 목표: **PHP 8.5.x 최신 보안 패치**(2026-11-10 기준 8.5.12), **Laravel 최신(13)**, DB는 MySQL 또는 MariaDB.
-- Python 서술형 채점: `/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py` (현재 `UserQuizlv.php`에 하드코딩)
+- Python 서술형 채점: `/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py` (`config/services.php`의 `answer_checker` 기본값. 다르면 `.env`의 `ANSWER_CHECKER_*`)
 
 ## 3. 결정 필요 사항
 
@@ -49,6 +49,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | D3 | 관리자 계정이 `user` 역할도 갖는지(차트 API 미들웨어가 `role:user`) | — | **해소**: P2에서 차트 API 자체를 없앰. 차트는 각 홈 화면 권한을 따름 |
 | D4 | 운영 DB 종류·버전, 백업 방법 | — | **결정**: MySQL 또는 MariaDB. 정확한 버전·백업 방법은 P0-7에서 확인 |
 | D6 | 8장 버그(B1~B7) 수정 시점 | — | **결정**: P2 전에 수정 완료(BF 단계). 선택형·단답형 문제는 운영에서 OMR형 시험에서만 사용 |
+| D9 | 운영 배포 방식 | — | **결정**: Ubuntu에 직접 설치(PHP 8.5 패키지 + nginx + php-fpm). 절차는 P8 |
 | D8 | 운영용 `Dockerfile` 처리 | — | **결정**: PHP 8.5·Laravel 13 기준으로 갱신 |
 | D7 | B8(비활성 문제 출제) 수정 여부 | — | **결정**: 수정. 출제·채점 모두 사용 중인 문제만 |
 | D5 | Livewire 최신 메이저(3 vs 4) 및 Jetstream 호환 버전 | — | **결정**: Livewire 3.8. Jetstream 5가 `^3.6.4`를 설치하고 4 지원을 선언하지 않음 |
@@ -66,7 +67,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [x] |
 | P6 | Laravel 11 → 12 → 13, PHP 8.5 | [x] |
 | P7 | 정리: 남은 패키지 갱신, 채점 실행 보안 수정, 운영 Dockerfile, 최종 테스트 | [x] |
-| P8 | 운영 배포 | [ ] |
+| P8 | 운영 배포 (Ubuntu 직접 설치, 절차는 5장 P8) | [ ] |
 
 각 단계의 공통 완료 조건: **컨테이너에서 `php artisan test` 전부 통과 + 6장 수동 점검 목록 통과 + 로그 기록 + 커밋.**
 
@@ -243,14 +244,305 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
   - Orca 브라우저(학생 계정으로 로그인): 로그인 화면(Alpine·Livewire 로드, 회원가입 링크), 학생 홈 차트, 관리자 화면 403, OMR 응시 100%, 일반형 응시 50%(선택 정답·번역 오답), 영작나열형 시간 초과→재시도→제출, sweet-alert 토스트(3초 후 닫힘)
   - 이 과정에서 발견해 수정: **R1** OMR·듣기평가 제출 실패(Livewire 3 회귀, 아래), **B11** 시간 초과로 일부만 고른 영작나열 답이 정답 처리
 
-### P8. 운영 배포 (Ubuntu)
+### P8. 운영 배포 (Ubuntu 직접 설치)
 
-- [ ] **P8-1** 운영 DB 백업 및 복원 절차 확인
-- [ ] **P8-2** 운영 PHP 업그레이드(D1 버전) 및 확장 설치 — 기존 PHP와 병행 설치 후 전환해 되돌릴 수 있게 한다
-- [ ] **P8-3** 스테이징(가능하면) 또는 운영 DB 사본으로 `php artisan migrate --pretend` 확인
-- [ ] **P8-4** 배포: `composer install --no-dev`, `npm ci && npm run build`, `php artisan migrate`, 캐시(`config/route/view`) 재생성
-- [ ] **P8-5** 배포 후 6장 수동 점검, Python 서술형 채점 포함
-- [ ] **P8-6** 되돌리기 절차: 이전 릴리스 디렉터리 + 이전 PHP로 전환, DB 백업 복원
+**방식 요약**
+- 기존 운영 폴더와 기존 PHP는 **그대로 두고**, PHP 8.5와 새 릴리스 폴더를 **옆에 따로 준비**한다.
+- 점검 시간에 nginx가 가리키는 폴더와 php-fpm 소켓만 바꿔서 전환한다.
+- 문제가 생기면 nginx 설정만 되돌려 몇 분 안에 원래 상태로 돌아간다.
+- 이번 업그레이드는 DB 구조를 바꾸지 않는다. `migrate`는 "Nothing to migrate"여야 한다. 그래서 되돌릴 때도 DB 복원은 필요 없다.
+
+**단계별 서비스 영향**
+
+| 단계 | 내용 | 서비스 영향 |
+|---|---|---|
+| 8-0 | 서버 정보 수집, 변수 확정 | 없음 |
+| 8-1 | PHP 8.5 병행 설치·설정 | 없음 |
+| 8-2 | Composer 갱신 | 없음 |
+| 8-3 | 새 릴리스 폴더 준비 | 없음 |
+| 8-4 | DB 백업, 운영 DB로 사전 검증, 임시 포트로 미리 보기 | 없음 |
+| 8-5 | 전환(점검 모드) | **5~10분 중단** |
+| 8-6 | 배포 후 점검 | — |
+| 8-7 | 되돌리기(필요할 때만) | 수 분 |
+| 8-8 | 정리(1~2주 후) | 없음 |
+
+각 단계의 명령 결과(버전, 경로, 출력)는 9장 작업 로그에 남긴다. 아래 명령은 `ubuntu` 계정에서 `sudo`로 실행한다고 가정한다.
+
+#### 8-0. 사전 준비 (배포 전날까지)
+
+- [ ] **P8-0-1** 서버 정보를 수집해 아래 변수를 채운다.
+  ```sh
+  lsb_release -a                                   # Ubuntu 버전
+  php -v; ls /etc/php/                             # 현재 PHP 버전(OLD_PHP), 설치된 버전들
+  systemctl list-units --type=service | grep -E 'php.*fpm|nginx|apache|mysql|mariadb'
+  nginx -v; sudo nginx -T 2>/dev/null | grep -nE 'server_name|root |fastcgi_pass|client_max_body_size'   # 사이트 설정 파일, root, 소켓
+  mysql --version                                  # MySQL/MariaDB 버전
+  sudo crontab -l; crontab -l; ls /etc/supervisor/conf.d 2>/dev/null   # 스케줄러·큐 워커 사용 여부(코드상으로는 없음)
+  df -h /                                          # 새 릴리스 + 백업용 여유 공간(최소 2GB 권장)
+  ```
+- [ ] **P8-0-2** 현재 운영 폴더의 상태를 기록한다. 되돌리기와 비교 기준으로 쓴다.
+  ```sh
+  cd <OLD_DIR>
+  git remote get-url origin; git branch --show-current; git log -1 --oneline; git status --short
+  composer status            # vendor 직접 수정 여부(개발 환경에서는 Validator.php 수정이 있었음)
+  grep -E '^(APP_ENV|APP_DEBUG|APP_URL|DB_CONNECTION|SESSION_DRIVER|CACHE_DRIVER|QUEUE_CONNECTION|FILESYSTEM_DRIVER|AWS_BUCKET)=' .env   # 값 확인(비밀번호·키는 출력하지 않음)
+  ls -la public/storage storage/app/public 2>/dev/null   # 프로필 사진 등 로컬 저장 파일
+  ```
+- [ ] **P8-0-3** 변수를 확정해 기록한다(아래는 예시).
+
+  | 변수 | 의미 | 예시 |
+  |---|---|---|
+  | `OLD_DIR` | 현재 운영 폴더 | `/home/ubuntu/dongwon/quizapp` |
+  | `NEW_DIR` | 새 릴리스 폴더(같은 상위 폴더) | `/home/ubuntu/dongwon/quizapp-20261110` |
+  | `OLD_PHP` | 현재 PHP 버전 | `8.0` |
+  | `OLD_SOCK` | 현재 php-fpm 소켓(nginx `fastcgi_pass`) | `unix:/run/php/php8.0-fpm.sock` |
+  | `NEW_SOCK` | PHP 8.5 php-fpm 소켓 | `unix:/run/php/php8.5-fpm.sock` |
+  | `SITE_CONF` | nginx 사이트 설정 파일 | `/etc/nginx/sites-available/quizapp` |
+  | `FPM_USER` | 현재 php-fpm pool 실행 계정 | `www-data` |
+  | `DB_NAME`, `DB_USER` | 운영 DB 이름·계정 | `.env` 값 |
+  | `RELEASE_REF` | 배포할 git 태그 | `v2026.11.10` |
+
+- [ ] **P8-0-4** 배포할 코드를 확정한다.
+  - `upgrade/laravel`을 운영이 쓰는 브랜치(P8-0-2의 `git branch --show-current`)에 병합한다. 그 뒤 개발 컨테이너에서 `php artisan test`가 전부 통과하는지 확인한다.
+  - 태그 `RELEASE_REF`를 만들어 원격에 올린다.
+  - P3~P5 커밋은 보안 권고 우회(`--no-blocking`)가 필요한 중간 단계라 배포 대상이 아니다. P6 이후 커밋만 배포한다.
+- [ ] **P8-0-5** 사용자에게 알릴 내용을 정리한다.
+  - **점검 공지:** 점검 시간(5~10분)을 공지한다.
+  - **관리자 안내:**
+    - B5: 채점 화면을 여는 것만으로는 검토 완료가 되지 않는다. "검토 완료" 버튼을 눌러야 오늘의 채점 목록에서 빠진다.
+    - B11: 영작나열형에서 시간 초과로 일부 구문만 고른 답은 오답 처리된다.
+  - **네트워크 조건:** 알림창(SweetAlert2)은 외부 CDN(jsdelivr)에서 불러온다. 학생 PC와 서버에서 외부 접속이 가능해야 한다.
+
+#### 8-1. PHP 8.5 병행 설치 (서비스 영향 없음)
+
+기존 PHP와 php-fpm은 지우지 않는다. 버전별 패키지(`php8.5-*`)라서 서로 충돌하지 않는다.
+
+- [ ] **P8-1-1** 저장소에 PHP 8.5가 있는지 확인한다.
+  ```sh
+  sudo apt update
+  apt-cache policy php8.5-fpm
+  ```
+  - 후보(Candidate) 버전이 있으면 Ubuntu 공식 저장소를 쓴다. Ubuntu는 보안 수정을 버전 번호를 올리지 않고 패키지 개정판(`-…ubuntu…`)으로 내보낸다. 그래서 최신 보안 패치 여부는 `apt` 업데이트 기준으로 판단한다.
+  - 후보가 없으면 PHP 패키지 관리자(Ondřej Surý)의 PPA를 추가한다. PPA는 PHP 공식 최신 패치 버전(2026-11-10 기준 8.5.12 이상)을 따라간다.
+    ```sh
+    sudo apt install -y software-properties-common
+    sudo add-apt-repository -y ppa:ondrej/php     # nginx도 같은 관리자의 PPA를 쓰고 있다면 ppa:ondrej/nginx 유지
+    sudo apt update
+    apt-cache policy php8.5-fpm
+    ```
+- [ ] **P8-1-2** PHP 8.5와 필요한 확장을 설치한다. 개발 컨테이너·운영 이미지와 같은 구성이다.
+  ```sh
+  sudo apt install -y php8.5-fpm php8.5-cli php8.5-common php8.5-mysql php8.5-mbstring php8.5-xml \
+      php8.5-curl php8.5-zip php8.5-gd php8.5-intl php8.5-bcmath php8.5-readline
+  php8.5 -v
+  php8.5 -m | grep -iE '^(pdo_mysql|mysqli|mbstring|xml|dom|curl|zip|gd|intl|bcmath|exif|fileinfo|tokenizer|ctype|openssl|Zend OPcache)$'
+  ```
+  - `exif`, `fileinfo`, `tokenizer`, `ctype`는 `php8.5-common`에 들어 있다.
+  - OPcache는 PHP 8.5부터 기본 포함이다. 목록에 없으면 `apt-cache search php8.5-opcache`로 패키지를 찾아 설치한다.
+  - 기존 PHP에 설치된 확장 중 위 목록에 없는 것이 있는지 비교한다: `diff <(php<OLD_PHP> -m) <(php8.5 -m)`. 앱은 위 확장만 쓴다.
+- [ ] **P8-1-3** PHP 설정을 기존 운영 값과 맞춘다.
+  ```sh
+  # 기존 fpm에서 바꿔 쓰던 값 확인
+  grep -vE '^\s*(;|$)' /etc/php/<OLD_PHP>/fpm/php.ini | grep -E 'upload_max_filesize|post_max_size|memory_limit|max_execution_time|date.timezone'
+  ls /etc/php/<OLD_PHP>/fpm/conf.d/ | grep -vE '^[0-9]{2}-'      # 직접 추가한 ini 파일
+
+  # 앱 설정 파일 (fpm·cli 공통) — 듣기평가 mp3 100MB 업로드
+  printf '%s\n' 'upload_max_filesize = 128M' 'post_max_size = 128M' 'date.timezone = Asia/Seoul' \
+      | sudo tee /etc/php/8.5/mods-available/quizapp.ini
+  sudo phpenmod -v 8.5 quizapp
+  php8.5 -i | grep -E '^(upload_max_filesize|post_max_size|date.timezone|opcache.enable) '
+  ```
+  - 기존 php.ini에서 바꿔 쓰던 다른 값(`memory_limit` 등)이 있으면 같은 파일에 추가한다.
+- [ ] **P8-1-4** php-fpm pool을 기존과 같은 계정·프로세스 설정으로 맞춘다.
+  ```sh
+  diff <(grep -vE '^\s*(;|$)' /etc/php/<OLD_PHP>/fpm/pool.d/www.conf) <(grep -vE '^\s*(;|$)' /etc/php/8.5/fpm/pool.d/www.conf)
+  ```
+  - `user`, `group`, `listen.owner`, `listen.group`, `pm.*` 값이 다르면 8.5 쪽을 기존 값으로 고친다. 소켓 경로(`listen`)는 8.5 기본값(`/run/php/php8.5-fpm.sock`)을 그대로 둔다.
+  ```sh
+  sudo php-fpm8.5 -t
+  sudo systemctl enable --now php8.5-fpm
+  systemctl status php8.5-fpm --no-pager; ls -la /run/php/php8.5-fpm.sock
+  ```
+- [ ] **P8-1-5** 기본 `php` 명령은 아직 바꾸지 않는다. 8-5 전환 때 바꾼다. 그 전까지 새 릴리스 작업에는 `php8.5`를 명시해서 쓴다.
+
+#### 8-2. Composer 갱신 (서비스 영향 없음)
+
+- [ ] **P8-2-1** Composer 2.11 이상을 준비한다. 2.11부터 보안 권고가 있는 버전을 설치 단계에서 막는다.
+  ```sh
+  composer --version
+  sudo composer self-update --2          # composer가 /usr/local/bin/composer 등 PHAR로 설치된 경우
+  # apt로 설치된 composer라면 버전이 낮을 수 있음 → https://getcomposer.org/download/ 의 설치 스크립트로 /usr/local/bin/composer 설치
+  php8.5 $(command -v composer) --version
+  ```
+
+#### 8-3. 새 릴리스 폴더 준비 (서비스 영향 없음)
+
+기존 폴더를 고치지 않고 새로 받는다. 기존 폴더에 남아 있을 수 있는 것들이 새 릴리스에 섞이지 않는다.
+- 미추적 파일: 개발 환경에서는 Livewire 2 자산 `public/vendor/livewire`가 Livewire 3를 망가뜨렸다.
+- `vendor` 직접 수정.
+
+- [ ] **P8-3-1** 코드를 받는다.
+  ```sh
+  git clone --branch <RELEASE_REF> --depth 1 $(git -C <OLD_DIR> remote get-url origin) <NEW_DIR>
+  cd <NEW_DIR> && git log -1 --oneline
+  ```
+- [ ] **P8-3-2** 환경 설정과 로컬 저장 파일을 옮긴다.
+  ```sh
+  cp <OLD_DIR>/.env <NEW_DIR>/.env && chmod 640 <NEW_DIR>/.env
+  rsync -a <OLD_DIR>/storage/app/ <NEW_DIR>/storage/app/              # 프로필 사진(public 디스크) 등
+  # SESSION_DRIVER=file 인 경우에만: 로그인 상태 유지
+  # rsync -a <OLD_DIR>/storage/framework/sessions/ <NEW_DIR>/storage/framework/sessions/
+  ```
+  - **`.env` 키 이름은 바꾸지 않는다.** 앱의 기존 설정 파일(`CACHE_DRIVER`, `FILESYSTEM_DRIVER` 등)을 유지했기 때문이다.
+  - `APP_ENV=production`, `APP_DEBUG=false`인지 확인한다.
+  - Python 채점 경로가 기본값(`/home/ubuntu/venv/bin/python3`, `/home/ubuntu/dongwon/konlpy/check_answer.py`)과 다를 때만 `ANSWER_CHECKER_PYTHON`, `ANSWER_CHECKER_SCRIPT`를 추가한다.
+- [ ] **P8-3-3** 의존성을 설치하고 권한을 설정한다. 프론트엔드 빌드 결과(`public/build`)는 저장소에 들어 있어서 Node·npm이 필요 없다.
+  ```sh
+  cd <NEW_DIR>
+  php8.5 $(command -v composer) install --no-dev --optimize-autoloader --no-interaction
+  php8.5 $(command -v composer) audit          # "No security vulnerability advisories found"
+  php8.5 artisan storage:link
+  sudo chown -R <FPM_USER>:<FPM_USER> storage bootstrap/cache
+  sudo chmod -R ug+rwX storage bootstrap/cache
+  php8.5 artisan about                          # Laravel 13.x, PHP 8.5.x, 환경·드라이버 값 확인
+  ```
+- [ ] **P8-3-4** Python 채점 스크립트가 새 호출 방식에서도 같은 점수를 내는지 확인한다.
+  - 새 코드도 인자를 기존과 같은 형태(작은따옴표로 감싼 문자열)로 넘긴다.
+  ```sh
+  /home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "'나는 학교에 가는 소년이다'" "'나는 학교에 걸어가는 소년입니다'"
+  ```
+  - 숫자(0~1) 하나가 출력되면 정상이다.
+  - 같은 입력으로 기존 운영 화면에서 채점한 결과(정답/보류/오답)가 있으면 비교한다.
+  - `FPM_USER` 계정이 이 Python과 스크립트를 실행할 수 있어야 한다: `sudo -u <FPM_USER> /home/ubuntu/venv/bin/python3 -c 'print(1)'`.
+
+#### 8-4. DB 백업과 사전 검증 (서비스 영향 없음)
+
+- [ ] **P8-4-1** 운영 DB를 백업하고 파일을 검증한다.
+  ```sh
+  mkdir -p ~/backup
+  mysqldump --single-transaction --routines --triggers --default-character-set=utf8mb4 \
+      -u <DB_USER> -p <DB_NAME> | gzip > ~/backup/quizapp-$(date +%F-%H%M).sql.gz
+  # MariaDB는 mariadb-dump 도 같은 옵션
+  gzip -t ~/backup/quizapp-*.sql.gz && ls -lh ~/backup/
+  ```
+  - 처음 한 번은 복원도 연습한다. 별도 DB를 만들어 가져온 뒤 건수를 비교한다.
+  ```sh
+  mysql -u root -p -e 'CREATE DATABASE quizapp_restore_test CHARACTER SET utf8mb4'
+  gunzip -c ~/backup/<파일>.sql.gz | mysql -u root -p quizapp_restore_test
+  mysql -u root -p -e 'SELECT COUNT(*) FROM quizapp_restore_test.quizzes; SELECT COUNT(*) FROM <DB_NAME>.quizzes'
+  mysql -u root -p -e 'DROP DATABASE quizapp_restore_test'
+  ```
+- [ ] **P8-4-2** 새 릴리스로 운영 DB를 **읽기만** 해서 검증한다.
+  ```sh
+  cd <NEW_DIR>
+  php8.5 artisan migrate:status | tail -5          # 모든 마이그레이션 Ran
+  php8.5 artisan migrate --pretend                 # 기대값: "Nothing to migrate"
+  php8.5 artisan tinker --execute='echo App\Models\User::count()," users, tz=",DB::selectOne("select @@session.time_zone as tz")->tz,"\n";'
+  ```
+  - `migrate --pretend`가 실행할 SQL을 보여주면 **중단하고 검토한다.** 이번 업그레이드에는 새 마이그레이션이 없다.
+  - 시간대는 `Asia/Seoul`로 나와야 한다(`config/database.php`의 연결 옵션).
+- [ ] **P8-4-3** (권장) 임시 포트로 새 릴리스를 미리 본다. 운영 DB를 쓰므로 **화면 보기·로그인까지만** 하고, 응시나 채점처럼 데이터를 쓰는 동작은 하지 않는다.
+  ```nginx
+  # /etc/nginx/sites-available/quizapp-preview  (예: 8081 포트, 외부 방화벽에서 막힌 포트 사용)
+  server {
+      listen 8081;
+      server_name _;
+      root <NEW_DIR>/public;
+      index index.php;
+      client_max_body_size 128M;
+      location / { try_files $uri $uri/ /index.php?$query_string; }
+      location ~ \.php$ {
+          include snippets/fastcgi-php.conf;
+          fastcgi_pass unix:/run/php/php8.5-fpm.sock;
+      }
+  }
+  ```
+  ```sh
+  sudo ln -s /etc/nginx/sites-available/quizapp-preview /etc/nginx/sites-enabled/
+  sudo nginx -t && sudo systemctl reload nginx
+  curl -sI http://127.0.0.1:8081/login | head -1        # 200
+  ```
+  - SSH 터널(`ssh -L 8081:127.0.0.1:8081 ubuntu@<서버>`)로 브라우저에서 확인한다.
+  - 운영 환경에서는 앱이 https로 리다이렉트한다. 임시 포트에서 로그인 후 이동이 https로 바뀌면 주소를 직접 고쳐 확인한다.
+  - 확인이 끝나면 미리 보기 사이트를 내린다: `sudo rm /etc/nginx/sites-enabled/quizapp-preview && sudo systemctl reload nginx`.
+
+#### 8-5. 전환 (점검 시간, 5~10분 중단)
+
+- [ ] **P8-5-1** 기존 앱을 점검 모드로 바꾼다. 기존 PHP 버전으로 실행한다.
+  ```sh
+  cd <OLD_DIR> && php artisan down --retry=60
+  ```
+- [ ] **P8-5-2** 최종 DB 백업(8-4-1의 `mysqldump`)을 다시 받는다. 점검 직전까지 쌓인 응시 기록을 담기 위해서다.
+- [ ] **P8-5-3** 새 릴리스에서 마이그레이션(기대: 변경 없음)과 캐시를 만든다.
+  ```sh
+  cd <NEW_DIR>
+  php8.5 artisan migrate --force
+  php8.5 artisan optimize          # config, route, view, event 캐시
+  ```
+- [ ] **P8-5-4** nginx를 새 릴리스와 PHP 8.5로 바꾼다.
+  ```sh
+  sudo cp <SITE_CONF> ~/backup/nginx-site-before-upgrade.conf
+  sudo sed -i 's#<OLD_DIR>/public#<NEW_DIR>/public#; s#<OLD_SOCK>#<NEW_SOCK>#' <SITE_CONF>
+  grep -nE 'root |fastcgi_pass|client_max_body_size' <SITE_CONF>     # 바뀐 값과 128M 확인
+  sudo nginx -t && sudo systemctl reload nginx
+  sudo systemctl reload php8.5-fpm
+  ```
+- [ ] **P8-5-5** 기본 `php` 명령을 8.5로 바꾼다. 이후 서버에서 실행하는 `php artisan …`이 8.5로 돈다.
+  ```sh
+  sudo update-alternatives --set php /usr/bin/php8.5 && php -v | head -1
+  ```
+  - P8-0-1에서 cron 등으로 `php`를 쓰는 다른 작업이 있었다면 함께 확인한다.
+- [ ] **P8-5-6** 전환 직후 바로 확인한다.
+  ```sh
+  curl -sI https://<도메인>/login | head -1
+  sudo tail -n 20 /var/log/nginx/error.log
+  tail -n 50 <NEW_DIR>/storage/logs/laravel*.log
+  ```
+  기존 폴더는 점검 모드인 채로 둔다. nginx가 더 이상 가리키지 않으므로 영향이 없다.
+
+#### 8-6. 배포 후 점검
+
+- [ ] **P8-6-1** 6장 수동 점검 목록 1~9를 운영 화면에서 확인한다. 테스트용 학생 계정으로 응시하고, 끝나면 그 응시 기록을 지운다. 특히 다음을 본다.
+  - 학생: OMR형 제출(R1), 일반형, 영작나열형(타이머·재시도·드래그), 듣기평가(mp3 재생)
+  - 서술형 번역 답안을 10자 넘게, 정답과 다르게 입력해 Python 채점이 정답/보류/오답 중 하나로 처리되는지(9번)
+  - 관리자: 채점 화면 "검토 완료" 버튼과 알림창, 수동 정오 변경 시 점수 재계산, 관리자 홈 차트, 듣기평가 mp3 업로드(S3)
+  - 브라우저 개발자 도구 콘솔에 오류가 없고, 스크립트가 `/livewire/livewire.min.js`로 로드되는지
+- [ ] **P8-6-2** 하루 동안 로그를 지켜본다: `tail -f <NEW_DIR>/storage/logs/laravel*.log /var/log/nginx/error.log /var/log/php8.5-fpm.log`
+- [ ] **P8-6-3** 결과를 9장 작업 로그에 기록하고, 관리자에게 B5·B11 변경을 안내했는지 확인한다.
+
+#### 8-7. 되돌리기 (문제가 있을 때)
+
+DB 구조가 바뀌지 않았으므로 **보통은 DB를 복원하지 않는다.** 새 버전에서 쌓인 응시 기록은 기존 앱에서도 그대로 읽힌다.
+
+- [ ] **P8-7-1** nginx를 기존 폴더와 기존 php-fpm으로 되돌린다.
+  ```sh
+  sudo cp ~/backup/nginx-site-before-upgrade.conf <SITE_CONF>
+  sudo nginx -t && sudo systemctl reload nginx
+  sudo update-alternatives --set php /usr/bin/php<OLD_PHP>
+  cd <OLD_DIR> && php artisan up
+  ```
+- [ ] **P8-7-2** DB 복원은 데이터가 잘못 저장된 경우에만 한다. 복원하면 백업 이후의 응시 기록이 사라진다.
+  ```sh
+  gunzip -c ~/backup/<최종 백업>.sql.gz | mysql -u <DB_USER> -p <DB_NAME>
+  ```
+- [ ] **P8-7-3** 원인을 9장 작업 로그에 기록하고, 개발 환경에서 재현·수정한 뒤 8-3부터 다시 진행한다.
+
+#### 8-8. 정리 (안정화 1~2주 후)
+
+- [ ] **P8-8-1** 기존 폴더를 보관용으로 압축한 뒤 정리한다: `tar czf ~/backup/quizapp-old-release.tgz -C <OLD_DIR>/.. $(basename <OLD_DIR>)`
+- [ ] **P8-8-2** 기존 PHP가 다른 용도로 쓰이지 않는지 확인한 뒤 제거한다.
+  ```sh
+  sudo systemctl disable --now php<OLD_PHP>-fpm
+  sudo apt purge 'php<OLD_PHP>-*' && sudo apt autoremove
+  ```
+- [ ] **P8-8-3** 이후 보안 패치를 정기적으로 적용한다.
+  ```sh
+  sudo apt update && apt list --upgradable 2>/dev/null | grep php8.5
+  sudo apt upgrade -y 'php8.5-*' && sudo systemctl reload php8.5-fpm && php -v | head -1
+  ```
+  - Ubuntu 공식 저장소를 쓰면 `unattended-upgrades`가 보안 업데이트를 자동으로 적용한다.
+  - PPA를 쓰면 자동 업데이트 대상에 넣거나 월 1회 수동으로 적용한다.
+  - 앱 의존성은 개발 환경에서 `composer update`와 테스트를 거친 뒤 새 릴리스로 배포한다(8-3~8-5).
 
 ---
 
@@ -312,6 +604,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P8 | 절차 작성 | D9(Ubuntu 직접 설치) 반영. 서버 정보(8-0) 수집 후 진행 |
 | 2026-11-10 | P7-4 | 완료 | 운영 Dockerfile PHP 8.5 FPM 재작성, `.dockerignore`로 `.env` 유출 차단. php-fpm+nginx로 실제 실행·로그인 확인 |
 | 2026-11-10 | P7 | 완료(P7-4 제외) | 남은 패키지 최신화, 보안 버그 B10 수정, 최종 테스트 중 R1(OMR 제출 실패)·B11 발견·수정. 테스트 66 통과 |
 | 2026-11-10 | P6 | 완료 | Laravel 13.40, PHP 8.5.12. 보안 권고 없이 설치. 테스트 56 통과, 브라우저 확인. **이 커밋부터 배포 후보**(P7·P8 남음) |
