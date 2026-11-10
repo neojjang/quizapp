@@ -60,7 +60,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | P1 | 회귀 테스트 작성 (업그레이드 전 기준선) | [x] |
 | BF | 기존 버그 B1~B7 수정 (D6) | [x] |
 | P2 | 차트 라이브러리 제거 → Chart.js 직접 사용 (Laravel 8 유지) | [x] |
-| P3 | Laravel 8 → 9, Mix → Vite | [ ] |
+| P3 | Laravel 8 → 9, Mix → Vite | [x] |
 | P4 | Laravel 9 → 10 | [ ] |
 | P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [ ] |
 | P6 | Laravel 11 → 12 (→ 13, D1) | [ ] |
@@ -145,12 +145,20 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 ### P3. Laravel 8 → 9, Mix → Vite
 
-- [ ] **P3-1** 개발 컨테이너 `PHP_VERSION=8.1`
-- [ ] **P3-2** composer: `laravel/framework ^9`, `nunomaduro/collision ^6`, `spatie/laravel-ignition`(`facade/ignition` 대체), `laravel/sanctum ^3`, `spatie/laravel-permission ^5`, `fideloper/proxy` 제거(`TrustProxies` 미들웨어를 프레임워크 기본으로), `fruitcake/laravel-cors` 제거(`HandleCors` 프레임워크 기본)
-- [ ] **P3-3** 공식 업그레이드 가이드 9.x 항목 적용: Flysystem 3(S3 드라이버 `league/flysystem-aws-s3-v3 ^3`), `Str`/`Storage` 동작 변경, `lang` 디렉터리 이동
-- [ ] **P3-4** S3 업로드·다운로드 경로 코드(`SectionFiles` 등) 점검 — Flysystem 3 예외 동작 변경
-- [ ] **P3-5** Mix → Vite: `vite.config.js`, `@vite` 디렉티브, `webpack.mix.js` 제거, `package.json` 스크립트 교체. Tailwind는 2 → 3으로 올린다(Jetstream 5 기준과 맞춤), `purge` → `content`
-- [ ] **P3-6** 테스트·수동 점검 → 로그 → 커밋
+- [x] **P3-1** 개발 컨테이너 PHP 8.1 유지(Laravel 9 요구: 8.0.2+)
+- [x] **P3-2** composer: `laravel/framework 9.52.23`, `jetstream 2.16.2`, `sanctum 3.3.3`, `livewire 2.12.8`(그대로), `spatie/laravel-permission 5.11.1`, `realrashid/sweet-alert 7.3.2`, `spatie/laravel-ignition`(facade/ignition 대체), `collision ^6`, `fideloper/proxy`·`fruitcake/laravel-cors` 제거
+  - `TrustProxies`는 `Illuminate\Http\Middleware\TrustProxies`, CORS는 `Illuminate\Http\Middleware\HandleCors`로 교체
+  - **Composer 2.11의 보안 차단**: Laravel 9.x 전 버전이 보안 권고 대상이라 설치가 막힘 → 중간 단계(P3~P5)만 `composer update --no-blocking`으로 진행. 이 단계들의 커밋은 **배포 금지**. 최종(P6) lock은 이 옵션 없이 설치돼야 함
+- [x] **P3-3** Flysystem 3: `s3` 디스크에 `'throw' => true` — 기본값(false)이면 업로드 실패 시 `false`가 `section_files.file_url`에 저장됨. `lang` 디렉터리 이동은 불필요(9.x는 기존 위치 지원)
+- [x] **P3-4** S3 코드(`MakeListeningTestForm`) 점검: `put()`/`delete()` 사용법 동일, 옵션 `ACL`은 Flysystem 3에서도 전달됨. 실제 S3 업로드는 운영 자격 증명이 필요해 미검증 → 수동 점검 목록 4번
+- [x] **P3-5** Mix → Vite 7(`laravel-vite-plugin 2`), Tailwind 2 → 3.4
+  - `vite.config.js`, `postcss.config.js` 추가, `webpack.mix.js`·`public/js`·`public/css`·`mix-manifest.json` 제거, 레이아웃 2개에 `@vite`
+  - `resources/js` CommonJS → ES 모듈, `.env`의 `MIX_` 접두사 → `VITE_`(Pusher 주석만 해당)
+  - 빌드 결과 `public/build`를 커밋(기존처럼 빌드된 자산을 저장소에 둠 — 운영에서 npm 빌드를 할지는 P8에서 결정)
+  - `tailwind.config.js`: `purge`→`content`, `mode: 'jit'`·`variants` 제거, **`darkMode: 'class'`**(Tailwind 3는 OS 다크 모드에서 `dark:` 클래스를 적용해 관리자 홈 카드가 검게 나옴 → Tailwind 2와 같게)
+  - 달력 칸의 `min-h-24`는 Tailwind 2에 없는 클래스라 무시되다가 이제 적용됨(칸 높이 증가, 작성자 의도대로) — 유지
+  - compose node 서비스의 `NODE_OPTIONS` 제거
+- [x] **P3-6** 테스트 55 통과. Orca 브라우저: 관리자 홈 차트·Livewire·Alpine 로드, OMR 데모 시험 응시→제출→100% 결과·DB 저장, "검토 완료" 후 sweet-alert 팝업 확인
 
 ### P4. Laravel 9 → 10
 
@@ -258,6 +266,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P3 | 완료 | Laravel 9.52, Vite 7, Tailwind 3.4. 테스트 55 통과, 브라우저 응시 흐름 확인. 중간 단계는 `--no-blocking` 필요(배포 금지) |
 | 2026-11-10 | BF-8 | 완료 | B8 수정, 테스트 55 통과 |
 | 2026-11-10 | P2 | 완료 | 차트 라이브러리 제거, Chart.js 4. 테스트 53 통과. `composer audit` 결과 17개 패키지에 보안 권고 60건 — P3~P6 업그레이드로 해소 예정, P7-1에서 재확인 |
 | 2026-11-10 | BF | 완료 | B1~B7 수정, 테스트 51 통과. B5는 "검토 완료" 버튼 방식으로 변경. B8 신규 발견(D7) |
