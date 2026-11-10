@@ -12,6 +12,7 @@ use Livewire\Component;
 use App\Models\Question;
 use App\Models\QuizHeader;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 
 class UserQuizlv extends Component
 {
@@ -235,27 +236,34 @@ class UserQuizlv extends Component
 
         // 정답안의 길이가 5자 이상의 경우만 분석기 비교 실행
         if ($result === 0.0 && mb_strlen($trim_userAnswered) > 10) {
-            $cmd = sprintf('/home/ubuntu/venv/bin/python3 /home/ubuntu/dongwon/konlpy/check_answer.py "%s" "%s"',
-                            escapeshellarg($questionAnswer),
-                            escapeshellarg($userAnswered));
-            Log::debug("cmd=".$cmd);
-            $similar_score = shell_exec($cmd);
-            Log::debug(trim($similar_score));
-            $result = floatval($similar_score);
-            // use Symfony\Component\Process\Process;
-            // use Symfony\Component\Process\Exception\ProcessFailedException;
-
-            // $process = new Process('sh /folder_name/file_name.sh');
-            // $process->run();
-
-            // // executes after the command finishes
-            // if (!$process->isSuccessful()) {
-            //     throw new ProcessFailedException($process);
-            // }
-
-            // echo $process->getOutput();
+            $result = $this->similarityScore($questionAnswer, $userAnswered);
         }
         return $result;
+    }
+
+    /**
+     * Python(konlpy) 유사도 채점. 실패하면 0점(오답)으로 처리한다.
+     * @return float 0.0 ~ 1.0
+     */
+    private function similarityScore($questionAnswer, $userAnswered): float
+    {
+        $checker = config('services.answer_checker');
+        // 셸을 거치지 않고 인자 배열로 실행해 학생 답안이 명령으로 해석되지 않게 한다.
+        // 기존과 같은 입력(작은따옴표로 감싼 문자열)을 받도록 escapeshellarg 결과를 그대로 넘긴다.
+        $process = Process::timeout($checker['timeout'])->run([
+            $checker['python'],
+            $checker['script'],
+            escapeshellarg($questionAnswer),
+            escapeshellarg($userAnswered),
+        ]);
+
+        if ($process->failed()) {
+            Log::error('answer checker failed', ['exit' => $process->exitCode(), 'error' => trim($process->errorOutput())]);
+            return 0.0;
+        }
+        Log::debug(trim($process->output()));
+
+        return floatval($process->output());
     }
 
     /**
@@ -378,8 +386,10 @@ class UserQuizlv extends Component
 //            $isChoiceCorrect = ($resultScore >= 0.75) ? '1': (($resultScore >= 0.40) ? '2': '0');
 //            $userAnswered = $this->userAnswered;
         } else if ($currentQuestionTypeId == \App\Constants\Question::ENGLISH_COMPOSITION_CLICK) {
-            // 유저가 입력한 값이 있으면 true에서 시작
-            $isChoiceCorrect = (count($this->userAnswered)>0);
+            // 모든 구문을 선택한 경우에만 정답 가능. 구문별 정오([1])는 전부 선택했을 때만 판정되므로
+            // 시간 초과로 일부만 선택한 답이 정답 처리되지 않게 개수부터 확인한다
+            $phraseCount = count(explode('/', $this->currentQuestion->answers[0]->answer));
+            $isChoiceCorrect = count($this->userAnswered) == $phraseCount;
             $userAnswered = "";
             foreach ($this->userAnswered as $index => $item) {
                 $isChoiceCorrect = $isChoiceCorrect & $item[1];
@@ -602,6 +612,10 @@ class UserQuizlv extends Component
 
             if ($question->type_id == 1) {
                 // 객관식에 대한 처리
+                // Livewire 3는 단일 체크박스(omrAnswered.문항.보기순번)에 value 대신 true를 넣으므로 보기 순번으로 값을 만든다
+                $userAnswered = collect($userAnswered)->filter()
+                    ->map(fn ($checked, $i) => is_string($checked) ? $checked : $question->answers[$i]->id.','.$question->answers[$i]->is_checked)
+                    ->all();
                 $result = $this->checkChoiceAnswer($question, $userAnswered);
             } elseif ($question->type_id == 4) {
                 // 단답형 처리

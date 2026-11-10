@@ -115,4 +115,32 @@ class SentenceOrderQuizTest extends TestCase
         $this->assertSame(1, Quiz::count());
         $this->assertEquals(100, QuizHeader::first()->score);
     }
+
+    public function test_partial_answer_after_timeout_is_wrong()
+    {
+        $component = $this->start(1);
+
+        // 일부 구문만 고른 채 시간 초과(브라우저 타이머가 isTimeout 등을 설정)
+        $this->choose($component, ['am', 'I'])
+            ->set('isTimeout', true)
+            ->set('isDisabled', false)
+            ->call('nextQuestion');
+
+        $quiz = Quiz::first();
+        $this->assertEquals('0', $quiz->is_correct);
+        $this->assertEquals('am / I', $quiz->user_answer);
+        $this->assertEquals(0, QuizHeader::first()->score);
+    }
+
+    public function test_partial_answer_in_correct_order_after_timeout_is_wrong()
+    {
+        $component = $this->start(1);
+
+        $this->choose($component, ['I', 'am'])
+            ->set('isTimeout', true)
+            ->set('isDisabled', false)
+            ->call('nextQuestion');
+
+        $this->assertEquals('0', Quiz::first()->is_correct);
+    }
 }

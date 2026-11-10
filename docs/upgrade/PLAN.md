@@ -49,6 +49,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | D3 | 관리자 계정이 `user` 역할도 갖는지(차트 API 미들웨어가 `role:user`) | — | **해소**: P2에서 차트 API 자체를 없앰. 차트는 각 홈 화면 권한을 따름 |
 | D4 | 운영 DB 종류·버전, 백업 방법 | — | **결정**: MySQL 또는 MariaDB. 정확한 버전·백업 방법은 P0-7에서 확인 |
 | D6 | 8장 버그(B1~B7) 수정 시점 | — | **결정**: P2 전에 수정 완료(BF 단계). 선택형·단답형 문제는 운영에서 OMR형 시험에서만 사용 |
+| D8 | 운영용 `Dockerfile` 처리: 삭제 vs PHP 8.5·Laravel 13 기준으로 갱신 | 운영이 Ubuntu 직접 실행이면 삭제(쓰지 않는 파일이 잘못된 안내가 됨) | 미정 |
 | D7 | B8(비활성 문제 출제) 수정 여부 | — | **결정**: 수정. 출제·채점 모두 사용 중인 문제만 |
 | D5 | Livewire 최신 메이저(3 vs 4) 및 Jetstream 호환 버전 | — | **결정**: Livewire 3.8. Jetstream 5가 `^3.6.4`를 설치하고 4 지원을 선언하지 않음 |
 
@@ -64,7 +65,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | P4 | Laravel 9 → 10 | [x] |
 | P5 | Laravel 10 → 11, Livewire 2 → 3, Jetstream 2 → 5 | [x] |
 | P6 | Laravel 11 → 12 → 13, PHP 8.5 | [x] |
-| P7 | 정리: 레거시 패키지 제거, 하드코딩 경로 설정화 | [ ] |
+| P7 | 정리: 남은 패키지 갱신, 채점 실행 보안 수정, 최종 테스트 | [x] (P7-4 Dockerfile은 D8 대기) |
 | P8 | 운영 배포 | [ ] |
 
 각 단계의 공통 완료 조건: **컨테이너에서 `php artisan test` 전부 통과 + 6장 수동 점검 목록 통과 + 로그 기록 + 커밋.**
@@ -220,11 +221,23 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 
 ### P7. 정리
 
-- [ ] **P7-1** `composer outdated -D`, `npm outdated`로 남은 구버전 확인·갱신
-- [ ] **P7-2** `minimum-stability: dev` → `stable` 검토(포크 패키지 제거 후 가능)
-- [ ] **P7-3** Python 채점 경로를 `config/services.php` + `.env`로 분리, 인자에 `escapeshellarg` 적용, 실행 실패 시 처리
-- [ ] **P7-4** 운영용 `Dockerfile`(현재 `php:8.0-fpm`)을 유지할지 결정 — 운영이 Ubuntu 직접 실행이라면 삭제 또는 갱신
-- [ ] **P7-5** `README`에 개발 환경 실행 방법(Docker + SQLite) 기록
+- [x] **P7-1** 남은 구버전 갱신(보안 차단 우회 없이 설치, `composer audit` 권고 없음)
+  - `guzzlehttp/guzzle 8.3.1`(앱에서 직접 사용 안 함, Laravel HTTP·AWS SDK 경유), `phpunit 13.4.6`
+  - `spatie/laravel-permission 8.5.0`: 앱 설정에 수정이 없어 v8 기본 설정으로 교체(팀·이벤트 등 새 키 명시). 테이블 구조 변경 없음, 새 DB 마이그레이션·시드 정상
+  - `realrashid/sweet-alert 8.0.0`: 설정 키가 snake_case로 바뀌고 화면이 새로 작성됨. 앱이 v4 시절 게시한 화면(`resources/views/vendor/sweetalert`)과 JS(`public/vendor/sweetalert/sweetalert.all.js`)를 삭제하고 v8 설정·JS로 교체. 유일한 수정 사항이던 알림 닫힘 시간 3초는 유지. SweetAlert2 본체는 v8 기본값대로 CDN(jsdelivr)에서 로드
+  - `livewire 3→4`: D5에 따라 보류
+- [x] **P7-2** `minimum-stability: dev` → `stable`
+- [x] **P7-3** Python 채점(**보안 버그 B10 수정**)
+  - 기존 코드는 `escapeshellarg()` 결과를 다시 큰따옴표로 감싸 `shell_exec` → 큰따옴표 안의 `$(...)`·백틱이 실행됨. 학생 답안 `$(echo INJECTED-$((6*7)))`이 `INJECTED-42`로 실행되는 것을 컨테이너에서 확인
+  - `Process::run([...])`(셸 없이 인자 배열)로 교체. 스크립트가 받는 인자는 기존과 같은 형태(작은따옴표로 감싼 문자열)를 유지해 채점 결과가 바뀌지 않게 함 — 가짜 채점 스크립트로 기존/새 방식의 인자가 같음을 확인
+  - 경로를 `config/services.php`의 `answer_checker`로(기본값은 기존 운영 경로라 운영 `.env` 수정 불필요), 제한 시간 30초, 실패 시 오류 기록 후 오답(0점) 처리
+  - `AnswerCheckerTest`: 점수 구간별 정답/보류/오답, 셸 없이 인자 전달, 실패 시 오답, 완전 일치 시 스크립트 미실행
+- [ ] **P7-4** 운영용 `Dockerfile`(PHP 8.0 기준이라 현재 코드로는 빌드 불가) 처리 — D8 결정 필요
+- [x] **P7-5** `README.md`에 개발 환경(Docker + SQLite)·채점 스크립트 설정 추가, sortable 버전 갱신
+- [x] **P7-6** 최종 테스트
+  - 자동: 테스트 **66 통과** / 0 실패 / 7 건너뜀, deprecation·경고 없음, `composer audit`·`validate` 통과, 빈 DB에서 `migrate:fresh --seed` 성공
+  - Orca 브라우저(학생 계정으로 로그인): 로그인 화면(Alpine·Livewire 로드, 회원가입 링크), 학생 홈 차트, 관리자 화면 403, OMR 응시 100%, 일반형 응시 50%(선택 정답·번역 오답), 영작나열형 시간 초과→재시도→제출, sweet-alert 토스트(3초 후 닫힘)
+  - 이 과정에서 발견해 수정: **R1** OMR·듣기평가 제출 실패(Livewire 3 회귀, 아래), **B11** 시간 초과로 일부만 고른 영작나열 답이 정답 처리
 
 ### P8. 운영 배포 (Ubuntu)
 
@@ -283,6 +296,10 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | B9 | `make-test-answer-form`, `make-listening-test-form` 뷰 | 선택형 보기 번호 "1"을 클릭하면 2번 보기가 체크됨 | 첫 `<label for>`가 `answer.1`을 가리킴 | 수정 (P5) |
 
+| B10 | `UserQuizlv::checkUserAnswer` | **보안**: 서술형 답안에 `$(명령)`을 넣으면 서버에서 실행됨 | `escapeshellarg` 결과를 큰따옴표로 다시 감싸 셸이 치환 | 수정 (P7-3) |
+| B11 | `UserQuizlv::checkCurrentAnswer` | 영작나열형에서 시간 초과로 일부 구문만 고른 답이 정답 처리 | 구문별 정오는 전부 골랐을 때만 판정되는데, 일부만 고르면 모두 "통과" 상태로 남음 | 수정 (P7-6): 모든 구문을 골라야 정답 |
+| R1 | `UserQuizlv::checkAllAnswers` | **Livewire 3 회귀**: OMR·듣기평가에서 선택형 문항이 있으면 제출이 실패 | Livewire 2는 단일 체크박스에 `value`("보기id,정답여부")를 넣었지만 Livewire 3는 `true`를 넣음. P5 테스트는 옛 형식 값을 직접 넣어서 놓침 | 수정 (P7-6): `true`면 보기 순번으로 값 생성. Livewire 3 형식 테스트 추가 |
+
 **B5 운영 영향:** 이제 관리자가 채점 화면에서 "검토 완료"를 눌러야 오늘의 채점 목록(`ShowTodayTesters`, `reviewed=0`만 표시)에서 빠진다. 배포 시 관리자에게 안내 필요.
 
 ## 9. 작업 로그
@@ -291,6 +308,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-10 | P7 | 완료(P7-4 제외) | 남은 패키지 최신화, 보안 버그 B10 수정, 최종 테스트 중 R1(OMR 제출 실패)·B11 발견·수정. 테스트 66 통과 |
 | 2026-11-10 | P6 | 완료 | Laravel 13.40, PHP 8.5.12. 보안 권고 없이 설치. 테스트 56 통과, 브라우저 확인. **이 커밋부터 배포 후보**(P7·P8 남음) |
 | 2026-11-10 | P5 | 완료 | Laravel 11.57, Livewire 3.8, Jetstream 5.5. 테스트 56 통과, 주요 화면 브라우저 확인. 미추적 `public/vendor/livewire`(Livewire 2 자산)가 Livewire 3 스크립트 대신 로드되는 문제 → 스크래치패드로 이동(P0-1 삭제 대상). 같은 이유로 `resources/views/vendor/livewire`도 이동 |
 | 2026-11-10 | P4 | 완료 | Laravel 10.50, PHP 8.2, PHPUnit 10, Permission 6. 테스트 55 통과 |

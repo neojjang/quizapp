@@ -116,4 +116,25 @@ class AnswerSheetQuizTest extends TestCase
         $this->assertEquals([$active->id], Quiz::pluck('question_id')->all());
         $this->assertEquals(100, QuizHeader::first()->score);
     }
+
+    /** 브라우저(Livewire 3)는 체크한 보기를 omrAnswered[문항][보기순번] = true 로 보낸다 */
+    #[DataProvider('sectionTypes')]
+    public function test_checkbox_values_sent_by_livewire_3_are_graded($sectionType)
+    {
+        $section = $this->makeSection($sectionType);
+        $right = $this->makeQuestion($section, 1, [['1번', false], ['2번', true], ['3번', false]]);
+        $wrong = $this->makeQuestion($section, 1, [['1번', true], ['2번', false]]);
+
+        $this->start($section)
+            ->set('omrAnswered.0.1', true)
+            ->set('omrAnswered.1.1', true)
+            ->assertSet('isDisabled', false)
+            ->call('checkAllAnswers')
+            ->assertSet('showResult', true);
+
+        $this->assertEquals('1', Quiz::where('question_id', $right->id)->value('is_correct'));
+        $this->assertEquals('0', Quiz::where('question_id', $wrong->id)->value('is_correct'));
+        $this->assertEquals($right->answers[1]->id, Quiz::where('question_id', $right->id)->value('user_answer'));
+        $this->assertEquals(50, QuizHeader::first()->score);
+    }
 }
