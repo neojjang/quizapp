@@ -80,20 +80,41 @@ class NormalQuizTest extends TestCase
         $this->assertEquals((string) $wrongId, $quiz->user_answer);
     }
 
-    public function test_replayed_submission_is_not_saved_again()
+    public function test_replayed_submission_moves_on_without_saving_again()
+    {
+        $section = $this->makeSection();
+        $q1 = $this->makeQuestion($section, 1, [['정답', true], ['오답', false]]);
+        $q2 = $this->makeQuestion($section, 4, [['Apple', true]]);
+
+        // 저장은 됐지만 응답이 유실된 경우: 브라우저는 제출 전 상태(replay)로 다시 보낸다
+        $component = $this->start($section)->set('userAnswered', [$this->choiceValue($q1, 1)]);
+        $replay = clone $component->instance();
+        $component->call('nextQuestion');
+        $replay->userAnswered = [$this->choiceValue($q1, 0)];
+        $replay->nextQuestion();
+
+        $this->assertSame(1, Quiz::count());
+        $this->assertEquals('0', Quiz::first()->is_correct);
+        $this->assertEquals($q2->id, $replay->currentQuestion->id);
+    }
+
+    public function test_replayed_last_submission_completes_the_quiz()
     {
         $section = $this->makeSection();
         $q = $this->makeQuestion($section, 1, [['정답', true], ['오답', false]]);
 
-        // 제출 전 상태(quizInProgress=true)를 그대로 다시 보낸 경우: 컴포넌트 가드는 통과하지만 DB 확인에서 막힌다
-        $component = $this->start($section)->set('userAnswered', [$this->choiceValue($q, 1)]);
-        $component->instance()->nextQuestion();
-        $component->instance()->quizInProgress = true;
-        $component->instance()->userAnswered = [$this->choiceValue($q, 0)];
-        $component->instance()->nextQuestion();
+        $component = $this->start($section)->set('userAnswered', [$this->choiceValue($q, 0)]);
+        $replay = clone $component->instance();
+        $component->call('nextQuestion');
+        // 답안 저장 후 결과 처리(showResults)에서 실패한 상태
+        QuizHeader::query()->update(['completed' => false, 'score' => 0]);
+        $replay->nextQuestion();
 
         $this->assertSame(1, Quiz::count());
-        $this->assertEquals('0', Quiz::first()->is_correct);
+        $this->assertTrue($replay->showResult);
+        $header = QuizHeader::first();
+        $this->assertEquals(1, $header->completed);
+        $this->assertEquals(100, $header->score);
     }
 
     public function test_translation_exact_match_is_correct()

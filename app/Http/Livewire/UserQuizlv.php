@@ -414,10 +414,11 @@ class UserQuizlv extends Component
 //        }
         $result = $this->checkCurrentAnswer();
 
-        $saved = DB::transaction(function () use ($result) {
-            // 컴포넌트 상태(quizInProgress)는 브라우저가 들고 있어 동시·재전송 요청을 막지 못하므로 DB 기록으로 확인한다
+        DB::transaction(function () use ($result) {
+            // 컴포넌트 상태(quizInProgress)는 브라우저가 들고 있어 동시·재전송 요청을 막지 못하므로 DB 기록으로 확인한다.
+            // 이미 저장된 답(응답 유실 후 재전송 등)은 저장만 건너뛰고 아래 진행·완료 처리는 그대로 해서 화면을 복구한다
             if ($this->lockQuizHeader()->where('question_id', $this->currentQuestion->id)->exists()) {
-                return false;
+                return;
             }
             // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
             Quiz::create([
@@ -434,11 +435,7 @@ class UserQuizlv extends Component
 
             // Save the record
             $this->quizid->save();
-            return true;
         });
-        if (!$saved) {
-            return;
-        }
 
         // Increment the quiz counter so we terminate the quiz on the number of question user has selected during quiz creation.
         $this->count++;
@@ -656,10 +653,11 @@ class UserQuizlv extends Component
             ];
         }
 
-        $saved = DB::transaction(function () use ($rows) {
-            // 컴포넌트 상태(quizInProgress)는 브라우저가 들고 있어 동시·재전송 요청을 막지 못하므로 DB 기록으로 확인한다
+        DB::transaction(function () use ($rows) {
+            // 컴포넌트 상태(quizInProgress)는 브라우저가 들고 있어 동시·재전송 요청을 막지 못하므로 DB 기록으로 확인한다.
+            // 이미 저장된 답안지(응답 유실 후 재전송 등)는 저장만 건너뛰고 결과 처리는 그대로 해서 화면을 복구한다
             if ($this->lockQuizHeader()->exists()) {
-                return false;
+                return;
             }
             foreach ($rows as $row) {
                 // Insert the current question_id, answer_id and whether it is correnct or wrong to quiz table.
@@ -668,11 +666,7 @@ class UserQuizlv extends Component
             $this->quizid->questions_taken = serialize(array_column($rows, 'question_id'));
             // Save the record
             $this->quizid->save();
-            return true;
         });
-        if (!$saved) {
-            return;
-        }
         $this->answeredQuestions = array_column($rows, 'question_id');
 
         // 다중 선택 처리를 위해 아래는 일단 주석

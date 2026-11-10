@@ -102,20 +102,24 @@ class AnswerSheetQuizTest extends TestCase
         $this->assertEquals(100, QuizHeader::first()->score);
     }
 
-    public function test_replayed_submission_is_not_saved_again()
+    public function test_replayed_submission_completes_without_saving_again()
     {
         $section = $this->makeSection(SectionType::OMR);
         $this->makeQuestion($section, 1, [['1번', true], ['2번', false]]);
 
+        // 저장은 됐지만 응답이 유실됐고 결과 처리(showResults)도 실패한 상태에서, 제출 전 상태(replay)로 다시 보낸다
         $component = $this->start($section)->set('omrAnswered.0.1', true);
-        $component->instance()->checkAllAnswers();
-        // 제출 전 상태를 다시 보낸 경우
-        $component->instance()->quizInProgress = true;
-        $component->instance()->omrAnswered = [0 => [0 => true]];
-        $component->instance()->checkAllAnswers();
+        $replay = clone $component->instance();
+        $component->call('checkAllAnswers');
+        QuizHeader::query()->update(['completed' => false, 'score' => 0]);
+        $replay->omrAnswered = [0 => [0 => true]];
+        $replay->checkAllAnswers();
 
         $this->assertSame(1, Quiz::count());
-        $this->assertEquals(0, QuizHeader::first()->score);
+        $this->assertTrue($replay->showResult);
+        $header = QuizHeader::first();
+        $this->assertEquals(1, $header->completed);
+        $this->assertEquals(0, $header->score);
     }
 
     public function test_failure_while_grading_saves_nothing()
