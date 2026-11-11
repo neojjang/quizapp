@@ -53,7 +53,7 @@ docker compose -f compose.dev.yml run --rm node npm ci               # 프론트
 | D9 | 운영 배포 방식 | — | **결정**: Ubuntu에 직접 설치(PHP 8.5 패키지 + nginx + php-fpm). 절차는 P8 |
 | D8 | 운영용 `Dockerfile` 처리 | — | **결정**: PHP 8.5·Laravel 13 기준으로 갱신 |
 | D7 | B8(비활성 문제 출제) 수정 여부 | — | **결정**: 수정. 출제·채점 모두 사용 중인 문제만 |
-| D10 | 운영 서버 이전 | — | **결정(2026-11-10)**: 기존 Ubuntu 서버를 Mac mini + Docker로 대체하고 데이터를 이전. 외부 접근은 Cloudflare Tunnel, DB는 기존 운영과 같은 종류의 컨테이너(MySQL 8.4 또는 MariaDB 11.4), Python 채점(konlpy)은 앱 이미지에 포함. D9·P8은 보류. 절차는 `docs/deploy/MACMINI.md` |
+| D10 | 운영 서버 이전 | — | **결정(2026-11-10)**: 기존 Ubuntu 서버를 Mac mini + Docker로 대체하고 데이터를 이전. 외부 접근은 Cloudflare Tunnel, DB는 기존 운영과 같은 종류의 컨테이너(MySQL 8.4 또는 MariaDB 11.4), Python 채점(konlpy)은 앱 이미지에 포함. D9·P8은 보류. 절차는 `docs/deploy/MACMINI.md`. PostgreSQL 전환도 검토했으나 기각(2026-11-11): 마이그레이션·테스트는 통과하지만 이메일 로그인·검색의 대소문자 구분이 달라지고, 엔진 간 데이터 변환(boolean·시각·시퀀스)과 되돌리기 위험만 늘어 얻는 기능이 없음 |
 | D5 | Livewire 최신 메이저(3 vs 4) 및 Jetstream 호환 버전 | — | **결정**: Livewire 3.8. Jetstream 5가 `^3.6.4`를 설치하고 4 지원을 선언하지 않음 |
 
 ## 4. 상태 요약
@@ -634,6 +634,7 @@ P1 테스트로 확인한 기존 버그. 업그레이드와 별개이며, 수정
 
 | 날짜 | 작업 | 결과 | 메모 |
 |---|---|---|---|
+| 2026-11-11 | D10 | 검토 | PostgreSQL 전환 검토 후 기각, MySQL/MariaDB 유지. Postgres 17에서 빈 DB 마이그레이션·테스트 76 통과, 이메일·검색 대소문자 구분 차이 확인 |
 | 2026-11-10 | P9 | 구성·로컬 검증 | D10 결정(Mac mini + Docker + Cloudflare Tunnel, 데이터 이전). `compose.prod.yml`·`docker/prod/`·배포 문서 작성. 검토 중 B17·B18 발견·수정, TrustProxies 설정. MySQL 8.4·MariaDB 11.4로 빈 DB 설치·백업·복원, 브라우저 응시·Python 채점 확인. 테스트 76 통과. 운영 compose 프로젝트 이름을 개발과 같게 두었다가 개발 컨테이너가 교체된 일이 있어 `quizapp-prod`로 분리 |
 | 2026-11-10 | P7-9 | 완료 | 리뷰 반영 B16(재전송 시 화면 진행·완료 복구) 수정. 테스트 76 통과, 브라우저 확인 |
 | 2026-11-10 | P7-8 | 완료 | R2(응시 시간 음수 표시, Carbon 3 회귀) 수정. 테스트 75 통과, 브라우저 확인 |
